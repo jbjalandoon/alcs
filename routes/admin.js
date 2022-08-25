@@ -6,8 +6,13 @@ const router = express.Router();
 
 // Course Routes
 router.get("/courses", course.getCourses);
+
+router.get('/courses/add', course.addCourse)
 router.post("/courses/add", course.addCourse);
-router.post("/course/edit/:id", course.editCourse);
-router.post("/course/delete/:id", course.deleteCourse);
+
+router.get("/courses/edit/:id", course.editCourse);
+router.post("/courses/edit/:id", course.editCourse);
+
+router.post("/courses/delete", course.deleteCourse);
 
 module.exports = router;

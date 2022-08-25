@@ -1,0 +1,59 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE COURSE/S</strong>
+        <a href="/admin/courses/add" class="float-end"><button class="btn btn-primary">ADD NEW COURSE</button></a>
+      </div>
+      <div class="card-body">
+        <table id="example" class="table table-striped datatables" style="width:100%">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Position</th>
+              <th>Office</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% courses.forEach(course => { %>
+            <tr>
+              <td><%= course.course_code %></td>
+              <td><%= course.course_description %></td>
+              <td><%= course.units %></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="/admin/courses/edit/<%= course._id %>">Edit</a>
+                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= course._id %>">
+                  Delete
+                </button>
+                <div class="modal fade" id="deleteModal<%= course._id %>" tabindex="-1" aria-labelledby="deleteModal<%= course._id %>Label" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <strong>Are you sure, you want to delete?</strong>
+                      </div>
+                      <div class="modal-footer">
+                        <form action="/admin/courses/delete" method="post">
+                          <input type="hidden" name="_csrf" value="<%= csrf %>">
+                          <input type="hidden" name="id" value="<%= course._id %>">
+                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
+                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

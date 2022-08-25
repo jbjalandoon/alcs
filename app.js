@@ -16,9 +16,7 @@ const store = new mongoDBStore({
 });
 
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  express.static(path.join(__dirname, "node_modules", "bootstrap", "dist"))
-);
+app.use(express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
@@ -36,8 +34,7 @@ app.set("views", "views");
 app.use((req, res, next) => {
   res.locals.csrf = req.csrfToken();
   res.locals.isActive = req.session.user ? true : false;
-  // console.log(req.flash('error_message'))
-  // console.log(req.flash('success_message'))
+  res.locals.input_success_message = req.flash("input_success_message")[0];
   next();
 });
 
