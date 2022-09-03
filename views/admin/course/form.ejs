@@ -9,22 +9,78 @@
         <strong><%= edit ? 'EDITING A COURSE' : 'ADDING NEW COURSE'  %></strong>
       </div>
       <div class="card-body">
-        <form action="/admin/courses/<%= edit ? 'edit/'+course._id : 'add'  %>" method="post">
+        <form
+            class="needs-validation"
+            action="/admin/courses/<%= edit ? 'edit/'+course._id : 'add'  %>"
+            method="post"
+        >
           <div class="mb-4 col-6 offset-3">
-            <label class="form-label" for="course_code">Course Code</label>
-            <input class="form-control" value="<%= course ? course.course_code: ''  %>"name="course_code" id="course_code" type="text" placeholder="COMP-00000">
+            <label
+                class="form-label"
+                for="course_code"
+            >Course Code</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'course_code') ? 'is-invalid': 'is-valid'%>"
+                value="<%= course ? course.course_code: ''  %>"
+                name="course_code"
+                id="course_code"
+                type="text"
+                placeholder="COMP-00000"
+            >
+            <% if (errors.find(e => e.param === 'course_code')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'course_code').msg %>
+            </div>
+            <% } %>
           </div>
           <div class="mb-4 col-6 offset-3">
-            <label class="form-label" for="course_description">Course Description</label>
-            <input class="form-control" value="<%= course ? course.course_description: ''  %>"name="course_description" id="course_description" type="text" placeholder="Computer Programming">
+            <label
+                class="form-label"
+                for="course_description"
+            >Course Description</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'course_description') ? 'is-invalid': 'is-valid'%>"
+                value="<%= course ? course.course_description: ''  %>"
+                name="course_description"
+                id="course_description"
+                type="text"
+                placeholder="Computer Programming"
+            >
+            <% if (errors.find(e => e.param === 'course_description')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'course_description').msg %>
+            </div>
+            <% } %>
           </div>
           <div class="mb-4 col-6 offset-3">
-            <label class="form-label" for="units">Course Units</label>
-            <input class="form-control" value="<%= course ? course.units: ''  %>"name="units" id="units" type="number" placeholder="3.0">
+            <label
+                class="form-label"
+                for="units"
+            >Course Units</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'units') ? 'is-invalid': 'is-valid'%>"
+                value="<%= course ? course.units: ''  %>"
+                name="units"
+                id="units"
+                type="number"
+                placeholder="3.0"
+            >
+            <% if (errors.find(e => e.param === 'units')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'units').msg %>
+            </div>
+            <% } %>
           </div>
           <div class="col-6 offset-3">
-            <input type="hidden" name="_csrf" value="<%= csrf %>">
-            <button type="submit" class="btn btn-primary float-end">Submit</button>
+            <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrf %>"
+            >
+            <button
+                type="submit"
+                class="btn btn-primary float-end"
+            >Submit</button>
           </div>
         </form>
       </div>
@@ -32,3 +88,4 @@
   </div>
 
   <%- include('../../includes/footer.ejs') %>
+

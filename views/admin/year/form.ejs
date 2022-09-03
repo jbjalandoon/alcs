@@ -1,0 +1,52 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong><%= edit ? 'EDITING A SCHOOL YEAR' : 'ADDING NEW SCHOOL YEAR'  %></strong>
+      </div>
+      <div class="card-body">
+        <form
+            class="needs-validation"
+            action="/admin/years/<%= edit ? 'edit/'+year._id : 'add'  %>"
+            method="post"
+        >
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="year"
+            >School Year</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'year') ? 'is-invalid': 'is-valid'%>"
+                value="<%= year ? year.year: ''  %>"
+                name="year"
+                id="year"
+                type="text"
+                placeholder="2021-2022"
+            >
+            <% if (errors.find(e => e.param === 'year')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'year').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="col-6 offset-3">
+            <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrf %>"
+            >
+            <button
+                type="submit"
+                class="btn btn-primary float-end"
+            >Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

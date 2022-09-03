@@ -44,7 +44,7 @@ app.use("/", error.get404);
 
 mongoose
   .connect(
-    "mongodb+srv://jerome:CasDIQRBZRbNSwA1@cluster0.dswk4w8.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://jerome:CasDIQRBZRbNSwA1@cluster0.dswk4w8.mongodb.net/alcs?retryWrites=true&w=majority"
   )
   .then((result) => {
     // console.log(result);

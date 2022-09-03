@@ -1,0 +1,41 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong><%= edit ? 'EDITING A level' : 'ADDING NEW level'  %></strong>
+      </div>
+      <div class="card-body">
+        <form class="needs-validation" action="/admin/levels/<%= edit ? 'edit/'+level._id : 'add'  %>" method="post">
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="level"
+            >Level</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'level') ? 'is-invalid': 'is-valid'%>"
+                value="<%= level ? level.level: ''  %>"
+                name="level"
+                id="level"
+                type="text"
+                placeholder="First Year"
+            >
+            <% if (errors.find(e => e.param === 'level')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'level').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="col-6 offset-3">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button type="submit" class="btn btn-primary float-end">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

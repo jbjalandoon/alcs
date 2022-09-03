@@ -1,0 +1,149 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong><%= edit ? 'EDITING A FACULTY' : 'ADDING NEW FACULTY'  %></strong>
+      </div>
+      <div class="card-body">
+        <form
+            class="needs-validation"
+            action="/admin/faculty/<%= edit ? 'edit/'+faculty._id : 'add'  %>"
+            method="post"
+        >
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="faculty_code"
+            >Faculty Code</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'faculty_code') ? 'is-invalid': 'is-valid'%>"
+                value="<%= faculty ? faculty.faculty_code: ''  %>"
+                name="faculty_code"
+                id="faculty_code"
+                type="text"
+                placeholder="FACULTY-00000"
+            >
+            <% if (errors.find(e => e.param === 'faculty_code')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'faculty_code').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="first_name"
+            >First Name</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'first_name') ? 'is-invalid': 'is-valid'%>"
+                value="<%= faculty ? faculty.first_name: ''  %>"
+                name="first_name"
+                id="first_name"
+                type="text"
+                placeholder="John"
+            >
+            <% if (errors.find(e => e.param === 'first_name')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'first_name').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="last_name"
+            >Last Name</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'last_name') ? 'is-invalid': 'is-valid'%>"
+                value="<%= faculty ? faculty.last_name: ''  %>"
+                name="last_name"
+                id="last_name"
+                type="text"
+                placeholder="Doe"
+            >
+            <% if (errors.find(e => e.param === 'last_name')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'last_name').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="middle_name"
+            >Middle Name</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'middle_name') ? 'is-invalid': 'is-valid'%>"
+                value="<%= faculty ? faculty.middle_name: ''  %>"
+                name="middle_name"
+                id="middle_name"
+                type="text"
+                placeholder="James"
+            >
+            <% if (errors.find(e => e.param === 'middle_name')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'middle_name').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="email"
+            >Valid Email Address</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'email') ? 'is-invalid': 'is-valid'%>"
+                value="<%= faculty ? faculty.email: ''  %>"
+                name="email"
+                id="email"
+                type="text"
+                placeholder="James"
+            >
+            <% if (errors.find(e => e.param === 'email')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'email').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="email"
+            >Valid Email Address</label>
+            <select                 
+              class="form-select <%= errors.find(e => e.param === 'faculty_type') ? 'is-invalid': 'is-valid'%>"
+              value="<%= faculty ? faculty.email: ''  %>"
+              name="faculty_type"
+              id="faculty_type"
+              type="text">
+                <option value="regular">Regular</option>
+                <option value="full-time">Full-Time</option>
+                <option value="part-time">Part-Time</option>
+            </select>
+            <% if (errors.find(e => e.param === 'faculty_type')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'faculty_type').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="col-6 offset-3">
+            <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrf %>"
+            >
+            <button
+                type="submit"
+                class="btn btn-primary float-end"
+            >Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

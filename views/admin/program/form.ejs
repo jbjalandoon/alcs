@@ -1,0 +1,71 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong><%= edit ? 'EDITING A PROGRAM' : 'ADDING NEW PROGRAM'  %></strong>
+      </div>
+      <div class="card-body">
+        <form
+            class="needs-validation"
+            action="/admin/programs/<%= edit ? 'edit/'+program._id : 'add'  %>"
+            method="post"
+        >
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="program_code"
+            >Program Code</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'program_code') ? 'is-invalid': 'is-valid'%>"
+                value="<%= program ? program.program_code: ''  %>"
+                name="program_code"
+                id="program_code"
+                type="text"
+                placeholder="COMP-00000"
+            >
+            <% if (errors.find(e => e.param === 'program_code')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'program_code').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="mb-4 col-6 offset-3">
+            <label
+                class="form-label"
+                for="program_name"
+            >Program Name</label>
+            <input
+                class="form-control <%= errors.find(e => e.param === 'program_name') ? 'is-invalid': 'is-valid'%>"
+                value="<%= program ? program.program_name: ''  %>"
+                name="program_name"
+                id="program_name"
+                type="text"
+                placeholder="Computer Programming"
+            >
+            <% if (errors.find(e => e.param === 'program_name')) { %>
+            <div class="invalid-feedback">
+              <%= errors.find(e => e.param === 'program_name').msg %>
+            </div>
+            <% } %>
+          </div>
+          <div class="col-6 offset-3">
+            <input
+                type="hidden"
+                name="_csrf"
+                value="<%= csrf %>"
+            >
+            <button
+                type="submit"
+                class="btn btn-primary float-end"
+            >Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

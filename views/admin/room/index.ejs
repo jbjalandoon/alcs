@@ -1,0 +1,57 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE ROOM/S</strong>
+        <a href="/admin/rooms/add" class="float-end"><button class="btn btn-primary">ADD NEW room</button></a>
+      </div>
+      <div class="card-body">
+        <table id="example" class="table table-striped datatables" style="width:100%">
+          <thead>
+            <tr>
+              <th>Room Name</th>
+              <th>Laboratory</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rooms.forEach(room => { %>
+            <tr>
+              <td><%= room.room_name %></td>
+              <td><%= room.laboratory %></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="/admin/rooms/edit/<%= room._id %>">Edit</a>
+                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= room._id %>">
+                  Delete
+                </button>
+                <div class="modal fade" id="deleteModal<%= room._id %>" tabindex="-1" aria-labelledby="deleteModal<%= room._id %>Label" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <strong>Are you sure, you want to delete?</strong>
+                      </div>
+                      <div class="modal-footer">
+                        <form action="/admin/rooms/delete" method="post">
+                          <input type="hidden" name="_csrf" value="<%= csrf %>">
+                          <input type="hidden" name="id" value="<%= room._id %>">
+                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
+                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>

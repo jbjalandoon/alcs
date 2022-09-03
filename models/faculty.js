@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const FacultySchema = new Schema({
   faculty_code: {
     type: String,
-    require: true,
+    required: true,
   },
   first_name: {
     type: String,
-    require: true,
+    required: true,
   },
   middle_name: {
     type: String,
@@ -17,7 +17,16 @@ const FacultySchema = new Schema({
   },
   last_name: {
     type: String,
-    require: true,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  faculty_type: {
+    type: String,
+    required: true,
+    enum: ["regular", "full-time", "part-time"],
   },
   degree: [
     {
@@ -33,4 +42,4 @@ const FacultySchema = new Schema({
   ],
 });
 
-module.exports = mongoose("Faculty", FacultySchema);
+module.exports = mongoose.model("Faculty", FacultySchema);

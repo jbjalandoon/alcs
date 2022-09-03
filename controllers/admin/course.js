@@ -1,4 +1,5 @@
 const Course = require("../../models/course");
+const { validationResult } = require("express-validator");
 
 exports.getCourses = (req, res, next) => {
   Course.find()
@@ -18,12 +19,26 @@ exports.addCourse = (req, res, next) => {
     res.render("admin/course/form", {
       title: "ALCS | Adding Course",
       edit: false,
-      course: []
+      course: [],
+      errors: [],
     });
   } else {
     const course_code = req.body.course_code;
     const course_description = req.body.course_description;
     const units = req.body.units;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.render("admin/course/form", {
+        title: "ALCS | Adding Course",
+        edit: false,
+        course: {
+          course_code: course_code,
+          course_description: course_description,
+          units: units,
+        },
+        errors: errors.array(),
+      });
+    }
     new Course({
       course_code: course_code,
       course_description: course_description,
@@ -51,11 +66,21 @@ exports.editCourse = (req, res, next) => {
           title: "ALCS | Adding Course",
           edit: true,
           course: course,
+          errors: [],
         });
       } else {
         course.course_code = req.body.course_code;
         course.course_description = req.body.course_description;
         course.units = req.body.units;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.render("admin/course/form", {
+            title: "ALCS | Adding Course",
+            edit: true,
+            course: course,
+            errors: errors.array(),
+          });
+        }
         return course.save().then((result) => {
           req.flash(
             "input_success_message",
@@ -65,7 +90,6 @@ exports.editCourse = (req, res, next) => {
         });
       }
     })
-
     .catch((error) => {
       throw new Error(error);
     });
@@ -83,5 +107,19 @@ exports.deleteCourse = (req, res, next) => {
     })
     .catch((error) => {
       throw new Error(error);
+    });
+};
+
+exports.apiGetCourses = (req, res, next) => {
+  let totalUnit = 0;
+  Course.find({ _id: req.query.courses })
+    .then((courses) => {
+      courses.forEach((course) => {
+        totalUnit += course.units;
+      });
+      res.json({ totalUnits: totalUnit });
+    })
+    .catch((error) => {
+      res.json({ msg: "Something Went Wrong" });
     });
 };

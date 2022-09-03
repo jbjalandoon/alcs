@@ -5,16 +5,16 @@ const Schema = mongoose.Schema;
 const CourseSchema = new Schema({
   course_code: {
     type: String,
-    require: true,
+    required: true,
     unique: true,
   },
   course_description: {
     type: String,
-    require: true,
+    required: true,
   },
   units: {
     type: Number,
-    require: true,
+    required: true,
   },
   qualifications: [{ type: mongoose.Types.ObjectId, ref: "Qualification" }],
 });

@@ -1,0 +1,121 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE CURRICULUMS/S</strong>
+        <a href="/admin/curriculums/add" class="float-end"><button class="btn btn-primary">ADD NEW CURRICULUMS</button></a>
+      </div>
+      <div class="card-body">
+        <div class="accordion" id="schoolYearAccordion">
+          <% curriculums.forEach(curriculum => { %>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading<%= curriculum._id %>">
+              <button class="accordion-button" type="button" data-coreui-toggle="collapse" data-coreui-target="#collapse<%= curriculum._id %>" aria-expanded="true" aria-controls="collapse<%= curriculum._id %>">
+                School Year: <%= curriculum.school_year.year %>
+              </button>
+            </h2>
+            <div id="collapse<%= curriculum._id %>" class="accordion-collapse collapse show" aria-labelledby="heading<%= curriculum._id %>" data-coreui-parent="#accordi<%= curriculum._id %>xample">
+              <div class="accordion-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                  <% curriculum.semesters.forEach((semester, index) => { %>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link <%= index == '0' ? 'active': ''%> text-uppercase" id="<%=semester.sem%>-tab" data-coreui-toggle="tab" data-coreui-target="#<%=semester.sem%>" type="button" role="tab" aria-controls="<%=semester.sem%>" aria-selected="<%= index == '0' ? 'true': 'false'%>"><%=semester.sem%> semester</button>
+                  </li>
+                  <% }) %>
+                </ul>
+                <div class="tab-content">
+                  <% curriculum.semesters.forEach((semester,index) => { %>
+                  <div class="tab-pane <%= index == '0' ? 'active': ''%>" id="<%=semester.sem%>" role="tabpanel" aria-labelledby="<%=semester.sem%>-tab" tabindex="0">
+                    <div class="row mt-3 mb-3">
+                      <div class="col-6">
+                        <label for="programTab" class="form-label">Select Program:</label>
+                        <select class="form-select program-tab" onchange="changeProgramTab(this.value)" name="programTab" id="programTab">
+                          <option value="blank<%=semester._id%>">Please select program to display</option>
+                          <% semester.programs.forEach(program => { %>
+                          <option value="<%= program.program.program_code %><%= semester._id %>"><%= program.program.program_name %></option>
+                          <% }) %>
+                        </select>
+                      </div>
+                    </div>
+                    <ul class="nav nav-tabs d-none" id="programTabList" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="blank<%=semester._id%>-tab" data-coreui-toggle="tab" data-coreui-target="#blank<%=semester._id%>" type="button" role="tab" aria-controls="blank<%=semester._id%>" aria-selected="true">Blank</button>
+                      </li>
+                      <% semester.programs.forEach(program => { %>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="<%= program.program.program_code %><%= semester._id %>-tab" data-coreui-toggle="tab" data-coreui-target="#<%= program.program.program_code %><%= semester._id %>" type="button" role="tab" aria-controls="<%= program.program.program_code %><%= semester._id %>" aria-selected="true"><%=program.program.program_code%></button>
+                      </li>
+                      <% }) %>
+                    </ul>
+                    <div class="tab-content">
+                      <div class="tab-pane active" id="blank<%= semester._id %>" role="tabpanel" aria-labelledby="blank<%= semester._id %>-tab" tabindex="0">Please Select a Program</div>
+                      <% semester.programs.forEach(program => { %>
+                      <div class="tab-pane" id="<%= program.program.program_code %><%= semester._id %>" role="tabpanel" aria-labelledby="<%= program.program.program_code %><%= semester._id %>-tab" tabindex="0">
+                        <div class="d-flex align-items-start">
+                          <div class="nav flex-column nav-pills me-3 w-25" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <% program.year.forEach((year, index) => { %>
+                            <button class="nav-link <%= index == '0' ? 'active': ''%>" id="v-pills-<%=year.year_level._id%>-tab" data-coreui-toggle="pill" data-coreui-target="#v-pills-<%=year.year_level._id%>" type="button" role="tab" aria-controls="v-pills-<%=year.year_level._id%>" aria-selected="false"><%=year.year_level.level%></button>
+                            <% }) %>
+                          </div>
+                          <div class="tab-content w-100" id="v-pills-tabContent">
+                            <% program.year.forEach((year, index) => { %>
+                            <div class="tab-pane fade show <%= index == '0' ? 'active': ''%>" id="v-pills-<%=year.year_level._id%>" role="tabpanel" aria-labelledby="v-pills-<%=year.year_level._id%>-tab" tabindex="0">
+                              <div class="row">
+                                <div class="col-12">
+                                  Available Section/s:
+                                  <% year.sections.forEach((section,index) => { %>
+                                  <%= program.program.program_code+''+section+''%><%= index == year.sections.length - 1 ? '': ',' %>
+                                  <% }) %>
+                                </div>
+                              </div>
+
+                              <div class="table-responsive">
+                                <table class="table">
+                                  <thead>
+                                    <tr>
+                                      <th>#</th>
+                                      <th>Course Code</th>
+                                      <th>Course Description</th>
+                                      <th>Unit</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <% year.courses.forEach((course,index) => { %>
+                                    <tr>
+                                      <td><%= index + 1 %> </td>
+                                      <td><%= course.course_code %> </td>
+                                      <td><%= course.course_description %> </td>
+                                      <td><%= course.units %> </td>
+                                    </tr>
+                                    <% }) %>
+                                  </tbody>
+                                </table>
+
+                              </div>
+                            </div>
+                            <% }) %>
+                          </div>
+                        </div>
+                      </div>
+                      <% }) %>
+                    </div>
+                  </div>
+                  <% }) %>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+          <% }) %>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../includes/footer.ejs') %>
