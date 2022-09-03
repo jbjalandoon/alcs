@@ -4,14 +4,16 @@ const session = require("express-session");
 const mongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
+require("dotenv").config();
 const path = require("path");
 const app = express();
 
 const error = require("./controllers/error");
+const db_uri = "mongodb+srv://"+process.env.DATABASE_USERNAME+":"+process.env.DATABASE_PASSWORD+"@cluster0.dswk4w8.mongodb.net/"+process.env.DATABASE_NAME
 
 const adminRoutes = require("./routes/admin");
 const store = new mongoDBStore({
-  uri: "mongodb+srv://jerome:CasDIQRBZRbNSwA1@cluster0.dswk4w8.mongodb.net/shop",
+  uri: db_uri,
   collection: "session",
 });
 
@@ -44,7 +46,7 @@ app.use("/", error.get404);
 
 mongoose
   .connect(
-    "mongodb+srv://jerome:CasDIQRBZRbNSwA1@cluster0.dswk4w8.mongodb.net/alcs?retryWrites=true&w=majority"
+    db_uri
   )
   .then((result) => {
     // console.log(result);
