@@ -58,12 +58,12 @@
                         <div class="d-flex align-items-start">
                           <div class="nav flex-column nav-pills me-3 w-25" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <% program.year.forEach((year, index) => { %>
-                            <button class="nav-link <%= index == '0' ? 'active': ''%>" id="v-pills-<%=year.year_level._id%>-tab" data-coreui-toggle="pill" data-coreui-target="#v-pills-<%=year.year_level._id%>" type="button" role="tab" aria-controls="v-pills-<%=year.year_level._id%>" aria-selected="false"><%=year.year_level.level%></button>
+                            <button class="nav-link <%= index == '0' ? 'active': ''%>" id="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>-tab" data-coreui-toggle="pill" data-coreui-target="#v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" type="button" role="tab" aria-controls="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" aria-selected="false"><%=year.year_level.level%></button>
                             <% }) %>
                           </div>
                           <div class="tab-content w-100" id="v-pills-tabContent">
                             <% program.year.forEach((year, index) => { %>
-                            <div class="tab-pane fade show <%= index == '0' ? 'active': ''%>" id="v-pills-<%=year.year_level._id%>" role="tabpanel" aria-labelledby="v-pills-<%=year.year_level._id%>-tab" tabindex="0">
+                            <div class="tab-pane fade show <%= index == '0' ? 'active': ''%>" id="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" role="tabpanel" aria-labelledby="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>-tab" tabindex="0">
                               <div class="row">
                                 <div class="col-12">
                                   Available Section/s:
