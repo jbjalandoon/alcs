@@ -72,7 +72,6 @@ exports.addCurriculum = (req, res, next) => {
           dropdown: dropdown,
         });
       });
-        
   } else {
     const school_year = req.body.school_year;
     const semester = req.body.semester;
@@ -115,21 +114,31 @@ exports.addCurriculum = (req, res, next) => {
               (e) => e.program.toString() === program.toString()
             );
             if (fetchedPrograms) {
-              fetchedPrograms.year.push({
-                year_level: year_level,
-                courses: courses,
-                sections: sections,
-              });
+              const fetchedYear = fetchedPrograms.year.find(
+                (e) => e.year_level.toString() === year_level.toString()
+              );
+              if (fetchedYear) {
+                fetchedYear.courses = courses
+                fetchedYear.sections = sections
+              } else {
+                fetchedPrograms.year.push({
+                  year_level: year_level,
+                  courses: courses,
+                  sections: sections,
+                });
+              }
               return curriculum.save();
             } else {
               fetchSemester.programs.push({
                 program: program,
-                year: [{
-                  year_level: year_level,
-                  sections: sections,
-                  courses: courses,
-                }]
-              })
+                year: [
+                  {
+                    year_level: year_level,
+                    sections: sections,
+                    courses: courses,
+                  },
+                ],
+              });
               return curriculum.save();
             }
           } else {
@@ -153,7 +162,7 @@ exports.addCurriculum = (req, res, next) => {
         }
       })
       .then((result) => {
-        console.log(result)
+        console.log(result);
         res.redirect("/admin/curriculums");
       })
       .catch((error) => {
