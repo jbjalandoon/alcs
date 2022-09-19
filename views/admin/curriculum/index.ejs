@@ -68,7 +68,7 @@
                                 <div class="col-12">
                                   Available Section/s:
                                   <% year.sections.forEach((section,index) => { %>
-                                  <%= program.program.program_code+''+section+''%><%= index == year.sections.length - 1 ? '': ',' %>
+                                  <%= program.program.program_code+''+section.section+''%><%= index == year.sections.length - 1 ? '': ',' %>
                                   <% }) %>
                                 </div>
                               </div>

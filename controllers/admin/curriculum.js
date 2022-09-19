@@ -96,7 +96,19 @@ exports.addCurriculum = (req, res, next) => {
                     year: [
                       {
                         year_level: year_level,
-                        sections: sections,
+                        sections: sections.map((e) => {
+                          return {
+                            section: e,
+                            schedules: courses.map((e) => {
+                              return {
+                                course: e,
+                                day: null,
+                                start_time: null,
+                                end_time: null,
+                              };
+                            }),
+                          };
+                        }),
                         courses: courses,
                       },
                     ],
@@ -118,13 +130,25 @@ exports.addCurriculum = (req, res, next) => {
                 (e) => e.year_level.toString() === year_level.toString()
               );
               if (fetchedYear) {
-                fetchedYear.courses = courses
-                fetchedYear.sections = sections
+                fetchedYear.courses = courses;
+                fetchedYear.sections = sections;
               } else {
                 fetchedPrograms.year.push({
                   year_level: year_level,
                   courses: courses,
-                  sections: sections,
+                  sections: sections.map((e) => {
+                    return {
+                      section: e,
+                      schedules: courses.map((e) => {
+                        return {
+                          course: e,
+                          day: null,
+                          start_time: null,
+                          end_time: null,
+                        };
+                      }),
+                    };
+                  }),
                 });
               }
               return curriculum.save();
@@ -134,7 +158,19 @@ exports.addCurriculum = (req, res, next) => {
                 year: [
                   {
                     year_level: year_level,
-                    sections: sections,
+                    sections: sections.map((e) => {
+                      return {
+                        section: e,
+                        schedules: courses.map((e) => {
+                          return {
+                            course: e,
+                            day: null,
+                            start_time: null,
+                            end_time: null,
+                          };
+                        }),
+                      };
+                    }),
                     courses: courses,
                   },
                 ],
@@ -150,7 +186,19 @@ exports.addCurriculum = (req, res, next) => {
                   year: [
                     {
                       year_level: year_level,
-                      sections: sections,
+                      sections: sections.map((e) => {
+                        return {
+                          section: e,
+                          schedules: courses.map((e) => {
+                            return {
+                              course: e,
+                              day: null,
+                              start_time: null,
+                              end_time: null,
+                            };
+                          }),
+                        };
+                      }),
                       courses: courses,
                     },
                   ],

@@ -26,19 +26,23 @@ const CurriculumSchema = new Schema({
               courses: [{ type: mongoose.Types.ObjectId, ref: "Course" }],
               sections: [
                 {
-                  type: String,
+                  section: { type: String },
                   schedules: [
                     {
                       course: { type: mongoose.Types.ObjectId, ref: "Course" },
                       day: {
                         type: String,
-                        enum: ["m", "t", "w", "th", "f", "s"],
+                        enum: ["m", "t", "w", "th", "f", "s", null],
                       },
                       start_time: {
-                        type: Date,
+                        type: String,
                       },
                       end_time: {
-                        type: Date,
+                        type: String,
+                      },
+                      room: {
+                        type: mongoose.Types.ObjectId,
+                        ref: "Room",
                       },
                     },
                   ],

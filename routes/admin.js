@@ -4,6 +4,7 @@ const program = require("../controllers/admin/program");
 const year = require("../controllers/admin/year");
 const room = require("../controllers/admin/room");
 const faculty = require("../controllers/admin/faculty");
+const schedule = require("../controllers/admin/schedule");
 const level = require("../controllers/admin/level");
 const curriculum = require("../controllers/admin/curriculum");
 
@@ -89,5 +90,17 @@ router.get("/years/edit/:id", year.editYear);
 router.post("/years/edit/:id", year.editYear);
 
 router.post("/years/delete", year.deleteYear);
+
+//Schedule
+router.get("/schedules", schedule.getSchedule);
+router.get("/schedules/get-semester-list", schedule.getSemesters);
+router.get("/schedules/get-program-list", schedule.getPrograms);
+router.get("/schedules/get-level-list", schedule.getLevels);
+router.get("/schedules/get-sections-list", schedule.getSections);
+router.get("/schedules/courses", schedule.getCoursesTable);
+router.post("/schedules/set", schedule.setSchedule);
+router.get("/schedules/room", schedule.getRoomSchedules);
+router.get("/schedules/unavailable", schedule.getUnavailableSchedules);
+router.get("/schedules/api", schedule.api);
 
 module.exports = router;
