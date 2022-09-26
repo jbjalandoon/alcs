@@ -118,7 +118,6 @@ exports.getSections = (req, res, next) => {
 };
 
 exports.getCoursesTable = (req, res, next) => {
-  console.log(req);
   let dropdowns = {};
   Room.find()
     .then((room) => {
@@ -150,14 +149,15 @@ exports.getCoursesTable = (req, res, next) => {
         const section = years.sections.find(
           (e) => e.section == req.query.section
         );
-        return res.render("admin/schedule/table-course", {
+        const schedule = section.schedules.filter((e) => e.day == null);
+        return res.render("admin/schedule/draggable-course", {
           dropdowns: dropdowns,
-          sections: section,
+          schedules: schedule,
         });
       } else {
-        return res.render("admin/schedule/table-course", {
+        return res.render("admin/schedule/draggable-course", {
           dropdowns: null,
-          sections: null,
+          schedules: null,
         });
       }
     })
@@ -167,6 +167,8 @@ exports.getCoursesTable = (req, res, next) => {
 };
 
 exports.setSchedule = (req, res, next) => {
+  const days = ["m", "t", "w", "th", "f", "s", null];
+  console.log(req.body);
   Curriculum.updateOne(
     {
       school_year: req.body.school_year,
@@ -175,11 +177,12 @@ exports.setSchedule = (req, res, next) => {
       $set: {
         "semesters.$[sem].programs.$[program].year.$[level].sections.$[section].schedules.$[course]":
           {
-            course: req.body.course,
-            day: req.body.day,
-            start_time: req.body.from,
-            end_time: req.body.to,
-            room: req.body.room,
+            course: mongoose.Types.ObjectId(req.body.course),
+            day: req.body.day == "" ? null : days[req.body.day - 1],
+            start_time:
+              req.body.start_time == undefined ? null : req.body.start_time,
+            end_time: req.body.end_time == undefined ? null : req.body.end_time,
+            room: req.body.room == "" ? null : req.body.room,
           },
       },
     },
@@ -213,6 +216,7 @@ exports.getRoomSchedules = (req, res, next) => {
     { $project: { year: "$program.year" } },
     { $project: { sections: "$year.sections" } },
     { $unwind: "$sections" },
+    { $match: { "sections.section": { $ne: "101" } } },
     { $project: { schedule: "$sections.schedules" } },
     { $unwind: "$schedule" },
     { $match: { "schedule.room": mongoose.Types.ObjectId(req.query.room) } },
@@ -237,16 +241,31 @@ exports.getRoomSchedules = (req, res, next) => {
     {
       $project: {
         day: "$schedule.day",
-        to: "$schedule.start_time",
-        from: "$schedule.end_time",
+        to: "$schedule.end_time",
+        from: "$schedule.start_time",
         room: "$room.room_name",
         course_code: "$course.course_code",
         course_description: "$course.course_description",
+        course_id: "$course._id",
       },
     },
   ])
     .then((room_schedules) => {
-      res.json(room_schedules);
+      console.log(room_schedules);
+      const days = ["m", "t", "w", "th", "f", "s"];
+      const response = room_schedules.map((e) => {
+        return {
+          id: e.course_id,
+          title: e.course_code + " (" + e.course_description + ")",
+          daysOfWeek: [(days.indexOf(e.day) + 1).toString()],
+          startTime: e.from,
+          endTime: e.to,
+          overlap: false,
+          editable: false,
+          color: "#800000",
+        };
+      });
+      res.json(response);
     })
     .catch((error) => {
       throw new Error(error);
@@ -254,6 +273,7 @@ exports.getRoomSchedules = (req, res, next) => {
 };
 
 exports.getUnavailableSchedules = (req, res, next) => {
+  console.log(req);
   let response = {};
   return Curriculum.aggregate([
     {
@@ -294,75 +314,38 @@ exports.getUnavailableSchedules = (req, res, next) => {
         day: "$schedule.day",
         to: "$schedule.end_time",
         from: "$schedule.start_time",
+        courseId: "$schedule.course",
       },
     },
+    { $match: { day: { $ne: null } } },
     {
-      $match: {
-        day: req.query.day,
+      $lookup: {
+        from: "courses",
+        localField: "courseId",
+        foreignField: "_id",
+        as: "course",
       },
     },
   ])
     .then((schedules) => {
-      response.section_schedule = schedules;
-      return Curriculum.aggregate([
-        {
-          $match: {
-            school_year: mongoose.Types.ObjectId(req.query.school_year),
-          },
-        },
-        { $project: { semester: "$semesters" } },
-        { $unwind: "$semester" },
-        { $match: { "semester.sem": req.query.semester } },
-        { $project: { program: "$semester.programs" } },
-        { $unwind: "$program" },
-        { $unwind: "$program.year" },
-        { $project: { year: "$program.year" } },
-        { $project: { sections: "$year.sections" } },
-        { $unwind: "$sections" },
-        { $project: { schedule: "$sections.schedules" } },
-        { $unwind: "$schedule" },
-        {
-          $match: { "schedule.room": mongoose.Types.ObjectId(req.query.room) },
-        },
-        {
-          $lookup: {
-            from: "courses",
-            localField: "schedule.course",
-            foreignField: "_id",
-            as: "course",
-          },
-        },
-        {
-          $lookup: {
-            from: "rooms",
-            localField: "schedule.room",
-            foreignField: "_id",
-            as: "room",
-          },
-        },
-        { $unwind: "$course" },
-        { $unwind: "$room" },
-        {
-          $project: {
-            day: "$schedule.day",
-            to: "$schedule.end_time",
-            from: "$schedule.start_time",
-            room: "$room.room_name",
-            course_code: "$course.course_code",
-            course_description: "$course.course_description",
-          },
-        },
-        {
-          $match: {
-            day: req.query.day,
-          },
-        },
-      ]);
-    })
-    .then((schedules) => {
-      response.room_schedule = schedules;
+      const days = ["m", "t", "w", "th", "f", "s"];
+      const response = schedules.map((e) => {
+        return {
+          id: e.course[0]._id,
+          title:
+            e.course[0].course_code +
+            " (" +
+            e.course[0].course_description +
+            ")",
+          daysOfWeek: [(days.indexOf(e.day) + 1).toString()],
+          startTime: e.from,
+          endTime: e.to,
+          overlap: false,
+        };
+      });
       res.json(response);
     })
+
     .catch((error) => {
       throw new Error(error);
     });
@@ -415,6 +398,143 @@ exports.api = (req, res, next) => {
   ])
     .then((curriculum) => {
       res.json({ room_schedules: curriculum, section_schedules: curriculum });
+    })
+    .catch((error) => {
+      throw new Error(error);
+    });
+};
+
+exports.getRoomSectionSchedule = (req, res, next) => {
+  const days = ["m", "t", "w", "th", "f", "s"];
+  const response = {};
+  Curriculum.aggregate([
+    { $match: { school_year: mongoose.Types.ObjectId(req.query.school_year) } },
+    { $project: { semester: "$semesters" } },
+    { $unwind: "$semester" },
+    { $match: { "semester.sem": req.query.semester } },
+    { $project: { program: "$semester.programs" } },
+    { $unwind: "$program" },
+    { $unwind: "$program.year" },
+    { $project: { year: "$program.year" } },
+    { $project: { sections: "$year.sections" } },
+    { $unwind: "$sections" },
+    { $match: { "sections.section": { $ne: "101" } } },
+    { $project: { schedule: "$sections.schedules" } },
+    { $unwind: "$schedule" },
+    { $match: { "schedule.room": mongoose.Types.ObjectId(req.query.room) } },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "schedule.course",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "schedule.room",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    { $unwind: "$course" },
+    { $unwind: "$room" },
+    {
+      $project: {
+        day: "$schedule.day",
+        to: "$schedule.end_time",
+        from: "$schedule.start_time",
+        room: "$room.room_name",
+        course_code: "$course.course_code",
+        course_description: "$course.course_description",
+        course_id: "$course._id",
+      },
+    },
+  ])
+    .then((room_schedules) => {
+      response.room = room_schedules.map((e) => {
+        return {
+          id: e.course_id,
+          title: e.course_code + " (" + e.course_description + ")",
+          daysOfWeek: [(days.indexOf(e.day) + 1).toString()],
+          startTime: e.from,
+          endTime: e.to,
+          overlap: false,
+          editable: false,
+          color: "#800000",
+        };
+      });
+      return Curriculum.aggregate([
+        {
+          $match: {
+            school_year: mongoose.Types.ObjectId(req.query.school_year),
+          },
+        },
+        { $project: { semester: "$semesters" } },
+        { $unwind: "$semester" },
+        { $match: { "semester.sem": req.query.semester } },
+        { $project: { program: "$semester.programs" } },
+        { $unwind: "$program" },
+        {
+          $match: {
+            "program.program": mongoose.Types.ObjectId(req.query.program),
+          },
+        },
+        { $unwind: "$program.year" },
+        { $project: { year: "$program.year" } },
+        {
+          $match: {
+            "year.year_level": mongoose.Types.ObjectId(req.query.year_level),
+          },
+        },
+        { $project: { sections: "$year.sections" } },
+        { $unwind: "$sections" },
+        {
+          $project: {
+            section: "$sections.section",
+            schedule: "$sections.schedules",
+          },
+        },
+        { $match: { section: req.query.section } },
+
+        { $unwind: "$schedule" },
+        {
+          $project: {
+            day: "$schedule.day",
+            to: "$schedule.end_time",
+            from: "$schedule.start_time",
+            courseId: "$schedule.course",
+          },
+        },
+        { $match: { day: { $ne: null } } },
+        {
+          $lookup: {
+            from: "courses",
+            localField: "courseId",
+            foreignField: "_id",
+            as: "course",
+          },
+        },
+      ]);
+    })
+    .then((section_schedules) => {
+      response.section = section_schedules.map((e) => {
+        return {
+          id: e.course[0]._id,
+          title:
+            e.course[0].course_code +
+            " (" +
+            e.course[0].course_description +
+            ")",
+          daysOfWeek: [(days.indexOf(e.day) + 1).toString()],
+          startTime: e.from,
+          endTime: e.to,
+          overlap: false,
+          editable: true,
+        };
+      });
+      res.json(response);
     })
     .catch((error) => {
       throw new Error(error);

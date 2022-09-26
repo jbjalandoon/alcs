@@ -53,13 +53,11 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 
 app.use("/", error.get404);
-
 mongoose
   .connect(
     db_uri
   )
   .then((result) => {
-    // console.log(result);
     app.listen(3000);
   })
   .catch((error) => {

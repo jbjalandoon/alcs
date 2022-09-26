@@ -8,7 +8,7 @@
       <div class="card-header">
         <strong>PLEASE SELECT THE SCHOOL YEAR & SEMESTER</strong>
       </div>
-      <div class="card-body">
+      <div class="card-body" id="scheduleCard">
         <form id="schedule-form">
           <div class="row mb-3">
             <div class="col-4">
@@ -53,31 +53,19 @@
             </div>
           </div>
         </form>
-      </div>
-
-      <div class="row">
-        <span id="scheduleTable"></span>
-      </div>
-      <div class="row">
-        <div class="col-10 offset-1">
-          <table class="table table-sm table-bordered timetable">
-            <thead class="text-center">
-              <tr>
-                <th width="4%">#</th>
-                <th width="16%">Monday</th>
-                <th width="16%">Tuesday</th>
-                <th width="16%">Wednesday</th>
-                <th width="16%">Thursday</th>
-                <th width="16%">Friday</th>
-                <th width="16%">Saturday</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+        <div class="row">
+          <div class="col-3">
+            <span id="courses"></span>
+          </div>
+          <div class="col-9">
+            <div id='calendar-container'>
+              <div id="asd"></div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <%- include('../../includes/footer.ejs') %>
+
+    </div>
+
+    <%- include('../../includes/footer.ejs') %>

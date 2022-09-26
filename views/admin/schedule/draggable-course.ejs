@@ -1,0 +1,18 @@
+<label for="room" class="form-label">Select Room:</label>
+<select class="form-select" name="room" id="roomForm">
+  <option value="" disabled selected>--Select Room--</option>
+  <% dropdowns.room.forEach(room => { %>
+   <option value="<%= room._id %>"><%= room.room_name %></option>
+  <% }) %>
+</select>
+<div id='external-events'>
+  <p>
+    <strong>Course List</strong>
+  </p>
+  <% schedules.forEach(schedule => { %>
+  <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event p-2 m-2' course="<%= schedule.course._id %>" units="<%= schedule.course.units %>">
+    <div class='fc-event-main' course="test"><%= schedule.course.course_code %> (<%= schedule.course.course_description %>)</div>
+  </div>
+  <% }) %>
+  <input type="hidden" name="_csrf" value="<%= csrf %>" id="csrf">
+</div>

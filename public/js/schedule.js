@@ -5,8 +5,8 @@ const scheduleProgramForm = $("#schedule-form #program");
 const scheduleYearLevelForm = $("#schedule-form #year_level");
 const scheduleSectionForm = $("#schedule-form #section");
 
-const course_schedule = []
-const room_schedule = []
+const course_schedule = [];
+const room_schedule = [];
 
 // Assigning Schedule
 let scheduleCourseForm;
@@ -144,17 +144,271 @@ scheduleSubmitButton.on("click", () => {
       section: section,
     },
     success: (response) => {
-      scheduleTable.html(response);
+      $("#courses").html(response);
+      renderSchedule();
     },
   });
 });
 
-let hour = 7;
-for (let i = 1; i <= 15; i++) {
-  $(".timetable tbody").append(
-    "<tr height='2px'><td>" +
-      hour +
-      ":00</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>"
-  );
-  hour++;
+function renderSchedule() {
+  var roomForm = $("#roomForm");
+  var Calendar = FullCalendar.Calendar;
+  var Draggable = FullCalendar.Draggable;
+  const calendarEl = document.getElementById("asd");
+  var draggable;
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    allDaySlot: false,
+    hiddenDays: [0],
+    dayHeaderFormat: { weekday: "long" },
+    initialView: "timeGridWeek",
+    headerToolbar: {
+      left: "",
+      right: "",
+    },
+    slotMinTime: "7:00:00",
+    slotMaxTime: "22:00:00",
+    validRange: {
+      start: '7:00:00',
+      end: '22:00:00'
+    },
+    events: {
+      url: "/admin/schedules/unavailable",
+      method: "GET",
+      extraParams: {
+        school_year: scheduleSchoolYearForm.val(),
+        semester: scheduleSemesterForm.val(),
+        program: scheduleProgramForm.val(),
+        year_level: scheduleYearLevelForm.val(),
+        section: scheduleSectionForm.val(),
+      },
+      editable: false,
+      failure: function () {
+        alert("there was an error while fetching events!");
+      },
+    },
+    droppable: true, // this allows things to be dropped onto the calendar
+    eventReceive: function (info) {
+      const startMinutes =
+        info.event.start.getMinutes() == 0
+          ? "00"
+          : info.event.start.getMinutes().toString();
+      const endMinutes =
+        info.event.end.getMinutes() == 0
+          ? "00"
+          : info.event.end.getMinutes().toString();
+      $.ajax({
+        url: "/admin/schedules/set",
+        type: "POST",
+        data: {
+          course: info.event._def.extendedProps.course,
+          day: info.event.start.getDay(),
+          start_time:
+            ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+          end_time:
+            ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+          room: roomForm.val(),
+          school_year: scheduleSchoolYearForm.val(),
+          semester: scheduleSemesterForm.val(),
+          program: scheduleProgramForm.val(),
+          year_level: scheduleYearLevelForm.val(),
+          section: scheduleSectionForm.val(),
+          _csrf: $("#csrf").val(),
+        },
+        dataType: "json",
+        success: (response) => {
+          // console.log(response);
+        },
+        error: (error) => {
+          // console.log(error.responseText);
+        },
+      });
+      info.draggedEl.parentNode.removeChild(info.draggedEl);
+    },
+    eventDrop: function (info) {
+      const startMinutes =
+        info.event.start.getMinutes() == 0
+          ? "00"
+          : info.event.start.getMinutes().toString();
+      const endMinutes =
+        info.event.end.getMinutes() == 0
+          ? "00"
+          : info.event.end.getMinutes().toString();
+      $.ajax({
+        url: "/admin/schedules/set",
+        type: "POST",
+        data: {
+          course: info.event.id,
+          day: info.event.start.getDay(),
+          start_time:
+            ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+          end_time:
+            ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+          room: roomForm.val(),
+          school_year: scheduleSchoolYearForm.val(),
+          semester: scheduleSemesterForm.val(),
+          program: scheduleProgramForm.val(),
+          year_level: scheduleYearLevelForm.val(),
+          section: scheduleSectionForm.val(),
+          _csrf: $("#csrf").val(),
+        },
+        dataType: "json",
+        success: (response) => {
+          // console.log(response);
+        },
+        error: (error) => {
+          // console.log(error.responseText);
+        },
+      });
+    },
+    eventClick: function (info) {
+      console.log(info);
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: "/admin/schedules/set",
+            type: "POST",
+            dataType: "json",
+            data: {
+              school_year: scheduleSchoolYearForm.val(),
+              semester: scheduleSemesterForm.val(),
+              program: scheduleProgramForm.val(),
+              year_level: scheduleYearLevelForm.val(),
+              section: scheduleSectionForm.val(),
+              course: info.event._def.publicId,
+              day: null,
+              from: null,
+              to: null,
+              room: null,
+              _csrf: $("#csrf").val(),
+            },
+            success: (response) => {
+              Swal.fire("Deleted!", "Your file has been deleted.", "success");
+              $.ajax({
+                url: "http://localhost:3000/admin/schedules/courses",
+                type: "GET",
+                dataType: "html",
+                data: {
+                  school_year: scheduleSchoolYearForm.val(),
+                  semester: scheduleSemesterForm.val(),
+                  program: scheduleProgramForm.val(),
+                  year_level: scheduleYearLevelForm.val(),
+                  section: scheduleSectionForm.val(),
+                },
+                success: (response) => {
+                  info.event.remove();
+                  $("#courses").html(response);
+                  $("#roomForm").on("change", () => {
+                    $.ajax({
+                      url: "/admin/schedules/room-section",
+                      type: "get",
+                      data: {
+                        room: $("#roomForm").val(),
+                        school_year: scheduleSchoolYearForm.val(),
+                        semester: scheduleSemesterForm.val(),
+                        program: scheduleProgramForm.val(),
+                        year_level: scheduleYearLevelForm.val(),
+                        section: scheduleSectionForm.val(),
+                      },
+                      dataType: "json",
+                      success: (response) => {
+                        calendar.getEvents().forEach((e) => {
+                          e.remove();
+                        });
+                        response.room.forEach((e) => {
+                          calendar.addEvent(e);
+                        });
+                        response.section.forEach((e) => {
+                          calendar.addEvent(e);
+                        });
+
+                        var containerEl =
+                          document.getElementById("external-events");
+                        if (draggable) {
+                          draggable.destroy();
+                        }
+                        draggable = new Draggable(containerEl, {
+                          itemSelector: ".fc-event",
+                          eventData: function (info) {
+                            return {
+                              title: info.innerText,
+                              duration:
+                                "0" + info.getAttribute("units") + ":00",
+                              editable: true,
+                              overlap: false,
+                              id: info.getAttribute("course"),
+                            };
+                          },
+                        });
+                      },
+                      error: (error) => {
+                        // console.log(error.responseText);
+                      },
+                    });
+                  });
+                },
+              });
+            },
+            error: (error) => {
+              console.log(error.responseText);
+            },
+          });
+        }
+      });
+    },
+  });
+  roomForm.on("change", () => {
+    $.ajax({
+      url: "/admin/schedules/room-section",
+      type: "get",
+      data: {
+        school_year: scheduleSchoolYearForm.val(),
+        semester: scheduleSemesterForm.val(),
+        room: roomForm.val(),
+        program: scheduleProgramForm.val(),
+        year_level: scheduleYearLevelForm.val(),
+        section: scheduleSectionForm.val(),
+      },
+      dataType: "json",
+      success: (response) => {
+        calendar.getEvents().forEach((e) => {
+          e.remove();
+        });
+        response.room.forEach((e) => {
+          calendar.addEvent(e);
+        });
+        response.section.forEach((e) => {
+          calendar.addEvent(e);
+        });
+        var containerEl = document.getElementById("external-events");
+        if (draggable) {
+          draggable.destroy();
+        }
+        draggable = new Draggable(containerEl, {
+          itemSelector: ".fc-event",
+          eventData: function (info) {
+            console.log(info);
+            return {
+              title: info.innerText,
+              duration: "0" + info.getAttribute("units") + ":00",
+              editable: true,
+              overlap: false,
+              id: info.getAttribute("course"),
+            };
+          },
+        });
+      },
+      error: (error) => {
+        console.log(error.responseText);
+      },
+    });
+  });
+  calendar.render();
 }

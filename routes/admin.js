@@ -100,6 +100,7 @@ router.get("/schedules/get-sections-list", schedule.getSections);
 router.get("/schedules/courses", schedule.getCoursesTable);
 router.post("/schedules/set", schedule.setSchedule);
 router.get("/schedules/room", schedule.getRoomSchedules);
+router.get("/schedules/room-section", schedule.getRoomSectionSchedule);
 router.get("/schedules/unavailable", schedule.getUnavailableSchedules);
 router.get("/schedules/api", schedule.api);
 
