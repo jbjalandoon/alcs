@@ -1,7 +1,6 @@
-const Faculty = require("../../models/faculty");
+const Faculty = require("../../models/user");
 
 const { validationResult } = require("express-validator");
-
 
 exports.getFaculties = (req, res, next) => {
   Faculty.find()
@@ -72,3 +71,16 @@ exports.addFaculty = (req, res, next) => {
 exports.editFaculty = (req, res, next) => {};
 
 exports.deleteFaculty = (req, res, next) => {};
+
+exports.getFacultyAPI = (req, res, next) => {
+  console.log(req.query.q);
+  Faculty.find({
+    first_name: { $regex: ".*" + req.query.q + ".*", $options: "i" },
+  }).limit(2)
+    .then((faculty) => {
+      res.json(faculty);
+    })
+    .catch((error) => {
+      throw new Error(error);
+    });
+};

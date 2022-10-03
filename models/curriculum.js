@@ -44,6 +44,10 @@ const CurriculumSchema = new Schema({
                         type: mongoose.Types.ObjectId,
                         ref: "Room",
                       },
+                      faculty: {
+                        type: mongoose.Types.ObjectId,
+                        ref: "Faculty",
+                      },
                     },
                   ],
                 },

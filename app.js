@@ -6,12 +6,22 @@ const csrf = require("csurf");
 const flash = require("connect-flash");
 require("dotenv").config();
 const path = require("path");
+const bcrypt = require("bcrypt");
 const app = express();
 
+const User = require("./models/user");
+
 const error = require("./controllers/error");
-const db_uri = "mongodb+srv://"+process.env.DATABASE_USERNAME+":"+process.env.DATABASE_PASSWORD+"@cluster0.dswk4w8.mongodb.net/"+process.env.DATABASE_NAME
+const db_uri =
+  "mongodb+srv://" +
+  process.env.DATABASE_USERNAME +
+  ":" +
+  process.env.DATABASE_PASSWORD +
+  "@cluster0.dswk4w8.mongodb.net/" +
+  process.env.DATABASE_NAME;
 
 const adminRoutes = require("./routes/admin");
+const authenticationRoutes = require("./routes/authentication");
 const store = new mongoDBStore({
   uri: db_uri,
   collection: "session",
@@ -41,24 +51,49 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
   next();
 });
 
+app.use("/authentication", authenticationRoutes);
+app.use((req, res, next) => {
+  if (res.locals.isActive) {
+    next();
+  } else {
+    res.redirect("/authentication/login?landing=" + req.path);
+  }
+});
 app.use("/admin", adminRoutes);
-
 app.use("/", error.get404);
+
 mongoose
-  .connect(
-    db_uri
-  )
+  .connect(db_uri)
   .then((result) => {
-    app.listen(3000);
+    return User.findOne({
+      email: "jerome.jalandoon@gmail.com",
+    });
+  })
+  .then((result) => {
+    if (result == null) {
+      return bcrypt
+        .hash("adminpassword", 12)
+        .then((password) => {
+          return new User({
+            email: "jerome.jalandoon@gmail.com",
+            password: password,
+          }).save();
+        })
+        .then((result) => {
+          app.listen(3000);
+        });
+    } else {
+      app.listen(3000);
+    }
   })
   .catch((error) => {
     throw new Error(error);

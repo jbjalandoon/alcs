@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/css/vendors/simplebar.css">
   <link rel="stylesheet" href="/@selectize/selectize/dist/css/selectize.bootstrap5.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <!-- Main styles for this application-->
   <link href="/css/style.css" rel="stylesheet">
   <link href="/scss/style.css" rel="stylesheet">
@@ -46,8 +47,17 @@
     gtag('config', 'UA-118965717-3');
     // Bootstrap ID
     gtag('config', 'UA-118965717-5');
-  </script>
-  <link href="vendors/@coreui/chartjs/css/coreui-chartjs.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/r-2.3.0/datatables.min.css"/>
 
-  
+  </script>
+  <style>
+    .select2-container--open {
+      z-index: 99999999999999;
+    }
+
+    .fc-day-today {
+      background-color: inherit !important;
+    }
+
+  </style>
+  <link href="vendors/@coreui/chartjs/css/coreui-chartjs.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/r-2.3.0/datatables.min.css" />

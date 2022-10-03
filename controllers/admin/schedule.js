@@ -1,6 +1,7 @@
 const Curriculum = require("../../models/curriculum");
 const Room = require("../../models/room");
 const mongoose = require("mongoose");
+const moment = require("moment");
 const { query, response } = require("express");
 
 exports.getSchedule = (req, res, next) => {
@@ -168,7 +169,6 @@ exports.getCoursesTable = (req, res, next) => {
 
 exports.setSchedule = (req, res, next) => {
   const days = ["m", "t", "w", "th", "f", "s", null];
-  console.log(req.body);
   Curriculum.updateOne(
     {
       school_year: req.body.school_year,
@@ -183,6 +183,7 @@ exports.setSchedule = (req, res, next) => {
               req.body.start_time == undefined ? null : req.body.start_time,
             end_time: req.body.end_time == undefined ? null : req.body.end_time,
             room: req.body.room == "" ? null : req.body.room,
+            faculty: null,
           },
       },
     },
@@ -197,6 +198,38 @@ exports.setSchedule = (req, res, next) => {
     }
   )
     .then((result) => {
+      res.json({ message: result });
+    })
+    .catch((error) => {
+      throw new Error(error);
+    });
+};
+
+exports.assignFaculty = (req, res, next) => {
+  const days = ["m", "t", "w", "th", "f", "s", null];
+  console.log(req.body);
+  Curriculum.updateOne(
+    {
+      school_year: req.body.school_year,
+    },
+    {
+      $set: {
+        "semesters.$[sem].programs.$[program].year.$[level].sections.$[section].schedules.$[course].faculty":
+          req.body.faculty,
+      },
+    },
+    {
+      arrayFilters: [
+        { "sem.sem": req.body.semester },
+        { "program.program": req.body.program },
+        { "level.year_level": req.body.year_level },
+        { "section.section": req.body.section },
+        { "course.course": req.body.course },
+      ],
+    }
+  )
+    .then((result) => {
+      console.log(result);
       res.json({ message: result });
     })
     .catch((error) => {
@@ -273,7 +306,6 @@ exports.getRoomSchedules = (req, res, next) => {
 };
 
 exports.getUnavailableSchedules = (req, res, next) => {
-  console.log(req);
   let response = {};
   return Curriculum.aggregate([
     {
@@ -292,38 +324,82 @@ exports.getUnavailableSchedules = (req, res, next) => {
       },
     },
     { $unwind: "$program.year" },
-    { $project: { year: "$program.year" } },
+    { $project: { programId: "$program.program", year: "$program.year" } },
     {
       $match: {
         "year.year_level": mongoose.Types.ObjectId(req.query.year_level),
       },
     },
-    { $project: { sections: "$year.sections" } },
+    {
+      $project: {
+        year_level: "$year.year_level",
+        program_id: "$programId",
+        sections: "$year.sections",
+      },
+    },
     { $unwind: "$sections" },
     {
       $project: {
+        year_level: "$year_level",
+        program_id: "$program_id",
         section: "$sections.section",
         schedule: "$sections.schedules",
       },
     },
     { $match: { section: req.query.section } },
-
     { $unwind: "$schedule" },
     {
       $project: {
+        section: "$section",
         day: "$schedule.day",
         to: "$schedule.end_time",
         from: "$schedule.start_time",
-        courseId: "$schedule.course",
+        room: "$schedule.room",
+        faculty_id: "$schedule.faculty",
+        course_id: "$schedule.course",
+        year_level_id: "$year_level",
+        program_id: "$program_id",
       },
     },
     { $match: { day: { $ne: null } } },
     {
       $lookup: {
         from: "courses",
-        localField: "courseId",
+        localField: "course_id",
         foreignField: "_id",
         as: "course",
+      },
+    },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "year_level_id",
+        foreignField: "_id",
+        as: "year_level",
+      },
+    },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program_id",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
+        from: "faculties",
+        localField: "faculty_id",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
       },
     },
   ])
@@ -332,6 +408,7 @@ exports.getUnavailableSchedules = (req, res, next) => {
       const response = schedules.map((e) => {
         return {
           id: e.course[0]._id,
+          course: e.course[0]._id,
           title:
             e.course[0].course_code +
             " (" +
@@ -341,6 +418,69 @@ exports.getUnavailableSchedules = (req, res, next) => {
           startTime: e.from,
           endTime: e.to,
           overlap: false,
+          assignable: true,
+          assigned: e.faculty.length == 0 ? false : true,
+          text: `
+            <div class="container text-start">
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Time: 
+                </div>
+                <div class="col-5">
+                  ${moment(e.from, "HH:mm").format("h:mm A")} - ${moment(
+            e.to,
+            "HH:mm"
+          ).format("h:mm A")} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Program: 
+                </div>
+                <div class="col-5">
+                  ${e.program[0].program_code}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Year Level: 
+                </div>
+                <div class="col-5">
+                  ${e.year_level[0].level} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Section: 
+                </div>
+                <div class="col-5">
+                  ${e.section} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Section: 
+                </div>
+                <div class="col-5">
+                  ${e.room[0].room_name} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Faculty: 
+                </div>
+                <div class="col-5">
+                  ${
+                    e.faculty_id != null
+                      ? e.faculty[0].first_name + " " + e.faculty[0].last_name
+                      : "No Faculty Assigned"
+                  } 
+                </div>
+              </div>
+            </div>
+            `,
+          header:
+            e.course[0].course_code + " - " + e.course[0].course_description,
         };
       });
       res.json(response);
@@ -378,14 +518,6 @@ exports.api = (req, res, next) => {
       },
     },
     { $match: { section: req.query.section } },
-    {
-      $lookup: {
-        from: "rooms",
-        localField: "schedule.room",
-        foreignField: "_id",
-        as: "room",
-      },
-    },
     { $unwind: "$schedule" },
     {
       $project: {
@@ -393,6 +525,46 @@ exports.api = (req, res, next) => {
         to: "$schedule.end_time",
         from: "$schedule.start_time",
         room: "$room.room_name",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course_id",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "year_level_id",
+        foreignField: "_id",
+        as: "year_level",
+      },
+    },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program_id",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
+        from: "faculties",
+        localField: "faculty_id",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
       },
     },
   ])
@@ -415,54 +587,153 @@ exports.getRoomSectionSchedule = (req, res, next) => {
     { $project: { program: "$semester.programs" } },
     { $unwind: "$program" },
     { $unwind: "$program.year" },
-    { $project: { year: "$program.year" } },
-    { $project: { sections: "$year.sections" } },
+    { $project: { program_id: "$program.program", year: "$program.year" } },
+    { $project: { program_id: "$program_id", year_level_id: "$year.year_level", sections: "$year.sections" } },
     { $unwind: "$sections" },
-    { $match: { "sections.section": { $ne: "101" } } },
-    { $project: { schedule: "$sections.schedules" } },
+    { $match: { "sections.section": { $ne: req.query.section } } },
+    {
+      $project: {
+        year_level_id: "$year_level_id",
+        program_id: "$program_id",
+        section: "$sections.section",
+        schedule: "$sections.schedules",
+      },
+    },
     { $unwind: "$schedule" },
     { $match: { "schedule.room": mongoose.Types.ObjectId(req.query.room) } },
     {
+      $project: {
+        section: "$section",
+        day: "$schedule.day",
+        to: "$schedule.end_time",
+        from: "$schedule.start_time",
+        room: "$schedule.room",
+        faculty_id: "$schedule.faculty",
+        course_id: "$schedule.course",
+        year_level_id: "$year_level_id",
+        program_id: "$program_id",
+      },
+    },
+    {
       $lookup: {
         from: "courses",
-        localField: "schedule.course",
+        localField: "course_id",
         foreignField: "_id",
         as: "course",
       },
     },
     {
       $lookup: {
-        from: "rooms",
-        localField: "schedule.room",
+        from: "levels",
+        localField: "year_level_id",
         foreignField: "_id",
-        as: "room",
+        as: "year_level",
       },
     },
-    { $unwind: "$course" },
-    { $unwind: "$room" },
     {
-      $project: {
-        day: "$schedule.day",
-        to: "$schedule.end_time",
-        from: "$schedule.start_time",
-        room: "$room.room_name",
-        course_code: "$course.course_code",
-        course_description: "$course.course_description",
-        course_id: "$course._id",
+      $lookup: {
+        from: "programs",
+        localField: "program_id",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
+        from: "faculties",
+        localField: "faculty_id",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
       },
     },
   ])
     .then((room_schedules) => {
       response.room = room_schedules.map((e) => {
         return {
-          id: e.course_id,
-          title: e.course_code + " (" + e.course_description + ")",
+          id: e.course[0]._id,
+          course: e.course[0]._id,
+          title:
+            e.course[0].course_code +
+            " (" +
+            e.course[0].course_description +
+            ")",
           daysOfWeek: [(days.indexOf(e.day) + 1).toString()],
           startTime: e.from,
           endTime: e.to,
           overlap: false,
+          assigned: e.faculty.length == 0 ? false : true,
+          color: '#800000',
           editable: false,
-          color: "#800000",
+          assignable: false,
+          text: `
+            <div class="container text-start">
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Time: 
+                </div>
+                <div class="col-5">
+                  ${moment(e.from, "HH:mm").format("h:mm A")} - ${moment(
+            e.to,
+            "HH:mm"
+          ).format("h:mm A")} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Program: 
+                </div>
+                <div class="col-5">
+                  ${e.program[0].program_code}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Year Level: 
+                </div>
+                <div class="col-5">
+                  ${e.year_level[0].level} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Section: 
+                </div>
+                <div class="col-5">
+                  ${e.section} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Section: 
+                </div>
+                <div class="col-5">
+                  ${e.room[0].room_name} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Faculty: 
+                </div>
+                <div class="col-5">
+                  ${
+                    e.faculty_id != null
+                      ? e.faculty[0].first_name + " " + e.faculty[0].last_name
+                      : "No Faculty Assigned"
+                  } 
+                </div>
+              </div>
+            </div>
+            `,
+          header:
+            e.course[0].course_code + " - " + e.course[0].course_description,
         };
       });
       return Curriculum.aggregate([
@@ -482,38 +753,82 @@ exports.getRoomSectionSchedule = (req, res, next) => {
           },
         },
         { $unwind: "$program.year" },
-        { $project: { year: "$program.year" } },
+        { $project: { programId: "$program.program", year: "$program.year" } },
         {
           $match: {
             "year.year_level": mongoose.Types.ObjectId(req.query.year_level),
           },
         },
-        { $project: { sections: "$year.sections" } },
+        {
+          $project: {
+            year_level: "$year.year_level",
+            program_id: "$programId",
+            sections: "$year.sections",
+          },
+        },
         { $unwind: "$sections" },
         {
           $project: {
+            year_level: "$year_level",
+            program_id: "$program_id",
             section: "$sections.section",
             schedule: "$sections.schedules",
           },
         },
         { $match: { section: req.query.section } },
-
         { $unwind: "$schedule" },
         {
           $project: {
+            section: "$section",
             day: "$schedule.day",
             to: "$schedule.end_time",
             from: "$schedule.start_time",
-            courseId: "$schedule.course",
+            room: "$schedule.room",
+            faculty_id: "$schedule.faculty",
+            course_id: "$schedule.course",
+            year_level_id: "$year_level",
+            program_id: "$program_id",
           },
         },
         { $match: { day: { $ne: null } } },
         {
           $lookup: {
             from: "courses",
-            localField: "courseId",
+            localField: "course_id",
             foreignField: "_id",
             as: "course",
+          },
+        },
+        {
+          $lookup: {
+            from: "levels",
+            localField: "year_level_id",
+            foreignField: "_id",
+            as: "year_level",
+          },
+        },
+        {
+          $lookup: {
+            from: "programs",
+            localField: "program_id",
+            foreignField: "_id",
+            as: "program",
+          },
+        },
+        {
+          $lookup: {
+            from: "faculties",
+            localField: "faculty_id",
+            foreignField: "_id",
+            as: "faculty",
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "room",
+            foreignField: "_id",
+            as: "room",
           },
         },
       ]);
@@ -522,6 +837,7 @@ exports.getRoomSectionSchedule = (req, res, next) => {
       response.section = section_schedules.map((e) => {
         return {
           id: e.course[0]._id,
+          course: e.course[0]._id,
           title:
             e.course[0].course_code +
             " (" +
@@ -531,10 +847,86 @@ exports.getRoomSectionSchedule = (req, res, next) => {
           startTime: e.from,
           endTime: e.to,
           overlap: false,
+          assignable: true,
           editable: true,
+          text: `
+            <div class="container text-start">
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Time: 
+                </div>
+                <div class="col-5">
+                  ${moment(e.from, "HH:mm").format("h:mm A")} - ${moment(
+            e.to,
+            "HH:mm"
+          ).format("h:mm A")} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Program: 
+                </div>
+                <div class="col-5">
+                  ${e.program[0].program_code}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Year Level: 
+                </div>
+                <div class="col-5">
+                  ${e.year_level[0].level} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Section: 
+                </div>
+                <div class="col-5">
+                  ${e.section} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Room: 
+                </div>
+                <div class="col-5">
+                  ${e.room[0].room_name} 
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-3 offset-3">
+                  Faculty: 
+                </div>
+                <div class="col-5">
+                  ${
+                    e.faculty_id != null
+                      ? e.faculty[0].first_name + " " + e.faculty[0].last_name
+                      : "No Faculty Assigned"
+                  } 
+                </div>
+              </div>
+            </div>
+            `,
+          header:
+            e.course[0].course_code + " - " + e.course[0].course_description,
         };
       });
       res.json(response);
+    })
+    .catch((error) => {
+      throw new Error(error);
+    });
+};
+
+exports.getFacultySchedule = (req, res, next) => {
+  Curriculum.find({}, "school_year")
+    .populate("school_year")
+    .then((school_years) => {
+      res.render("admin/schedule/faculty", {
+        title: "ALCS | Assign Faculty",
+        school_years: school_years,
+      });
     })
     .catch((error) => {
       throw new Error(error);

@@ -1,3 +1,5 @@
+// import select2 from 'select2';
+
 // Finding Schedule Form
 const scheduleSchoolYearForm = $("#schedule-form #school_year");
 const scheduleSemesterForm = $("#schedule-form #semester");
@@ -168,8 +170,8 @@ function renderSchedule() {
     slotMinTime: "7:00:00",
     slotMaxTime: "22:00:00",
     validRange: {
-      start: '7:00:00',
-      end: '22:00:00'
+      start: "7:00:00",
+      end: "22:00:00",
     },
     events: {
       url: "/admin/schedules/unavailable",
@@ -200,13 +202,13 @@ function renderSchedule() {
         url: "/admin/schedules/set",
         type: "POST",
         data: {
-          course: info.event._def.extendedProps.course,
+          course: info.event.id,
           day: info.event.start.getDay(),
           start_time:
             ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
           end_time:
             ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-          room: roomForm.val(),
+          room: $("#roomForm").val(),
           school_year: scheduleSchoolYearForm.val(),
           semester: scheduleSemesterForm.val(),
           program: scheduleProgramForm.val(),
@@ -216,10 +218,32 @@ function renderSchedule() {
         },
         dataType: "json",
         success: (response) => {
-          // console.log(response);
+          Swal.fire({
+            toast: true,
+            position: "top-right",
+            icon: "success",
+            title: "Success",
+            customClass: {
+              popup: "bg-success",
+            },
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
         },
         error: (error) => {
-          // console.log(error.responseText);
+          Swal.fire({
+            toast: true,
+            position: "top-right",
+            icon: "error",
+            title: "Error",
+            customClass: {
+              popup: "bg-danger",
+            },
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
         },
       });
       info.draggedEl.parentNode.removeChild(info.draggedEl);
@@ -253,117 +277,239 @@ function renderSchedule() {
         },
         dataType: "json",
         success: (response) => {
-          // console.log(response);
+          Swal.fire({
+            toast: true,
+            position: "top-right",
+            icon: "success",
+            title: "Success",
+            customClass: {
+              popup: "bg-success",
+            },
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
         },
         error: (error) => {
-          // console.log(error.responseText);
+          Swal.fire({
+            toast: true,
+            position: "top-right",
+            icon: "error",
+            title: "Error",
+            customClass: {
+              popup: "bg-danger",
+            },
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
         },
       });
     },
-    eventClick: function (info) {
-      console.log(info);
+    eventClick: async function (info) {
+      const eventInfo = info.event.extendedProps;
       Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
+        icon: "info",
+        title: eventInfo.header,
+        html: eventInfo.text,
+        width: "35%",
+        input: "select",
+        inputPlaceholder: eventInfo.assigned
+          ? "Re-assign Faculty"
+          : "Assign Faculty",
+        customClass: {
+          popup: "p-3",
+          input: 'd-none',
+        },
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!",
+        confirmButtonText: "Save",
+        showConfirmButton: eventInfo.assignable ? true : false,
+        showDenyButton: eventInfo.assignable ? true : false,
+        denyButtonText: `Remove`,
+        cancelButtonText: `Close`,
+        inputValidator: (value) => {
+          return new Promise((resolve) => {
+            if (value !== "") {
+              resolve();
+            } else {
+              resolve("You need to select something :)");
+            }
+          });
+        },
+        didOpen: () => {
+          const element = $(".swal2-select");
+          element
+            .select2({
+              selectionCssClass: eventInfo.assignable ? '' : 'd-none',
+              width: "100%",
+              ajax: {
+                url: "/admin/api/faculty",
+                dataType: "json",
+                processResults: function (data, params) {
+                  const results = data.map((e) => {
+                    return {
+                      id: e._id,
+                      text: e.first_name,
+                    };
+                  });
+                  console.log(results);
+                  return {
+                    results: results,
+                    pagination: {
+                      more: false,
+                    },
+                  };
+                },
+                // Additional AJAX parameters go here; see the end of this chapter for the full code of this example
+              },
+            })
+            .on("select2:open", function () {
+              $(".select2-dropdown--above").attr("id", "fix");
+              $("#fix").removeClass("select2-dropdown--above");
+              $("#fix").addClass("select2-dropdown--below");
+            });
+        },
       }).then((result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: "/admin/schedules/set",
+            url: "/admin/schedules/assign",
             type: "POST",
-            dataType: "json",
             data: {
               school_year: scheduleSchoolYearForm.val(),
               semester: scheduleSemesterForm.val(),
               program: scheduleProgramForm.val(),
               year_level: scheduleYearLevelForm.val(),
               section: scheduleSectionForm.val(),
-              course: info.event._def.publicId,
-              day: null,
-              from: null,
-              to: null,
-              room: null,
+              course: info.event._def.extendedProps.course,
+              faculty: result.value,
               _csrf: $("#csrf").val(),
             },
+            dataType: "json",
             success: (response) => {
-              Swal.fire("Deleted!", "Your file has been deleted.", "success");
+              Swal.fire("success");
+            },
+            error: (response) => {
+              console.log(response.responseText);
+            },
+          });
+        }
+
+        if (result.isDenied) {
+          Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+          }).then((result) => {
+            if (result.isConfirmed) {
               $.ajax({
-                url: "http://localhost:3000/admin/schedules/courses",
-                type: "GET",
-                dataType: "html",
+                url: "/admin/schedules/set",
+                type: "POST",
+                dataType: "json",
                 data: {
                   school_year: scheduleSchoolYearForm.val(),
                   semester: scheduleSemesterForm.val(),
                   program: scheduleProgramForm.val(),
                   year_level: scheduleYearLevelForm.val(),
                   section: scheduleSectionForm.val(),
+                  course: info.event._def.publicId,
+                  day: null,
+                  from: null,
+                  to: null,
+                  room: null,
+                  _csrf: $("#csrf").val(),
                 },
                 success: (response) => {
-                  info.event.remove();
-                  $("#courses").html(response);
-                  $("#roomForm").on("change", () => {
-                    $.ajax({
-                      url: "/admin/schedules/room-section",
-                      type: "get",
-                      data: {
-                        room: $("#roomForm").val(),
-                        school_year: scheduleSchoolYearForm.val(),
-                        semester: scheduleSemesterForm.val(),
-                        program: scheduleProgramForm.val(),
-                        year_level: scheduleYearLevelForm.val(),
-                        section: scheduleSectionForm.val(),
-                      },
-                      dataType: "json",
-                      success: (response) => {
-                        calendar.getEvents().forEach((e) => {
-                          e.remove();
-                        });
-                        response.room.forEach((e) => {
-                          calendar.addEvent(e);
-                        });
-                        response.section.forEach((e) => {
-                          calendar.addEvent(e);
-                        });
-
-                        var containerEl =
-                          document.getElementById("external-events");
-                        if (draggable) {
-                          draggable.destroy();
-                        }
-                        draggable = new Draggable(containerEl, {
-                          itemSelector: ".fc-event",
-                          eventData: function (info) {
-                            return {
-                              title: info.innerText,
-                              duration:
-                                "0" + info.getAttribute("units") + ":00",
-                              editable: true,
-                              overlap: false,
-                              id: info.getAttribute("course"),
-                            };
+                  Swal.fire({
+                    toast: true,
+                    position: "top-right",
+                    icon: "success",
+                    title: "Success",
+                    customClass: {
+                      popup: "bg-success",
+                    },
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true,
+                  });
+                  $.ajax({
+                    url: "http://localhost:3000/admin/schedules/courses",
+                    type: "GET",
+                    dataType: "html",
+                    data: {
+                      school_year: scheduleSchoolYearForm.val(),
+                      semester: scheduleSemesterForm.val(),
+                      program: scheduleProgramForm.val(),
+                      year_level: scheduleYearLevelForm.val(),
+                      section: scheduleSectionForm.val(),
+                    },
+                    success: (response) => {
+                      info.event.remove();
+                      $("#courses").html(response);
+                      $("#roomForm").on("change", () => {
+                        $.ajax({
+                          url: "/admin/schedules/room-section",
+                          type: "get",
+                          data: {
+                            room: $("#roomForm").val(),
+                            school_year: scheduleSchoolYearForm.val(),
+                            semester: scheduleSemesterForm.val(),
+                            program: scheduleProgramForm.val(),
+                            year_level: scheduleYearLevelForm.val(),
+                            section: scheduleSectionForm.val(),
+                          },
+                          dataType: "json",
+                          success: (response) => {
+                            calendar.getEvents().forEach((e) => {
+                              e.remove();
+                            });
+                            response.room.forEach((e) => {
+                              calendar.addEvent(e);
+                            });
+                            response.section.forEach((e) => {
+                              calendar.addEvent(e);
+                            });
+                            var containerEl =
+                              document.getElementById("external-events");
+                            if (draggable) {
+                              draggable.destroy();
+                            }
+                            draggable = new Draggable(containerEl, {
+                              itemSelector: ".fc-event",
+                              eventData: function (info) {
+                                return {
+                                  title: info.innerText,
+                                  duration:
+                                    "0" + info.getAttribute("units") + ":00",
+                                  editable: true,
+                                  overlap: false,
+                                  id: info.getAttribute("course"),
+                                };
+                              },
+                            });
+                          },
+                          error: (error) => {
+                            // console.log(error.responseText);
                           },
                         });
-                      },
-                      error: (error) => {
-                        // console.log(error.responseText);
-                      },
-                    });
+                      });
+                    },
                   });
                 },
+                error: (error) => {
+                  console.log(error.responseText);
+                },
               });
-            },
-            error: (error) => {
-              console.log(error.responseText);
-            },
+            }
           });
         }
       });
     },
   });
+
   roomForm.on("change", () => {
     $.ajax({
       url: "/admin/schedules/room-section",
@@ -378,6 +524,7 @@ function renderSchedule() {
       },
       dataType: "json",
       success: (response) => {
+        console.log(response);
         calendar.getEvents().forEach((e) => {
           e.remove();
         });

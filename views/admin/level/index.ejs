@@ -6,40 +6,36 @@
   <div class="container">
     <div class="card">
       <div class="card-header">
-        <strong>LIST OF AVAILABLE SECTION/S</strong>
-        <a href="/admin/sections/add" class="float-end"><button class="btn btn-primary">ADD NEW SECTION</button></a>
+        <strong>LIST OF AVAILABLE YEAR LEVEL/S</strong>
+        <a href="/admin/levels/add" class="float-end"><button class="btn btn-primary">ADD NEW YEAR LEVEL</button></a>
       </div>
       <div class="card-body">
         <table id="example" class="table table-striped datatables" style="width:100%">
           <thead>
             <tr>
-              <th>Program Name</th>
               <th>Year Level</th>
-              <th>Section</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <% sections.forEach(section => { %>
+            <% levels.forEach(level => { %>
             <tr>
-              <td><%= section.program.program_name %></td>
-              <td><%= section.year_level %></td>
-              <td><%= section.section %></td>
+              <td><%= level.level %></td>
               <td>
-                <a class="btn btn-primary btn-sm" href="/admin/sections/edit/<%= section._id %>">Edit</a>
-                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= section._id %>">
+                <a class="btn btn-primary btn-sm" href="/admin/levels/edit/<%= level._id %>">Edit</a>
+                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= level._id %>">
                   Delete
                 </button>
-                <div class="modal fade" id="deleteModal<%= section._id %>" tabindex="-1" aria-labelledby="deleteModal<%= section._id %>Label" aria-hidden="true">
+                <div class="modal fade" id="deleteModal<%= level._id %>" tabindex="-1" aria-labelledby="deleteModal<%= level._id %>Label" aria-hidden="true">
                   <div class="modal-dialog">
                     <div class="modal-content">
                       <div class="modal-header">
                         <strong>Are you sure, you want to delete?</strong>
                       </div>
                       <div class="modal-footer">
-                        <form action="/admin/sections/delete" method="post">
+                        <form action="/admin/levels/delete" method="post">
                           <input type="hidden" name="_csrf" value="<%= csrf %>">
-                          <input type="hidden" name="id" value="<%= section._id %>">
+                          <input type="hidden" name="id" value="<%= level._id %>">
                           <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
                           <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
                         </form>

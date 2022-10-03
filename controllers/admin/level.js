@@ -4,12 +4,10 @@ const Program = require("../../models/program");
 const { validationResult } = require("express-validator");
 
 exports.getLevels = (req, res, next) => {
-  level.find()
-    .populate("program")
+  Level.find()
     .then((levels) => {
-      console.log(levels);
       res.render("admin/level/index", {
-        title: "ALCS | levels",
+        title: "ALCS | LEVELS",
         levels: levels,
       });
     })

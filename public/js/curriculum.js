@@ -14,7 +14,7 @@ const sectionMultiSelect = $("#curriculum-form #sections").selectize({
 });
 
 const courseMultiSelect = $("#curriculum-form #courses").selectize({
-  maxItems: 3,
+  maxItems: 10,
   onChange(value) {
     $.ajax({
       url: "/admin/api/courses",

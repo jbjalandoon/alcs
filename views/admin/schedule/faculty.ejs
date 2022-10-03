@@ -1,0 +1,44 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong>PLEASE SELECT THE SCHOOL YEAR & SEMESTER</strong>
+      </div>
+      <div class="card-body">
+        <form action="/admin/schedules/faculty" id="facultyForm" method="GET">
+          <div class="row">
+            <div class="col-5 offset-1">
+              <label for="year" class="form-label">School Year:</label>
+              <select name="year" id="year" class="form-select">
+                <option value="" selected disabled>--Select School Year</option>
+                <% school_years.forEach(element => { %>
+                <option value="<%= element.school_year._id %>"><%= element.school_year.year %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-5">
+              <label for="semester" class="form-label">Semester:</label>
+              <select name="semester" id="semester" class="form-select" disabled>
+                <option value="" selected disabled>--Select School Year</option>
+              </select>
+            </div>
+            <div class="col-2 mt-auto mb-0">
+              <button type="submit" class="btn btn-primary d-none">Submit</button>
+            </div>
+          </div>
+        </form>
+        <div class="row mt-3">
+          <div class="col-10 offset-1">
+            <select name="" id="" id="facultySelect">
+
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('../../includes/footer.ejs') %>
