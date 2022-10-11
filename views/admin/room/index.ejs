@@ -7,10 +7,12 @@
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE ROOM/S</strong>
-        <a href="/admin/rooms/add" class="float-end"><button class="btn btn-primary">ADD NEW room</button></a>
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add New Room
+        </button>
       </div>
       <div class="card-body">
-        <table id="example" class="table table-striped datatables" style="width:100%">
+        <table id="roomTable" class="table table-striped" style="width:100%">
           <thead>
             <tr>
               <th>Room Name</th>
@@ -19,39 +21,82 @@
             </tr>
           </thead>
           <tbody>
-            <% rooms.forEach(room => { %>
-            <tr>
-              <td><%= room.room_name %></td>
-              <td><%= room.laboratory %></td>
-              <td>
-                <a class="btn btn-primary btn-sm" href="/admin/rooms/edit/<%= room._id %>">Edit</a>
-                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= room._id %>">
-                  Delete
-                </button>
-                <div class="modal fade" id="deleteModal<%= room._id %>" tabindex="-1" aria-labelledby="deleteModal<%= room._id %>Label" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <strong>Are you sure, you want to delete?</strong>
-                      </div>
-                      <div class="modal-footer">
-                        <form action="/admin/rooms/delete" method="post">
-                          <input type="hidden" name="_csrf" value="<%= csrf %>">
-                          <input type="hidden" name="id" value="<%= room._id %>">
-                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
-                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <% }) %>
+
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new room</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="room-name" class="col-form-label">Room Name:</label>
+              <input type="text" class="form-control" id="room-name">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="laboratory">
+                <label for="laboratory" class="form-check-label">Laboratory</label>
+                <div class="invalid-feedback">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing room</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="needs-validation">
+            <div class="mb-3">
+              <label for="room-name" class="col-form-label">Room Name:</label>
+              <input type="text" class="form-control" id="room-name">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="laboratory">
+                <label for="laboratory" class="form-check-label">Laboratory</label>
+                <div class="invalid-feedback">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" value="<%= csrf %>" id="csrf">
   <%- include('../../includes/footer.ejs') %>
+  <script src="/js/room.js"></script>
+</body>
+
+</html>

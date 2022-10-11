@@ -74,6 +74,25 @@ router.post("/levels/delete", level.deleteLevel);
 router.get("/curriculums", curriculum.getCurriculums);
 router.get("/curriculums/sections-courses", curriculum.getSectionsAndCourses);
 
+router.get("/curriculums/:id", curriculum.getBySchoolYear);
+
+router.post(
+  "/curriculum/programs/:school_year",
+  validation.postProgram,
+  curriculum.postProgram
+);
+router.post(
+  "/curriculum/year/:school_year",
+  validation.postYearLevel,
+  curriculum.postYearLevel
+);
+
+router.get("/curriculum/programs/:school_year", curriculum.getProgram);
+router.get("/curriculum/programs/:school_year/:program", curriculum.getOneProgram);
+
+
+router.get("/curriculum/semester/:school_year", curriculum.getSemester);
+
 router.get("/curriculums/add", curriculum.addCurriculum);
 router.post("/curriculums/add", curriculum.addCurriculum);
 

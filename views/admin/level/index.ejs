@@ -7,10 +7,12 @@
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE YEAR LEVEL/S</strong>
-        <a href="/admin/levels/add" class="float-end"><button class="btn btn-primary">ADD NEW YEAR LEVEL</button></a>
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add New Year Level
+        </button>
       </div>
       <div class="card-body">
-        <table id="example" class="table table-striped datatables" style="width:100%">
+        <table id="levelTable" class="table table-striped" style="width:100%">
           <thead>
             <tr>
               <th>Year Level</th>
@@ -18,38 +20,65 @@
             </tr>
           </thead>
           <tbody>
-            <% levels.forEach(level => { %>
-            <tr>
-              <td><%= level.level %></td>
-              <td>
-                <a class="btn btn-primary btn-sm" href="/admin/levels/edit/<%= level._id %>">Edit</a>
-                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= level._id %>">
-                  Delete
-                </button>
-                <div class="modal fade" id="deleteModal<%= level._id %>" tabindex="-1" aria-labelledby="deleteModal<%= level._id %>Label" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <strong>Are you sure, you want to delete?</strong>
-                      </div>
-                      <div class="modal-footer">
-                        <form action="/admin/levels/delete" method="post">
-                          <input type="hidden" name="_csrf" value="<%= csrf %>">
-                          <input type="hidden" name="id" value="<%= level._id %>">
-                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
-                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <% }) %>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new school year</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="year" class="col-form-label">School Year:</label>
+              <input type="text" class="form-control" id="year_level">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing Year Level</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="needs-validation">
+            <div class="mb-3">
+              <label for="year_level" class="col-form-label">Year Level:</label>
+              <input type="text" class="form-control" id="year-level">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" name="" value="<%= csrf %>" id="csrf">
   <%- include('../../includes/footer.ejs') %>
+  <script src="/js/level.js"></script>
+</body>
+
+</html>

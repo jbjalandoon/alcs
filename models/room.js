@@ -9,7 +9,12 @@ const RoomSchema = new Schema({
   },
   laboratory: {
     type: Boolean,
+    default: false,
     required: true,
+  },
+  deleted_at: {
+    type: Date,
+    default: null,
   },
 });
 

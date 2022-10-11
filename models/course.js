@@ -12,9 +12,21 @@ const CourseSchema = new Schema({
     type: String,
     required: true,
   },
+  lecture: {
+    type: Number,
+    required: true,
+  },
+  lab: {
+    type: Number,
+    required: true,
+  },
   units: {
     type: Number,
     required: true,
+  },
+  deleted_at: {
+    type: Date,
+    default: null,
   },
   qualifications: [{ type: mongoose.Types.ObjectId, ref: "Qualification" }],
 });

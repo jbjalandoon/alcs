@@ -113,7 +113,7 @@
             <label
                 class="form-label"
                 for="email"
-            >Valid Email Address</label>
+            >Faculty Type</label>
             <select                 
               class="form-select <%= errors.find(e => e.param === 'faculty_type') ? 'is-invalid': 'is-valid'%>"
               value="<%= faculty ? faculty.email: ''  %>"

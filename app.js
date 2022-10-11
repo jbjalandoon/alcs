@@ -20,6 +20,7 @@ const db_uri =
   "@cluster0.dswk4w8.mongodb.net/" +
   process.env.DATABASE_NAME;
 
+const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
 const authenticationRoutes = require("./routes/authentication");
 const store = new mongoDBStore({
@@ -28,6 +29,7 @@ const store = new mongoDBStore({
 });
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json({}));
 app.use(express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
@@ -69,6 +71,7 @@ app.use((req, res, next) => {
   }
 });
 app.use("/admin", adminRoutes);
+app.use("/api", apiRoutes);
 app.use("/", error.get404);
 
 mongoose

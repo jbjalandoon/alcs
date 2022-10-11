@@ -11,6 +11,10 @@ const ProgramSchema = new Schema({
     type: String,
     required: true,
   },
+  deleted_at: {
+    type: Date,
+    default: null,
+  },
 });
 
 module.exports = mongoose.model("Program", ProgramSchema);

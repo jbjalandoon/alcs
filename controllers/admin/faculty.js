@@ -1,9 +1,9 @@
 const Faculty = require("../../models/user");
-
+const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
 
 exports.getFaculties = (req, res, next) => {
-  Faculty.find()
+  Faculty.find({ role: "user" })
     .then((faculties) => {
       res.render("admin/faculty/index", {
         title: "ALCS | Faculty",
@@ -46,15 +46,21 @@ exports.addFaculty = (req, res, next) => {
         errors: errors.array(),
       });
     }
-    new Faculty({
-      faculty_code: faculty_code,
-      first_name: first_name,
-      middle_name: middle_name,
-      last_name: last_name,
-      email: email,
-      faculty_type: faculty_type,
-    })
-      .save()
+    bcrypt
+      .hash("password", 12)
+      .then((password) => {
+        return new Faculty({
+          email: email,
+          password: password,
+          userInformation: {
+            faculty_code: faculty_code,
+            first_name: first_name,
+            middle_name: middle_name,
+            last_name: last_name,
+            faculty_type: faculty_type,
+          },
+        }).save();
+      })
       .then((result) => {
         req.flash(
           "input_success_message",
@@ -76,7 +82,8 @@ exports.getFacultyAPI = (req, res, next) => {
   console.log(req.query.q);
   Faculty.find({
     first_name: { $regex: ".*" + req.query.q + ".*", $options: "i" },
-  }).limit(2)
+  })
+    .limit(2)
     .then((faculty) => {
       res.json(faculty);
     })

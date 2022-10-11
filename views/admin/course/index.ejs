@@ -7,53 +7,130 @@
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE COURSE/S</strong>
-        <a href="/admin/courses/add" class="float-end"><button class="btn btn-primary">ADD NEW COURSE</button></a>
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add New Course
+        </button>
       </div>
       <div class="card-body">
-        <table id="example" class="table table-striped datatables" style="width:100%">
+        <table id="courseTable" class="table table-striped datatables" style="width:100%">
           <thead>
             <tr>
               <th>Name</th>
               <th>Position</th>
+              <th>Lecture</th>
+              <th>Lab</th>
               <th>Units</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <% courses.forEach(course => { %>
-            <tr>
-              <td><%= course.course_code %></td>
-              <td><%= course.course_description %></td>
-              <td><%= course.units %></td>
-              <td>
-                <a class="btn btn-primary btn-sm" href="/admin/courses/edit/<%= course._id %>">Edit</a>
-                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= course._id %>">
-                  Delete
-                </button>
-                <div class="modal fade" id="deleteModal<%= course._id %>" tabindex="-1" aria-labelledby="deleteModal<%= course._id %>Label" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <strong>Are you sure, you want to delete?</strong>
-                      </div>
-                      <div class="modal-footer">
-                        <form action="/admin/courses/delete" method="post">
-                          <input type="hidden" name="_csrf" value="<%= csrf %>">
-                          <input type="hidden" name="id" value="<%= course._id %>">
-                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
-                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <% }) %>
+
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new program</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="course-code" class="col-form-label">Course Code:</label>
+              <input type="text" class="form-control" id="course-code">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="course-description" class="col-form-label">Course Description:</label>
+              <input type="text" class="form-control" id="course-description">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="units" class="col-form-label">Units:</label>
+              <input type="text" class="form-control" id="units">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="lecture" class="col-form-label">Lecture: </label>
+              <input type="text" class="form-control" id="lecture">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="lab" class="col-form-label">Lab: </label>
+              <input type="text" class="form-control" id="lab">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">New message</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="needs-validation">
+            <div class="mb-3">
+              <label for="course-code" class="col-form-label">Course Code:</label>
+              <input type="text" class="form-control" id="course-code">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="course-description" class="col-form-label">Course Description:</label>
+              <input type="text" class="form-control" id="course-description">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="units" class="col-form-label">Units:</label>
+              <input type="text" class="form-control" id="units">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="lecture" class="col-form-label">Lecture: </label>
+              <input type="text" class="form-control" id="lecture">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="lab" class="col-form-label">Lab: </label>
+              <input type="text" class="form-control" id="lab">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" value="<%= csrf %>" id="csrf">
   <%- include('../../includes/footer.ejs') %>
+  <script src="/js/course.js"></script>
+</body>
+
+</html>

@@ -7,6 +7,10 @@ const YearSchema = new Schema({
     type: String,
     required: true,
   },
+  deleted_at: {
+    type: Date,
+    default: null,
+  },
 });
 
-module.exports = mongoose.model('Year', YearSchema)
+module.exports = mongoose.model("Year", YearSchema);

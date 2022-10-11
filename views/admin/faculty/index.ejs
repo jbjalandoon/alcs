@@ -6,11 +6,14 @@
   <div class="container">
     <div class="card">
       <div class="card-header">
-        <strong>LIST OF AVAILABLE faculty/S</strong>
-        <a href="/admin/faculty/add" class="float-end"><button class="btn btn-primary">ADD NEW faculty</button></a>
+        <strong>LIST OF AVAILABLE FACULTY/S</strong>
+        <!-- <a href="/admin/faculty/add" class="float-end"><button class="btn btn-primary">ADD NEW faculty</button></a> -->
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add Faculty
+        </button>
       </div>
       <div class="card-body">
-        <table id="example" class="table table-striped datatables" style="width:100%">
+        <table id="facultyTable" class="table table-striped datatables" style="width:100%">
           <thead>
             <tr>
               <th>Faculty Code</th>
@@ -21,41 +24,76 @@
             </tr>
           </thead>
           <tbody>
-            <% faculties.forEach(faculty => { %>
-            <tr>
-              <td><%= faculty.faculty_code %></td>
-              <td><%= faculty.first_name + ' ' + faculty.middle_name + ' ' + faculty.last_name %></td>
-              <td><%= faculty.faculty_type %></td>
-              <td><%= faculty.email %></td>
-              <td>
-                <a class="btn btn-primary btn-sm" href="/admin/facultys/edit/<%= faculty._id %>">Edit</a>
-                <button type="button" class="btn btn-danger btn-sm text-light" data-coreui-toggle="modal" data-coreui-target="#deleteModal<%= faculty._id %>">
-                  Delete
-                </button>
-                <div class="modal fade" id="deleteModal<%= faculty._id %>" tabindex="-1" aria-labelledby="deleteModal<%= faculty._id %>Label" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <strong>Are you sure, you want to delete?</strong>
-                      </div>
-                      <div class="modal-footer">
-                        <form action="/admin/facultys/delete" method="post">
-                          <input type="hidden" name="_csrf" value="<%= csrf %>">
-                          <input type="hidden" name="id" value="<%= faculty._id %>">
-                          <button type="submit" class="btn btn-danger btn-sm text-light">Yes</button>
-                          <button type="button" class="btn btn-secondary btn-sm" data-coreui-dismiss="modal">No</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <% }) %>
+
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new program</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="first-name" class="col-form-label">First Name: </label>
+              <input type="text" class="form-control" id="first-name">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="middle-name" class="col-form-label">Middle Name: </label>
+              <input type="text" class="form-control" id="middle-name">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="last-name" class="col-form-label">Last Name: </label>
+              <input type="text" class="form-control" id="last-name">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="faculty-code" class="col-form-label">Faculty Code: </label>
+              <input type="text" class="form-control" id="faculty-code">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="email" class="col-form-label">Email: </label>
+              <input type="text" class="form-control" id="email">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="faculty-type" class="col-form-label">Faculty Type: </label>
+              <select type="text" class="form-control" id="faculty-type">
+                <option value="" selected disabled>--Select Faculty Type--</option>
+                <option value="regular">Regular</option>
+                <option value="full-time">Full Time</option>
+                <option value="part-time">Part Time</option>
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" value="<%= csrf %>" id="csrf">
   <%- include('../../includes/footer.ejs') %>
+  <script src="/js/faculty.js"></script>
+</body>
+
+</html>

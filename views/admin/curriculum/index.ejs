@@ -3,119 +3,140 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid px-4">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE CURRICULUMS/S</strong>
-        <a href="/admin/curriculums/add" class="float-end"><button class="btn btn-primary">ADD NEW CURRICULUMS</button></a>
+        <button type="button" class="btn btn-sm btn-primary float-end d-none" id="addModalButton" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add Program Offered
+        </button>
       </div>
       <div class="card-body">
-        <div class="accordion" id="schoolYearAccordion">
-          <% curriculums.forEach(curriculum => { %>
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="heading<%= curriculum._id %>">
-              <button class="accordion-button" type="button" data-coreui-toggle="collapse" data-coreui-target="#collapse<%= curriculum._id %>" aria-expanded="true" aria-controls="collapse<%= curriculum._id %>">
-                School Year: <%= curriculum.school_year.year %>
-              </button>
-            </h2>
-            <div id="collapse<%= curriculum._id %>" class="accordion-collapse collapse show" aria-labelledby="heading<%= curriculum._id %>" data-coreui-parent="#accordi<%= curriculum._id %>xample">
-              <div class="accordion-body">
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
-                  <% curriculum.semesters.forEach((semester, index) => { %>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link <%= index == '0' ? 'active': ''%> text-uppercase" id="<%=semester.sem%>-tab" data-coreui-toggle="tab" data-coreui-target="#<%=semester.sem%>" type="button" role="tab" aria-controls="<%=semester.sem%>" aria-selected="<%= index == '0' ? 'true': 'false'%>"><%=semester.sem%> semester</button>
-                  </li>
-                  <% }) %>
-                </ul>
-                <div class="tab-content">
-                  <% curriculum.semesters.forEach((semester,index) => { %>
-                  <div class="tab-pane <%= index == '0' ? 'active': ''%>" id="<%=semester.sem%>" role="tabpanel" aria-labelledby="<%=semester.sem%>-tab" tabindex="0">
-                    <div class="row mt-3 mb-3">
-                      <div class="col-6">
-                        <label for="programTab" class="form-label">Select Program:</label>
-                        <select class="form-select program-tab" onchange="changeProgramTab(this.value)" name="programTab" id="programTab">
-                          <option value="blank<%=semester._id%>">Please select program to display</option>
-                          <% semester.programs.forEach(program => { %>
-                          <option value="<%= program.program.program_code %><%= semester._id %>"><%= program.program.program_name %></option>
-                          <% }) %>
-                        </select>
-                      </div>
-                    </div>
-                    <ul class="nav nav-tabs d-none" id="programTabList" role="tablist">
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="blank<%=semester._id%>-tab" data-coreui-toggle="tab" data-coreui-target="#blank<%=semester._id%>" type="button" role="tab" aria-controls="blank<%=semester._id%>" aria-selected="true">Blank</button>
-                      </li>
-                      <% semester.programs.forEach(program => { %>
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="<%= program.program.program_code %><%= semester._id %>-tab" data-coreui-toggle="tab" data-coreui-target="#<%= program.program.program_code %><%= semester._id %>" type="button" role="tab" aria-controls="<%= program.program.program_code %><%= semester._id %>" aria-selected="true"><%=program.program.program_code%></button>
-                      </li>
-                      <% }) %>
-                    </ul>
-                    <div class="tab-content">
-                      <div class="tab-pane active" id="blank<%= semester._id %>" role="tabpanel" aria-labelledby="blank<%= semester._id %>-tab" tabindex="0">Please Select a Program</div>
-                      <% semester.programs.forEach(program => { %>
-                      <div class="tab-pane" id="<%= program.program.program_code %><%= semester._id %>" role="tabpanel" aria-labelledby="<%= program.program.program_code %><%= semester._id %>-tab" tabindex="0">
-                        <div class="d-flex align-items-start">
-                          <div class="nav flex-column nav-pills me-3 w-25" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <% program.year.forEach((year, index) => { %>
-                            <button class="nav-link <%= index == '0' ? 'active': ''%>" id="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>-tab" data-coreui-toggle="pill" data-coreui-target="#v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" type="button" role="tab" aria-controls="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" aria-selected="false"><%=year.year_level.level%></button>
-                            <% }) %>
-                          </div>
-                          <div class="tab-content w-100" id="v-pills-tabContent">
-                            <% program.year.forEach((year, index) => { %>
-                            <div class="tab-pane fade show <%= index == '0' ? 'active': ''%>" id="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>" role="tabpanel" aria-labelledby="v-pills-<%= program.program.program_code %>-<%=year.year_level._id%>-tab" tabindex="0">
-                              <div class="row">
-                                <div class="col-12">
-                                  Available Section/s:
-                                  <% year.sections.forEach((section,index) => { %>
-                                  <%= program.program.program_code+''+section.section+''%><%= index == year.sections.length - 1 ? '': ',' %>
-                                  <% }) %>
-                                </div>
-                              </div>
-
-                              <div class="table-responsive">
-                                <table class="table">
-                                  <thead>
-                                    <tr>
-                                      <th>#</th>
-                                      <th>Course Code</th>
-                                      <th>Course Description</th>
-                                      <th>Unit</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <% year.courses.forEach((course,index) => { %>
-                                    <tr>
-                                      <td><%= index + 1 %> </td>
-                                      <td><%= course.course_code %> </td>
-                                      <td><%= course.course_description %> </td>
-                                      <td><%= course.units %> </td>
-                                    </tr>
-                                    <% }) %>
-                                  </tbody>
-                                </table>
-
-                              </div>
-                            </div>
-                            <% }) %>
-                          </div>
-                        </div>
-                      </div>
-                      <% }) %>
-                    </div>
-                  </div>
-                  <% }) %>
+        <div class="d-flex justify-content-center" id="content-loading">
+          <strong>Loading...</strong>
+          <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+        </div>
+        <div class="d-none" id="content">
+          <div class="row">
+            <div class="col-4 offset-1">
+              <select class="form-select" id="view-semester">
+                <option value="" disabled selected>--Select Semester--</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <select class="form-select" id="view-program" disabled>
+                <option value="" disabled selected>--Select Program--</option>
+              </select>
+            </div>
+            <div class="col-2">
+              <button class="btn form-control btn-primary" id="submit-button" disabled>Submit</button>
+            </div>
+          </div>
+          <div class="d-none" id="yearList">
+            <div class="row m-3">
+              <div class="col-2">
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addYeaModal">
+                  Add Year Level
+                </button>
+              </div>
+            </div>
+            <div class="d-flex justify-content-center m-3" id="year-loading">
+              <div class="spinner-border" role="status" aria-hidden="true"></div>
+            </div>
+            <div class="row m-3 d-none" id="nav-year">
+              <div class="d-flex align-items-start">
+                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                 </div>
-
-
+                <div class="tab-content" id="v-pills-tabContent">
+                </div>
               </div>
             </div>
           </div>
-          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
 
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new program</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="program-code" class="col-form-label">Semester:</label>
+              <select class="form-select" id="add-semester">
+                <option value="">--Select Semester--</option>
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="col-12 mb-3">
+              <label for="add-program" class="col-form-label">Programs:</label>
+              <select class="form-control" width="100%" multiple="true" id="add-program">
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="modal fade" id="addYeaModal" tabindex="-1" aria-labelledby="addYearModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addYearModalLabel">Adding Year Level</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addYearForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="year-level" class="col-form-label">Year Level:</label>
+              <select class="form-select" id="year-level">
+                <option value="" disabled selected>--Select Year Level--</option>
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="section" class="col-form-label">Sections:</label>
+              <select id="section" multiple="multiple">
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="course" class="col-form-label">Courses (0 Units Selected):</label>
+              <select id="course">
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-year-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" id="csrf" value="<%= csrf %>">
+  <input type="hidden" id="school-year" value="<%= school_year %>">
   <%- include('../../includes/footer.ejs') %>
+  <script src="/js/curriculum.js"></script>
+</body>
+
+</html>

@@ -31,6 +31,13 @@ const UserSChema = new Schema({
     middle_name: {
       type: "string",
     },
+    faculty_type: {
+      type: "string",
+    },
+  },
+  deleted_at: {
+    type: Date,
+    default: null,
   },
 });
 
