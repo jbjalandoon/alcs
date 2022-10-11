@@ -196,10 +196,10 @@ $("#submit-button").on("click", () => {
       }
       result.data.forEach((element, index) => {
         $("#nav-year #v-pills-tab").append(
-          `<button class="nav-link" id="v-pills-${element.year.level}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${element.year.level}" type="button" role="tab" aria-controls="v-pills-${element.year.level}" aria-selected="true">${element.year.level}</button>`
+          `<button class="nav-link ${index == 0 ? 'active':''}" id="v-pills-${element.year.level}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${element.year.level}" type="button" role="tab" aria-controls="v-pills-${element.year.level}" aria-selected="true">${element.year.level}</button>`
         );
         $("#nav-year #v-pills-tabContent").append(
-          `<div class="tab-pane fade show" id="v-pills-${element.year.level}" role="tabpanel" aria-labelledby="v-pills-${element.year.level}-tab" tabindex="0">
+          `<div class="tab-pane fade show ${index == 0 ? 'active':''}" id="v-pills-${element.year.level}" role="tabpanel" aria-labelledby="v-pills-${element.year.level}-tab" tabindex="0">
             <table class="table" id='${element._id}'>
               <thead>
                 <tr>
