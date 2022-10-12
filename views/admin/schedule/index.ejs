@@ -53,13 +53,38 @@
             </div>
           </div>
         </form>
-        <div class="row">
+
+
+        <div class="row d-none" id="scheduleContent">
           <div class="col-3">
-            <span id="courses"></span>
+            <label for="room" class="form-label">Select Room:</label>
+            <select class="form-select" name="room" id="roomForm">
+              <option value="" disabled selected>--Select Room--</option>
+            </select>
+            <div id='external-events' class="mt-3">
+              <div class="mt-3">
+                <p>
+                  <strong>Lecture:</strong>
+                </p>
+                <div class="card" style="width: 18rem;">
+                  <ul class="list-group list-group-flush" id="lectureList">
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-3">
+                <p>
+                  <strong>Laboratory:</strong>
+                </p>
+                <div class="card" style="width: 18rem;">
+                  <ul class="list-group list-group-flush" id="labList">
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col-9">
             <div id='calendar-container'>
-              <div id="asd"></div>
+              <div id="calendar"></div>
             </div>
           </div>
         </div>
@@ -67,5 +92,9 @@
 
 
     </div>
-
+    <input type="hidden" name="_csrf" value="<%= csrf %>" id="csrf">
     <%- include('../../includes/footer.ejs') %>
+    <script src="/js/schedule.js"></script>
+</body>
+
+</html>

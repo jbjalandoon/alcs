@@ -397,8 +397,7 @@ exports.getOneProgram = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result);
-      if (result.length == 0) {
+      if (!result) {
         return res.json({ ok: false });
       }
       res.json({ ok: true, data: result });

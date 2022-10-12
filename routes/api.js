@@ -6,6 +6,8 @@ const level = require("../controllers/api/level");
 const room = require("../controllers/api/room");
 const course = require("../controllers/api/course");
 const faculty = require("../controllers/api/faculty");
+const schedule = require("../controllers/api/schedule");
+const curriculum = require("../controllers/api/curriculum");
 const validation = require("../validations/maintenance");
 
 const router = express.Router();
@@ -45,5 +47,16 @@ router.get("/faculty/:id", faculty.getOne);
 router.post("/faculty", validation.postFaculty, faculty.post);
 // router.put("/faculty/:id", validation.putCourse, faculty.edit);
 router.delete("/faculty/:id", faculty.delete);
+
+router.get("/curriculums/semesters/:school_year", curriculum.getSemesters);
+router.get("/curriculums/programs/:semester", curriculum.getPrograms);
+router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
+router.get("/curriculums/sections/:year_level", curriculum.getSections);
+router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
+
+router.get('/schedules/:schedule', schedule.getOneSchedule)
+router.get('/schedules/room/:room', schedule.getRoomSchedule)
+router.put('/schedules/set/:schedule', schedule.setSchedule)
+router.delete('/schedules/:schedule', schedule.deleteSchedule)
 
 module.exports = router;

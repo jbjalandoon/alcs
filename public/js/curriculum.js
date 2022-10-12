@@ -190,16 +190,30 @@ $("#submit-button").on("click", () => {
       }
       $("#yearList").removeClass("d-none");
       if (result.data == 0) {
+        $("#year-loading").removeClass("d-none");
+        $("#nav-year").addClass("d-none");
         return $("#year-loading").html(
           "There is no year level, Please add a year level"
         );
       }
       result.data.forEach((element, index) => {
         $("#nav-year #v-pills-tab").append(
-          `<button class="nav-link ${index == 0 ? 'active':''}" id="v-pills-${element.year.level}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${element.year.level}" type="button" role="tab" aria-controls="v-pills-${element.year.level}" aria-selected="true">${element.year.level}</button>`
+          `<button class="nav-link ${index == 0 ? "active" : ""}" id="v-pills-${
+            element.year.level
+          }-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${
+            element.year.level
+          }" type="button" role="tab" aria-controls="v-pills-${
+            element.year.level
+          }" aria-selected="true">${element.year.level}</button>`
         );
         $("#nav-year #v-pills-tabContent").append(
-          `<div class="tab-pane fade show ${index == 0 ? 'active':''}" id="v-pills-${element.year.level}" role="tabpanel" aria-labelledby="v-pills-${element.year.level}-tab" tabindex="0">
+          `<div class="tab-pane fade show ${
+            index == 0 ? "active" : ""
+          }" id="v-pills-${
+            element.year.level
+          }" role="tabpanel" aria-labelledby="v-pills-${
+            element.year.level
+          }-tab" tabindex="0">
             <table class="table" id='${element._id}'>
               <thead>
                 <tr>
@@ -217,17 +231,17 @@ $("#submit-button").on("click", () => {
         );
 
         element.course.forEach((course) => {
-          $(`#${element._id} tbody`).append('<tr>').append(`
+          $(`#${element._id} tbody`).append("<tr>").append(`
             <td>${course.course_code}</td>
             <td>${course.course_description}</td>
             <td>${course.lab}</td>
             <td>${course.lecture}</td>
             <td>${course.units}</td>
-          `)
+          `);
         });
       });
 
-      $("#year-loading").remove();
+      $("#year-loading").addClass("d-none");
       $("#nav-year").removeClass("d-none");
     })
     .catch((error) => {
