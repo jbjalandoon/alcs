@@ -121,7 +121,7 @@ router.get("/schedules/get-sections-list", schedule.getSections);
 router.get("/schedules/courses", schedule.getCoursesTable);
 router.post("/schedules/set", schedule.setSchedule);
 router.post("/schedules/assign", schedule.assignFaculty);
-router.get("/schedules/faculty", schedule.getFacultySchedule);
+router.get("/schedules/faculty/:sem", schedule.getFacultySchedule);
 router.get("/schedules/room", schedule.getRoomSchedules);
 router.get("/schedules/room-section", schedule.getRoomSectionSchedule);
 router.get("/schedules/unavailable", schedule.getUnavailableSchedules);

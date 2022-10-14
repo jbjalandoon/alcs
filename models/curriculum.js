@@ -78,4 +78,5 @@ const CurriculumSchema = new Schema({
   ],
 });
 
+CurriculumSchema.index({ course_code: "text", course_description: "text" });
 module.exports = mongoose.model("Curriculum", CurriculumSchema);

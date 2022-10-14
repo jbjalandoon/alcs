@@ -182,11 +182,13 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
           }
         });
       })
-      .then((error) => {
+      .catch((error) => {
         console.log(error);
       });
   },
 });
+
+let draggable;
 
 // Assigning Schedule
 let scheduleCourseForm;
@@ -345,7 +347,10 @@ scheduleSubmitButton.on("click", () => {
   events.forEach((element) => {
     element.remove();
   });
-
+  $("#facultyLink").attr(
+    "href",
+    `/admin/schedules/faculty/${scheduleSemesterForm.val()}`
+  );
   if ($("#roomForm").val() != null) {
     fetch("/api/schedules/room/" + $("#roomForm").val())
       .then((response) => {
@@ -450,6 +455,9 @@ $("#roomForm").on("change", () => {
           });
         }
       });
+      if (draggable) {
+        draggable.destroy();
+      }
       var Draggable = FullCalendar.Draggable;
       draggable = new Draggable(document.getElementById("external-events"), {
         itemSelector: ".fc-event",

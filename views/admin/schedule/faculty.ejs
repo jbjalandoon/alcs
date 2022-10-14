@@ -9,36 +9,56 @@
         <strong>PLEASE SELECT THE SCHOOL YEAR & SEMESTER</strong>
       </div>
       <div class="card-body">
-        <form action="/admin/schedules/faculty" id="facultyForm" method="GET">
-          <div class="row">
-            <div class="col-5 offset-1">
-              <label for="year" class="form-label">School Year:</label>
-              <select name="year" id="year" class="form-select">
-                <option value="" selected disabled>--Select School Year</option>
-                <% school_years.forEach(element => { %>
-                <option value="<%= element.school_year._id %>"><%= element.school_year.year %></option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="col-5">
-              <label for="semester" class="form-label">Semester:</label>
-              <select name="semester" id="semester" class="form-select" disabled>
-                <option value="" selected disabled>--Select School Year</option>
-              </select>
-            </div>
-            <div class="col-2 mt-auto mb-0">
-              <button type="submit" class="btn btn-primary d-none">Submit</button>
-            </div>
-          </div>
-        </form>
-        <div class="row mt-3">
+        <div class="row">
           <div class="col-10 offset-1">
-            <select name="" id="" class="form-control faculty-select" id="facultySelect">
-              <option value="" selected disabled>--Select Faculty--</option>
+            <label for="faculty" class="form-label">
+              Select Faculty:
+            </label>
+            <select name="" class="form-control" id="faculty">
             </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4 mt-4">
+            <div class="mb-3">
+              <select type="text" class="form-select form-lg mb-3" id="courseSearch">
+                <option value="" selected disabled>--Select Course--</option>
+              </select>
+            </div>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="lecture-tab" data-bs-toggle="tab" data-bs-target="#lecture-tab-pane" type="button" role="tab" aria-controls="lecture-tab-pane" aria-selected="true">Lectures</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab-tab-pane" type="button" role="tab" aria-controls="lab-tab-pane" aria-selected="false">Laboratory</button>
+              </li>
+
+            </ul>
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="lecture-tab-pane" role="tabpanel" aria-labelledby="lecture-tab" tabindex="0">
+                <ol class="list-group list-group-numbered mt-3 schedules" id="lectureList">
+                </ol>
+              </div>
+              <div class="tab-pane fade" id="lab-tab-pane" role="tabpanel" aria-labelledby="lab-tab" tabindex="0">
+                <ol class="list-group list-group-numbered mt-3 schedules" id="labList">
+                </ol>
+              </div>
+            </div>
+
+          </div>
+          <div class="col-8">
+            <div id='calendar-container'>
+              <div id="calendar"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    <input type="hidden" id="sem" value="<%= sem %>">
+    <input type="hidden" id="csrf" value="<%= csrf %>">
     <%- include('../../includes/footer.ejs') %>
+    <script src="/js/schedule-faculty.js"></script>
+</body>
+
+</html>

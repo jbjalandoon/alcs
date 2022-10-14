@@ -588,7 +588,13 @@ exports.getRoomSectionSchedule = (req, res, next) => {
     { $unwind: "$program" },
     { $unwind: "$program.year" },
     { $project: { program_id: "$program.program", year: "$program.year" } },
-    { $project: { program_id: "$program_id", year_level_id: "$year.year_level", sections: "$year.sections" } },
+    {
+      $project: {
+        program_id: "$program_id",
+        year_level_id: "$year.year_level",
+        sections: "$year.sections",
+      },
+    },
     { $unwind: "$sections" },
     { $match: { "sections.section": { $ne: req.query.section } } },
     {
@@ -670,7 +676,7 @@ exports.getRoomSectionSchedule = (req, res, next) => {
           endTime: e.to,
           overlap: false,
           assigned: e.faculty.length == 0 ? false : true,
-          color: '#800000',
+          color: "#800000",
           editable: false,
           assignable: false,
           text: `
@@ -926,6 +932,7 @@ exports.getFacultySchedule = (req, res, next) => {
       res.render("admin/schedule/faculty", {
         title: "ALCS | Assign Faculty",
         school_years: school_years,
+        sem: req.params.sem,
       });
     })
     .catch((error) => {
