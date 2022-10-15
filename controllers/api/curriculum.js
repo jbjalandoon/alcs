@@ -1,5 +1,7 @@
 const { default: mongoose } = require("mongoose");
+const { validationResult } = require("express-validator");
 const Curriculum = require("../../models/curriculum");
+const Course = require("../../models/course");
 
 exports.getSemesters = (req, res, next) => {
   if (!req.params.school_year.match(/^[0-9a-fA-F]{24}$/))
@@ -78,6 +80,7 @@ exports.getYearLevels = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year._id",
         level: "$semesters.programs.year.year_level",
+        courses: "$semesters.programs.year.courses",
       },
     },
     {
@@ -86,6 +89,14 @@ exports.getYearLevels = (req, res, next) => {
         localField: "level",
         foreignField: "_id",
         as: "level",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "courses",
+        foreignField: "_id",
+        as: "courses",
       },
     },
     { $unwind: "$level" },
@@ -127,6 +138,72 @@ exports.getSections = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ ok: false, errors: error });
+    });
+};
+
+exports.addYearLevel = (req, res, next) => {
+  const schedules = [];
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ ok: false, errors: errors.mapped() });
+  }
+  Course.find({ _id: { $in: req.body.course } })
+    .then((data) => {
+      data.forEach((element) => {
+        if (element.lecture != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lecture,
+            type: "lecture",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+        if (element.lab != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lab,
+            type: "lab",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+      });
+      return Curriculum.updateOne(
+        {
+          "semesters.programs._id": req.params.program,
+        },
+        {
+          $push: {
+            "semesters.$[].programs.$[program].year": {
+              year_level: req.body.year_level,
+              courses: req.body.course,
+              sections: req.body.section.map((element) => {
+                return {
+                  section: element,
+                  schedules: schedules,
+                };
+              }),
+            },
+          },
+        },
+        {
+          arrayFilters: [{ "program._id": req.params.program }],
+        }
+      );
+    })
+    .then((result) => {
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false });
     });
 };
 
@@ -174,5 +251,70 @@ exports.getSectionSchedules = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false, error: error });
+    });
+};
+
+exports.getCourse = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+      },
+    },
+    { $unwind: "$semesters" },
+    { $unwind: "$semesters.programs" },
+    { $unwind: "$semesters.programs.year" },
+    {
+      $match: {
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+      },
+    },
+    {
+      $project: {
+        _id: '$semesters.programs.year._id',
+        course: "$semesters.programs.year.courses",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course",
+        foreignField: "_id",
+        as: "course_info",
+      },
+    },
+  ])
+    .then((result) => {
+      res.json({ ok: true, data: result[0] });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false, data: error });
+    });
+};
+
+exports.deleteCourse = (req, res, next) => {
+  Curriculum.updateOne(
+    {
+      "semesters.programs.year._id": req.params.year,
+    },
+    {
+      $pull: {
+        "semesters.$[].programs.$[].year.$[year].courses": req.params.course,
+        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules": {
+          course: req.params.course,
+        },
+      },
+    },
+    {
+      arrayFilters: [{ "year._id": req.params.year }],
+    }
+  )
+    .then((result) => {
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false });
+      console.log(error);
     });
 };

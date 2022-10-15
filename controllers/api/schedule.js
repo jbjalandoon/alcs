@@ -99,7 +99,7 @@ exports.getSchedule = (req, res, next) => {
     });
 };
 
-exports.getCourse = (req, res, next) => {
+exports.getAssignableCourse = (req, res, next) => {
   Curriculum.aggregate([
     {
       $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) },
@@ -120,8 +120,15 @@ exports.getCourse = (req, res, next) => {
       $unwind: "$semesters.programs.year.sections.schedules",
     },
     {
+      $match: {
+        "semesters.programs.year.sections.schedules.faculty": null,
+        "semesters.programs.year.sections.schedules.day": { $ne: null },
+      },
+    },
+    {
       $group: {
         _id: "$semesters.programs.year.sections.schedules.course",
+        count: { $count: {} },
       },
     },
     {
@@ -135,6 +142,7 @@ exports.getCourse = (req, res, next) => {
     { $unwind: "$course" },
   ])
     .then((result) => {
+      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {

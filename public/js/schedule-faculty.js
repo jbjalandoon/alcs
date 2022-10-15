@@ -1,29 +1,6 @@
 const sem = $("#sem").val();
 const csrf = $("#csrf").val();
-const faculty = $("#faculty").select2({
-  width: "100%",
-  selectOnClose: true,
-  ajax: {
-    url: "/api/faculty",
-    dataType: "json",
-    processResults: (result) => {
-      return {
-        results: result.data.map((element) => {
-          return {
-            id: element._id,
-            text: (
-              element.userInformation.first_name +
-              " " +
-              element.userInformation.middle_name +
-              " " +
-              element.userInformation.last_name
-            ).toUpperCase(),
-          };
-        }),
-      };
-    },
-  },
-});
+const faculty = $("#faculty");
 
 const courseSearch = $("#courseSearch");
 const calendarEl = document.getElementById("calendar");
@@ -160,7 +137,10 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
                     `);
                   }
                 }
-                alert("ok");
+                Toast.fire({
+                  icon: "success",
+                  title: "Successfully removed a load",
+                });
               }
             });
           }
@@ -168,12 +148,53 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       })
       .catch((error) => {
         console.log(error);
+        Toast.fire({
+          icon: "error",
+          title: "Something went wrong",
+        });
       });
   },
 });
-calendar.render();
+
+fetch("/api/faculty")
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    if (!result.ok) {
+      return;
+    }
+    result.data.forEach((element) => {
+      faculty.append(
+        new Option(
+          (
+            element.userInformation.first_name +
+            " " +
+            element.userInformation.middle_name +
+            " " +
+            element.userInformation.last_name
+          ).toUpperCase(),
+          element._id
+        )
+      );
+    });
+    faculty.select2({
+      width: "100%",
+    });
+    $("#firstLoading").addClass("d-none");
+    $("#facultySelect").removeClass("d-none");
+  })
+  .catch((error) => {
+    Toast.fire({ icon: "error", title: "Something went wrong" });
+    console.log(error);
+  });
 
 faculty.on("change", () => {
+  $("#loadingCourse").removeClass("d-none");
+  $("#loadingCalendar").removeClass("d-none");
+  $("#courses").addClass("d-none");
+  $("#calendar").addClass("d-none");
+
   fetch("/api/schedules/faculty/" + faculty.val())
     .then((response) => {
       return response.json();
@@ -197,12 +218,15 @@ faculty.on("change", () => {
           editabe: false,
         });
       });
+      $("#loadingCalendar").addClass("d-none");
+      $("#calendar").removeClass("d-none");
+      calendar.render();
     })
     .catch((error) => {
       console.log(error);
     });
 
-  fetch(`/api/schedules/course/${sem}`)
+  fetch(`/api/schedules/assignable-course/${sem}`)
     .then((response) => {
       return response.json();
     })
@@ -210,22 +234,37 @@ faculty.on("change", () => {
       if (!result.ok) {
         return;
       }
-      courseSearch.select2({});
+      $(".MyDripdowns").each(function (i, obj) {
+        if (!$(obj).data("select2")) {
+          $("#courseSearch").select2("destroy");
+        }
+      });
+      courseSearch.val("").find("option").not(":first").remove();
       result.data.forEach((element) => {
         courseSearch.append(
           new Option(
-            element.course.course_description.toUpperCase(),
+            element.course.course_description.toUpperCase() +
+              " - " +
+              element.count,
             element._id
           )
         );
       });
+      $("#loadingCourse").addClass("d-none");
+      $("#courses").removeClass("d-none");
+      courseSearch.select2({
+        width: "100%",
+      });
     })
     .catch((error) => {
       console.log(error);
+      Toast.fire({ icon: "error", title: "Something went wrong" });
     });
 });
 
 courseSearch.on("change", () => {
+  $("#loadingList").removeClass("d-none");
+  $("#list").addClass("d-none");
   fetch(`/api/schedules?sem=${sem}&course=${courseSearch.val()}`)
     .then((response) => {
       return response.json();
@@ -237,8 +276,11 @@ courseSearch.on("change", () => {
       }
       $("#lectureList").empty();
       $("#labList").empty();
+      let lectureCount = 0;
+      let labCount = 0;
       result.data.forEach((element) => {
         if (element.type == "lecture") {
+          lectureCount++;
           $("#lectureList").append(`
             <li class="list-group-item d-flex justify-content-between align-items-start fc-event">
               <div class="ms-2 me-auto">
@@ -263,8 +305,8 @@ courseSearch.on("change", () => {
             </li>
           `);
         }
-        // element.course.units
         if (element.type == "lab") {
+          labCount++;
           $("#labList").append(`
           <li class="list-group-item d-flex justify-content-between align-items-start fc-event">
             <div class="ms-2 me-auto">
@@ -290,9 +332,20 @@ courseSearch.on("change", () => {
           `);
         }
       });
+      if (lectureCount == 0) {
+        $("#lectureList").append(`<h5>Nothing to work here</h5>`);
+      }
+      if (labCount == 0) {
+        $("#labList").append(`<h5>Nothing to work here</h5>`);
+      }
+      $("#lecture-tab").html(`Lecture (${lectureCount})`);
+      $("#lab-tab").html(`Lab (${labCount})`);
+      $("#loadingList").addClass("d-none");
+      $("#list").removeClass("d-none");
     })
     .catch((error) => {
       console.log(error);
+      Toast.fire({ icon: "error", title: "Something went wrong" });
     });
 });
 
@@ -387,9 +440,20 @@ const assignFaculty = (element) => {
         overlap: false,
         editabe: false,
       });
+      const count = button.parent().siblings().length;
+      if (count == 0) {
+        button.parent().parent().append(`<h5>Nothing to work here</h5>`);
+      }
+      if (button.parent().parent().parent().attr("id") == "lecture-tab-pane") {
+        $("#lecture-tab").html(`Lecture (${count})`);
+      } else {
+        $("#lab-tab").html(`Lab (${count})`);
+      }
       button.parent().remove();
+      Toast.fire({ icon: "success", title: "Successfully Assigned" });
     })
     .catch((error) => {
       console.log(error);
+      Toast.fire({ icon: "error", title: "Something went wrong" });
     });
 };

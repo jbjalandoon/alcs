@@ -84,8 +84,10 @@ exports.postProgram = [
   check("program").notEmpty().withMessage("Please select something"),
 ];
 
+
 exports.postYearLevel = [
   check("year_level").notEmpty().withMessage("Please select year level"),
   check("section").notEmpty().withMessage("This field is required"),
   check("course").notEmpty().withMessage("Please select course"),
 ];
+

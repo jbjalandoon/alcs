@@ -23,7 +23,9 @@ const CurriculumSchema = new Schema({
           year: [
             {
               year_level: { type: mongoose.Types.ObjectId, ref: "Level" },
-              courses: [{ type: mongoose.Types.ObjectId, ref: "Course" }],
+              courses: [
+                { type: mongoose.Types.ObjectId, ref: "Course", default: null },
+              ],
               sections: [
                 {
                   section: { type: String, required: true },
