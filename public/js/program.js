@@ -6,6 +6,7 @@ const programTable = $("#programTable").DataTable({
   },
 });
 const csrf = $("#csrf").val();
+const uploadModal = new bootstrap.Modal($("#uploadModal"));
 
 const editData = (id, element) => {};
 
@@ -134,6 +135,42 @@ $("#edit-button").on("click", () => {
         icon: "warning",
         title: "Something Went Wrong!",
       });
+    });
+});
+
+$("#uploadButton").on("click", () => {
+  const body = new FormData(document.getElementById("uploadForm"));
+  fetch("/api/programs/upload", {
+    method: "POST",
+    headers: { "csrf-token": csrf },
+    body: body,
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      if (!result.ok) {
+        return;
+      }
+      $("#uploadForm").val("");
+      uploadModal.hide();
+      result.addedData.forEach((element) => {
+        programTable.row
+          .add([
+            element.program_code,
+            element.program_description,
+            `
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
+            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
+          `,
+          ])
+          .draw();
+      });
+      Toast.fire({ icon: "success", title: "Successfully Added" });
+    })
+    .catch((error) => {
+      Toast.fire({ icon: "error", title: "Something went wrong" });
+      console.log(error);
     });
 });
 

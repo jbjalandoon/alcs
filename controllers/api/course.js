@@ -1,5 +1,7 @@
 const Course = require("../../models/course");
 const { validationResult } = require("express-validator");
+const excelToJson = require("convert-excel-to-json");
+const fs = require("fs");
 
 exports.get = (req, res, next) => {
   Course.find({ deleted_at: null })
@@ -92,5 +94,45 @@ exports.delete = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ ok: false });
+    });
+};
+
+exports.postSpreadsheet = (req, res, next) => {
+  let filteredData, removedData;
+  const data = excelToJson({
+    sourceFile: req.file.path,
+    columnToKey: {
+      A: "course_code",
+      B: "course_description",
+      C: "lecture",
+      D: "lab",
+      E: "units",
+    },
+    header: {
+      rows: 1,
+    },
+  });
+  Course.find({
+    course_code: { $in: data.sheet1.map((element) => element.course_code) },
+  })
+    .then((result) => {
+      filteredData = data.sheet1.filter((element) => {
+        return !result.some((course) => {
+          return course.course_code === element.course_code;
+        });
+      });
+
+      removedData = data.sheet1.filter((element) => {
+        return result.some((course) => {
+          return course.course_code === element.course_code;
+        });
+      });
+      return Course.insertMany(filteredData);
+    })
+    .then((result) => {
+      res.json({ ok: true, removedData: removedData, addedData: result });
+    })
+    .catch((error) => {
+      console.log(error);
     });
 };

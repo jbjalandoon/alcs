@@ -8,17 +8,12 @@ require("dotenv").config();
 const path = require("path");
 const bcrypt = require("bcrypt");
 const app = express();
+const multer = require("multer");
 
 const User = require("./models/user");
 
 const error = require("./controllers/error");
-const db_uri =
-  "mongodb+srv://" +
-  process.env.DATABASE_USERNAME +
-  ":" +
-  process.env.DATABASE_PASSWORD +
-  "@cluster0.dswk4w8.mongodb.net/" +
-  process.env.DATABASE_NAME;
+const db_uri = "mongodb://localhost:27017/alcs";
 
 const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
@@ -28,8 +23,19 @@ const store = new mongoDBStore({
   collection: "session",
 });
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "uploads"));
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
+  },
+});
+
+app.use(multer({ storage: fileStorage }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({}));
+
 app.use(express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(

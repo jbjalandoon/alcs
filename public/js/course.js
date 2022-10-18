@@ -9,6 +9,7 @@ const csrf = $("#csrf").val();
 
 let editModal = new bootstrap.Modal($("#editModal"));
 let addModal = new bootstrap.Modal($("#addModal"));
+let uploadModal = new bootstrap.Modal($("#uploadModal"));
 let modalElement = $(editModal._element);
 
 let button, id, courseCode, courseDescription, units, lab, lecture;
@@ -147,6 +148,46 @@ modalElement.on("show.bs.modal", (event) => {
     });
 });
 
+$("#uploadButton").on("click", () => {
+  const body = new FormData(document.getElementById("uploadForm"));
+  console.log(body.get("spreadsheet"));
+  fetch("/api/course/upload", {
+    method: "POST",
+    headers: { "csrf-token": csrf },
+    body: body,
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      if (!result.ok) {
+        return;
+      }
+      $("#uploadForm").val("");
+      uploadModal.hide();
+      result.addedData.forEach((element) => {
+        courseTable.row
+          .add([
+            element.course_code,
+            element.course_description,
+            element.lecture ? element.lecture : "N/A",
+            element.lab ? element.lab : "N/A",
+            element.units,
+            `
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
+            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
+          `,
+          ])
+          .draw();
+      });
+      Toast.fire({ icon: "success", title: "Successfully Added" });
+    })
+    .catch((error) => {
+      Toast.fire({ icon: "error", title: "Something went wrong" });
+      console.log(error);
+    });
+});
+
 $("#edit-button").on("click", () => {
   courseCode.removeClass("is-invalid");
   courseDescription.removeClass("is-invalid");
@@ -171,9 +212,7 @@ $("#edit-button").on("click", () => {
         courseCode
           .addClass(result.errors.course_code ? "is-invalid" : "")
           .siblings("div .invalid-feedback")
-          .html(
-            result.errors.course_code ? result.errors.course_code.msg : ""
-          );
+          .html(result.errors.course_code ? result.errors.course_code.msg : "");
         courseDescription
           .addClass(result.errors.course_description ? "is-invalid" : "")
           .siblings("div .invalid-feedback")

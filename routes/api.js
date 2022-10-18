@@ -14,6 +14,7 @@ const router = express.Router();
 
 router.get("/programs", program.get);
 router.get("/programs/:id", program.getOne);
+router.post("/programs/upload", program.postSpreadsheet);
 router.post("/programs/", validation.postProgram, program.post);
 router.put("/programs/:id", validation.putPorgram, program.edit);
 router.delete("/programs/:id", program.delete);
@@ -39,6 +40,7 @@ router.delete("/rooms/:id", room.delete);
 router.get("/course", course.get);
 router.get("/course/:id", course.getOne);
 router.post("/course", validation.postCourse, course.post);
+router.post("/course/upload", course.postSpreadsheet);
 router.put("/course/:id", validation.putCourse, course.edit);
 router.delete("/course/:id", course.delete);
 

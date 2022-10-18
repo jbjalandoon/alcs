@@ -43,14 +43,15 @@ fetch("/api/years", { method: "GET" })
 
 $("#add-button").on("click", () => {
   year = $("#addForm #year");
+  console.log(year.val())
   year.removeClass("is-invalid");
   fetch("/api/years", {
     method: "POST",
     headers: {
       "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
     },
-    body: `year=${year.val()}`,
+    body: JSON.stringify({ year: year.val() }),
   })
     .then((response) => {
       return response.json();

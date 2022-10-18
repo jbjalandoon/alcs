@@ -3,30 +3,62 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE COURSE/S</strong>
-        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-          Add New Course
-        </button>
+        <div class="float-end">
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            Upload Spreadsheet
+          </button>
+          <button type="button" class="btn btn-sm btn-primary " data-bs-toggle="modal" data-bs-target="#addModal">
+            Add New Course
+          </button>
+        </div>
       </div>
       <div class="card-body">
-        <table id="courseTable" class="table table-striped datatables" style="width:100%">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Lecture</th>
-              <th>Lab</th>
-              <th>Units</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div class="table-responsive">
+          <table id="courseTable" class="table table-striped datatables" style="width:100%">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Lecture</th>
+                <th>Lab</th>
+                <th>Units</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+  
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          </tbody>
-        </table>
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadModalLabel">Upload Spreadsheet</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+         <form id="uploadForm">
+          <div class="mb-3">
+            <label for="spreadsheet" class="col-form-label">Insert File:</label>
+            <input type="file" name="spreadsheet" class="form-control" id="spreadsheet">
+            <div class="invalid-feedback">
+            </div>
+          </div>
+         </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="uploadButton" class="btn btn-primary">Save changes</button>
+        </div>
       </div>
     </div>
   </div>

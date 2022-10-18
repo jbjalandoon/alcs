@@ -1,6 +1,8 @@
 const Program = require("../../models/program");
 const { validationResult } = require("express-validator");
 
+const excelToJson = require("convert-excel-to-json");
+
 exports.get = (req, res, next) => {
   Program.find({ deleted_at: null })
     .then((program) => {
@@ -80,5 +82,43 @@ exports.delete = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false });
+    });
+};
+
+exports.postSpreadsheet = (req, res, next) => {
+  let filteredData, removedData;
+  const data = excelToJson({
+    sourceFile: req.file.path,
+    columnToKey: {
+      A: "program_code",
+      B: "program_name",
+    },
+    header: {
+      rows: 1,
+    },
+  });
+  Program.find({
+    program_code: { $in: data.sheet1.map((element) => element.program_code) },
+  })
+    .then((result) => {
+      filteredData = data.sheet1.filter((element) => {
+        return !result.some((program) => {
+          return program.program_code === element.program_code;
+        });
+      });
+
+      removedData = data.sheet1.filter((element) => {
+        return result.some((program) => {
+          return program.program_code === element.program_code;
+        });
+      });
+      return Program.insertMany(filteredData);
+    })
+    .then((result) => {
+      res.json({ ok: true, removedData: removedData, addedData: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false});
+      console.log(error);
     });
 };

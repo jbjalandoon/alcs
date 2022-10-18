@@ -314,3 +314,16 @@ exports.postYearLevel = [
   check("section").notEmpty().withMessage("This field is required"),
   check("course").notEmpty().withMessage("Please select course"),
 ];
+
+exports.spreadsheet = [
+  check("spreadsheet").custom((value, { req }) => {
+    if (
+      req.file.mimetype !=
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" &&
+      req.file.mimetype != "text/csv" &&
+      req.file.mimetype != "application/vnd.ms-excel"
+    ) {
+      return Promise.reject("Only xls, xlsx, and csv are allowed");
+    }
+  }),
+];
