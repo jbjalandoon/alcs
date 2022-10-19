@@ -206,6 +206,8 @@ let scheduleModal;
 const scheduleTable = $("#scheduleTable");
 
 scheduleSchoolYearForm.on("change", () => {
+  scheduleSubmitButton.addClass("d-none");
+
   fetch("/api/curriculums/semesters/" + scheduleSchoolYearForm.val())
     .then((response) => {
       return response.json();
@@ -236,6 +238,8 @@ scheduleSchoolYearForm.on("change", () => {
 });
 
 scheduleSemesterForm.on("change", () => {
+  scheduleSubmitButton.addClass("d-none");
+
   fetch("/api/curriculums/programs/" + scheduleSemesterForm.val())
     .then((response) => {
       return response.json();
@@ -261,6 +265,12 @@ scheduleSemesterForm.on("change", () => {
 });
 
 scheduleProgramForm.on("change", () => {
+  scheduleSubmitButton.addClass("d-none");
+
+  scheduleYearLevelForm.attr("disabled", true).val("");
+  scheduleSectionForm.attr("disabled", true).val("");
+  scheduleYearLevelForm.find("option").not(":first").remove();
+  scheduleSectionForm.find("option").not(":first").remove();
   fetch("/api/curriculums/year-levels/" + scheduleProgramForm.val())
     .then((response) => {
       return response.json();
@@ -302,6 +312,10 @@ scheduleProgramForm.on("change", () => {
 });
 
 scheduleYearLevelForm.on("change", () => {
+  scheduleSubmitButton.addClass("d-none");
+  scheduleSectionForm.val('');
+  scheduleSectionForm.attr("disabled", true);
+  scheduleSectionForm.find("option").not(":first").remove();
   fetch("/api/curriculums/sections/" + scheduleYearLevelForm.val())
     .then((response) => {
       return response.json();

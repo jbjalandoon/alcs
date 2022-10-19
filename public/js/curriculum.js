@@ -13,9 +13,12 @@ const section = $("#section").select2({ tags: true, width: "100%" });
 const course = $("#course");
 const newCourse = $("#newCourseSelect");
 
+let programYear;
+
 const addModal = new bootstrap.Modal($("#addModal"));
 const addYearModal = new bootstrap.Modal($("#addYeaModal"));
 const addNewCourseModal = new bootstrap.Modal($("#addNewCourseModal"));
+const addNewSectionModal = new bootstrap.Modal($("#addNewSectionModal"));
 
 fetch("/admin/curriculum/semester/" + school_year.val(), { method: "GET" })
   .then((response) => {
@@ -169,9 +172,9 @@ $(addModal._element).on("show.bs.modal", () => {
 
 $(addNewCourseModal._element).on("show.bs.modal", (event) => {
   const button = event.relatedTarget;
-  const level = button.getAttribute("data-bs-whatever");
+  programYear = button.getAttribute("level");
   const existingCourse = [];
-  fetch("/api/curriculums/course/" + level)
+  fetch("/api/curriculums/course/" + programYear)
     .then((response) => {
       return response.json();
     })
@@ -193,7 +196,7 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
       const filteredData = result.data.filter((element) => {
         return !existingCourse.includes(element._id);
       });
-      newCourse.empty()
+      newCourse.empty();
       newCourse.select2({
         width: "100%",
         multiple: true,
@@ -203,10 +206,87 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
           new Option(element.course_description.toUpperCase(), element._id)
         );
       });
-      
     })
     .catch((error) => {
       console.log(error);
+    });
+});
+
+$(addNewSectionModal._element).on("show.bs.modal", (event) => {
+  const button = event.relatedTarget;
+  programYear = button.getAttribute("level");
+  $("#newSectionSelect").select2({ tags: true, width: "100%", multiple: true });
+});
+
+$("#addSectionButton").on("click", () => {
+  fetch("/api/curriculums/sections/" + programYear, {
+    method: "POST",
+    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sections: $("#newSectionSelect").val(),
+    }),
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      if (!result.ok) {
+        Toast.fire({ icon: "error", title: "Something Went Wrong" });
+        return;
+      }
+      result.sections.forEach((section) => {
+        $(`#section${programYear}`).append(
+          `
+            <span class="badge text-bg-primary">
+              ${section}
+              <button type="button" class="btn-close" aria-label="Close"></button>
+            </span>
+          `
+        );
+      });
+      addNewSectionModal.hide();
+      Toast.fire({ icon: "success", title: "Successfully Added" });
+    })
+    .catch((error) => {
+      console.log(error);
+      Toast.fire({ icon: "error", title: "Something Went Wrong" });
+    });
+});
+
+$("#addCourseButton").on("click", (event) => {
+  fetch("/api/curriculums/course/" + programYear, {
+    method: "POST",
+    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      course: newCourse.val(),
+    }),
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      if (!result.ok) {
+        return;
+      }
+      result.courses.forEach((element) => {
+        $(`#${programYear}`).children("tbody").append(`
+          <tr>
+            <td>${element.course_code}</td>
+            <td>${element.course_description}</td>
+            <td>${element.lab}</td>
+            <td>${element.lecture}</td>
+            <td>${element.units}</td>
+            <td>  
+             <button class="btn btn-sm btn-danger" onClick="deleteData('${element._id}', '${programYear}' , this)">Delete</button>
+            </td>
+          </tr>`);
+      });
+      addNewCourseModal.hide();
+      Toast.fire({ icon: "success", title: "Successfully Added" });
+    })
+    .catch((error) => {
+      console.log(error);
+      Toast.fire({ icon: "error", title: "Something Went Wrong" });
     });
 });
 
@@ -238,26 +318,40 @@ $("#submit-button").on("click", () => {
       result.data.forEach((element, index) => {
         $("#nav-year #v-pills-tab").append(
           `<button class="nav-link ${index == 0 ? "active" : ""}" id="v-pills-${
-            element.year.level
+            element._id
           }-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${
-            element.year.level
+            element._id
           }" type="button" role="tab" aria-controls="v-pills-${
-            element.year.level
+            element._id
           }" aria-selected="true">${element.year.level}</button>`
         );
         $("#nav-year #v-pills-tabContent").append(
           `<div class="tab-pane fade show ${
             index == 0 ? "active" : ""
           }" id="v-pills-${
-            element.year.level
+            element._id
           }" role="tabpanel" aria-labelledby="v-pills-${
-            element.year.level
+            element._id
           }-tab" tabindex="0">
-            <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addNewCourseModal" data-bs-whatever="${
-              element._id
-            }">
-              Add New Course
-            </button>
+          <div class="row">
+            <div class="col-8">
+              List of Section: <span id="section${element._id}"></span>
+            </div>
+            <div class=" col-4">
+              <div class="float-end">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewSectionModal" level="${
+                  element._id
+                }">
+                  Add Section
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewCourseModal" level="${
+                  element._id
+                }">
+                  Add New Course
+                </button>
+              </div>
+            </div>
+          </div>
             <table class="table" id='${element._id}'>
               <thead>
                 <tr>
@@ -275,17 +369,32 @@ $("#submit-button").on("click", () => {
         </div>`
         );
 
+        element.sections.section.forEach((section) => {
+          $(`#section${element._id}`).append(
+            `
+              <span class="badge text-bg-primary">
+                ${section}
+                <button type="button" class="btn-close" aria-label="Close"></button>
+              </span>
+            `
+          );
+        });
+
+        if (element.course.length == 0) {
+          $(`#${element._id} tbody`).append(
+            `<tr><td colspan="6" class="text-center">There are no courses in this year level</td></tr>`
+          );
+          return;
+        }
         element.course.forEach((course) => {
-          $(`#${element._id} tbody`).append("<tr>").append(`
-            <td>${course.course_code}</td>
-            <td>${course.course_description}</td>
-            <td>${course.lab}</td>
-            <td>${course.lecture}</td>
-            <td>${course.units}</td>
-            <td>  
-              <button class="btn text-dark btn-sm btn-danger" onClick="deleteData('${course._id}', '${element._id}' , this)">Delete</button>
-            </td>
-          `);
+          $(`#${element._id} tbody`).append(`<tr><td>${course.course_code}</td>
+          <td>${course.course_description}</td>
+          <td>${course.lab}</td>
+          <td>${course.lecture}</td>
+          <td>${course.units}</td>
+          <td>  
+            <button class="btn btn-sm btn-danger" onClick="deleteData('${course._id}', '${element._id}' , this)">Delete</button>
+          </td></tr>`);
         });
       });
 
@@ -302,7 +411,7 @@ $("#add-button").on("click", () => {
   addProgram.removeClass("is-invalid");
   addSemester.removeClass("is-invalid");
   console.log(addProgram.val());
-  fetch("/admin/curriculum/programs/" + school_year.val(), {
+  fetch("/api/curriculums/programs/" + school_year.val(), {
     method: "POST",
     headers: {
       "csrf-token": csrf,
@@ -529,7 +638,8 @@ const deleteData = (course, year, element) => {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      if (!result.value.ok) {
+      console.log(result);
+      if (!result.value) {
         return Toast.fire({
           icon: "warning",
           title: "Something Went Wrong!",

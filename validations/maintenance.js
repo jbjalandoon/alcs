@@ -327,3 +327,12 @@ exports.spreadsheet = [
     }
   }),
 ];
+
+exports.postCurriculumCourse = [
+  check("course").notEmpty().withMessage("Please select some course"),
+];
+
+exports.postCurriculumProgram = [
+  check("semester").notEmpty().withMessage("Please select semester"),
+  check("program").notEmpty().withMessage("Please select something"),
+];

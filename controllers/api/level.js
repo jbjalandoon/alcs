@@ -5,7 +5,7 @@ exports.get = (req, res, next) => {
   Level.find({ deleted_at: null })
     .then((level) => {
       if (level.length == 0) {
-        res.json({ ok: false });
+        return res.json({ ok: false });
       }
       res.json({ ok: true, data: level });
     })

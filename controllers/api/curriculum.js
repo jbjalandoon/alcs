@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const { validationResult } = require("express-validator");
 const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
+const Level = require("../../models/level");
 
 exports.getSemesters = (req, res, next) => {
   if (!req.params.school_year.match(/^[0-9a-fA-F]{24}$/))
@@ -64,6 +65,67 @@ exports.getPrograms = (req, res, next) => {
     });
 };
 
+exports.getProgramDetails = (req, res, next) => {};
+
+exports.postPrograms = (req, res, next) => {
+  let fetchedData, fetchedLevel;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ ok: false, errors: errors.mapped() });
+  }
+  Level.find({ deleted_at: null })
+    .then((result) => {
+      console.log(result);
+      fetchedLevel = result.map((element) => {
+        return { year_level: element._id };
+      });
+      return Curriculum.findOne({
+        school_year: req.params.school_year,
+      });
+    })
+    .then((data) => {
+      fetchedData = data;
+      if (!data) {
+        return new Curriculum({
+          school_year: req.params.school_year,
+          semesters: [
+            {
+              sem: req.body.semester,
+              programs: req.body.program.map((element) => {
+                return {
+                  program: element,
+                  year: fetchedLevel,
+                };
+              }),
+            },
+          ],
+        }).save();
+      }
+      if (!data.semesters.find((element) => element.sem == req.body.semester)) {
+        data.semesters.push({
+          sem: req.body.semester,
+          programs: req.body.program.map((element) => {
+            return {
+              program: element,
+              level: fetchedLevel,
+            };
+          }),
+        });
+        return data.save();
+      }
+    })
+    .then((result) => {
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false });
+    });
+};
+
 exports.getYearLevels = (req, res, next) => {
   if (!req.params.program.match(/^[0-9a-fA-F]{24}$/))
     return res.json({ ok: false, msg: "Invalid Query" });
@@ -114,6 +176,11 @@ exports.getSections = (req, res, next) => {
   if (!req.params.year_level.match(/^[0-9a-fA-F]{24}$/))
     return res.json({ ok: false, msg: "Invalid Query" });
   Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year_level),
+      },
+    },
     { $unwind: "$semesters" },
     { $unwind: "$semesters.programs" },
     { $unwind: "$semesters.programs.year" },
@@ -138,6 +205,103 @@ exports.getSections = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ ok: false, errors: error });
+    });
+};
+
+exports.postSections = (req, res, next) => {
+  const schedules = [];
+  let filteredSection;
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+      },
+    },
+    { $unwind: "$semesters" },
+    { $unwind: "$semesters.programs" },
+    { $unwind: "$semesters.programs.year" },
+    {
+      $match: {
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+      },
+    },
+    {
+      $unwind: {
+        path: "$semesters.programs.year.sections",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections._id",
+        section: "$semesters.programs.year.sections.section",
+        courses: "$semesters.programs.year.courses",
+      },
+    },
+  ])
+    .then((result) => {
+      console.log(result);
+      filteredSection = req.body.sections.filter((element) => {
+        return !result.some((section) => {
+          return section.section === element;
+        });
+      });
+      return Course.find({ _id: { $in: result[0].courses } });
+    })
+    .then((result) => {
+      result.forEach((element) => {
+        if (element.lecture != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lecture,
+            type: "lecture",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+        if (element.lab != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lab,
+            type: "lab",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+      });
+      return Curriculum.updateOne(
+        {
+          "semesters.programs.year._id": req.params.year,
+        },
+        {
+          $push: {
+            "semesters.$[].programs.$[].year.$[year].sections":
+              filteredSection.map((element) => {
+                return {
+                  section: element,
+                  schedules: schedules,
+                };
+              }),
+          },
+        },
+        {
+          arrayFilters: [{ "year._id": req.params.year }],
+        }
+      );
+    })
+    .then((result) => {
+      console.log(result);
+      res.json({ ok: true, data: result, sections: filteredSection });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false, data: error });
     });
 };
 
@@ -271,7 +435,7 @@ exports.getCourse = (req, res, next) => {
     },
     {
       $project: {
-        _id: '$semesters.programs.year._id',
+        _id: "$semesters.programs.year._id",
         course: "$semesters.programs.year.courses",
       },
     },
@@ -291,6 +455,74 @@ exports.getCourse = (req, res, next) => {
       console.log(error);
       res.json({ ok: false, data: error });
     });
+};
+
+exports.postCourse = (req, res, next) => {
+  const schedules = [];
+  let fetchedCourses;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ ok: false, errors: errors.mapped() });
+  }
+  Course.find({ _id: { $in: req.body.course } })
+    .then((result) => {
+      fetchedCourses = result;
+      result.forEach((element) => {
+        if (element.lecture != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lecture,
+            type: "lecture",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+        if (element.lab != 0) {
+          schedules.push({
+            course: element._id,
+            hour: element.lab,
+            type: "lab",
+            day: null,
+            start_time: null,
+            end_time: null,
+            room: null,
+            faculty: null,
+          });
+        }
+      });
+      return Curriculum.updateOne(
+        {
+          "semesters.programs.year._id": req.params.year,
+        },
+        {
+          $push: {
+            "semesters.$[].programs.$[].year.$[year].courses": req.body.course,
+            "semesters.$[].programs.$[].year.$[year].sections.$[].schedules":
+              schedules,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "year._id": req.params.year,
+            },
+          ],
+        }
+      );
+    })
+    .then((result) => {
+      console.log(result);
+      res.json({ ok: true, data: result, courses: fetchedCourses });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false });
+    });
+
+  return;
 };
 
 exports.deleteCourse = (req, res, next) => {

@@ -5,7 +5,6 @@ const Year = require("../../models/year");
 const Level = require("../../models/level");
 const { validationResult } = require("express-validator");
 const curriculum = require("../../models/curriculum");
-const { find } = require("../../models/curriculum");
 const { mongoose } = require("mongoose");
 
 exports.getCurriculums = (req, res, next) => {
@@ -374,25 +373,25 @@ exports.getOneProgram = (req, res, next) => {
     },
     { $unwind: "$semesters.programs.year.year_level" },
     {
-      $lookup: {
-        from: "courses",
-        localField: "semesters.programs.year.courses",
-        foreignField: "_id",
-        as: "courses",
-      },
-    },
-    {
       $project: {
         _id: "$semesters.programs.year._id",
         school_year: "$school_year",
         sem: "$semesters.sem",
         program: "$semesters.programs.program",
         year: "$semesters.programs.year.year_level",
-        course: "$courses",
+        courses: "$semesters.programs.year.courses",
         sections: {
           _id: "$semesters.programs.year.sections._id",
           section: "$semesters.programs.year.sections.section",
         },
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "courses",
+        foreignField: "_id",
+        as: "course",
       },
     },
   ])
