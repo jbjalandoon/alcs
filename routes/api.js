@@ -51,7 +51,9 @@ router.post("/faculty", validation.postFaculty, faculty.post);
 router.delete("/faculty/:id", faculty.delete);
 
 router.get("/curriculums/semesters/:school_year", curriculum.getSemesters);
+router.get("/curriculums/school-year", curriculum.getSchoolYears);
 router.get("/curriculums/programs/:semester", curriculum.getPrograms);
+router.get("/curriculums/program/:program", curriculum.getOneProgram);
 router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
 router.get("/curriculums/sections/:year_level", curriculum.getSections);
 router.post("/curriculums/sections/:year", curriculum.postSections);
@@ -85,11 +87,11 @@ router.post(
 
 router.get("/schedules/:schedule", schedule.getOneSchedule);
 router.get("/schedules", schedule.getSchedule);
-router.get("/schedules/room/:room", schedule.getRoomSchedule);
+router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
 router.put("/schedules/set/:schedule", schedule.setSchedule);
 router.put("/schedules/assign/:schedule", schedule.assignSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
-router.get("/schedules/faculty/:faculty", schedule.getFacultySchedule);
+router.get("/schedules/faculty/:semester/:faculty", schedule.getFacultySchedule);
 router.delete("/schedules/:schedule", schedule.deleteSchedule);
 router.get("/schedules/assignable-course/:sem", schedule.getAssignableCourse);
 

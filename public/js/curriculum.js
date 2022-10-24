@@ -12,6 +12,7 @@ const yearLevel = $("#year-level");
 const section = $("#section").select2({ tags: true, width: "100%" });
 const course = $("#course");
 const newCourse = $("#newCourseSelect");
+const assignScheduleButton = document.querySelector("#assign-schedule");
 
 let programYear;
 
@@ -37,7 +38,7 @@ fetch("/admin/curriculum/semester/" + school_year.val(), { method: "GET" })
       $("#content").removeClass("d-none");
       return result.data.forEach((element) => {
         viewSemester.append(
-          new Option((element.sem + " Semester").toUpperCase(), element.sem)
+          new Option((element.sem + " Semester").toUpperCase(), element._id)
         );
       });
     }
@@ -293,10 +294,13 @@ $("#addCourseButton").on("click", (event) => {
 $("#submit-button").on("click", () => {
   viewSemesterValue = viewSemester.val();
   viewProgramValue = viewProgram.val();
+  assignScheduleButton.setAttribute(
+    "href",
+    `/admin/schedules/${viewSemesterValue}`
+  );
+
   fetch(
-    `/admin/curriculum/programs/${school_year.val()}/${viewProgramValue}?${new URLSearchParams(
-      { semester: viewSemester.val() }
-    )}`
+    `/api/curriculums/program/${viewProgramValue}`
   )
     .then((response) => {
       return response.json();
@@ -576,22 +580,19 @@ viewSemester.on("change", () => {
     .attr("disabled", true)
     .empty()
     .append('<option value="" disabled selected>--Select Semester--</option>');
-  fetch(
-    `/admin/curriculum/programs/${school_year.val()}?${new URLSearchParams({
-      semester: viewSemester.val(),
-    })}`
-  )
+  fetch(`/api/curriculums/programs/${viewSemester.val()}`)
     .then((response) => {
       return response.json();
     })
     .then((result) => {
+      console.log(result);
       if (!result.ok) {
         return Toast.fire({ icon: "warning", title: "Something went wrong" });
       }
 
       result.data.forEach((element) => {
         viewProgram.append(
-          new Option(element.program[0].program_code, element._id)
+          new Option(element.program.program_code, element._id)
         );
       });
       $("#submit-button").attr("disabled", true);

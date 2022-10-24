@@ -4,6 +4,20 @@ const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
 const Level = require("../../models/level");
 
+exports.getSchoolYears = (req, res, next) => {
+  Curriculum.find({}, "_id school_year")
+    .populate("school_year")
+    .then((result) => {
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false });
+    });
+};
+
 exports.getSemesters = (req, res, next) => {
   if (!req.params.school_year.match(/^[0-9a-fA-F]{24}$/))
     return res.json({ ok: false, msg: "Invalid Query" });
@@ -62,6 +76,75 @@ exports.getPrograms = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false, errors: error });
+    });
+};
+
+exports.getOneProgram = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
+      },
+    },
+    { $unwind: "$semesters" },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $match: {
+        "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
+      },
+    },
+    { $unwind: "$semesters.programs.year" },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "semesters.programs.program",
+        foreignField: "_id",
+        as: "semesters.programs.program",
+      },
+    },
+    { $unwind: "$semesters.programs.program" },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "semesters.programs.year.year_level",
+        foreignField: "_id",
+        as: "semesters.programs.year.year_level",
+      },
+    },
+    { $unwind: "$semesters.programs.year.year_level" },
+    {
+      $project: {
+        _id: "$semesters.programs.year._id",
+        school_year: "$school_year",
+        sem: "$semesters.sem",
+        program: "$semesters.programs.program",
+        year: "$semesters.programs.year.year_level",
+        courses: "$semesters.programs.year.courses",
+        sections: {
+          _id: "$semesters.programs.year.sections._id",
+          section: "$semesters.programs.year.sections.section",
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "courses",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+  ])
+    .then((result) => {
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false, error: error });
     });
 };
 
@@ -178,7 +261,9 @@ exports.getSections = (req, res, next) => {
   Curriculum.aggregate([
     {
       $match: {
-        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year_level),
+        "semesters.programs.year._id": mongoose.Types.ObjectId(
+          req.params.year_level
+        ),
       },
     },
     { $unwind: "$semesters" },
@@ -390,6 +475,9 @@ exports.getSectionSchedules = (req, res, next) => {
     {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
+        section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
@@ -402,13 +490,31 @@ exports.getSectionSchedules = (req, res, next) => {
     },
     {
       $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    {
+      $lookup: {
         from: "courses",
         localField: "course",
         foreignField: "_id",
         as: "course",
       },
     },
-    { $unwind: "$course" },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
       res.json({ ok: true, data: result });

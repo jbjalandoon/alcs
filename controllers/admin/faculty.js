@@ -15,6 +15,25 @@ exports.getFaculties = (req, res, next) => {
     });
 };
 
+exports.getOneFaculty = (req, res, next) => {
+  Faculty.findOne({ _id: req.params.id })
+    .then((result) => {
+      if (!result) {
+        res.render("error/404", {
+          title: "ALCS | 404",
+        });
+      }
+      res.render("admin/faculty/profile", {
+        title: "ALCS | Faculty Profile",
+        faculty: result,
+        id: req.params.id,
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
 exports.addFaculty = (req, res, next) => {
   if (req.method === "GET") {
     res.render("admin/faculty/form", {

@@ -11,6 +11,7 @@ exports.getSchedule = (req, res, next) => {
       res.render("admin/schedule/index", {
         title: "ALCS | Schedule",
         curriculums: curriculums,
+        semester: req.params.semester
       });
     })
     .catch((error) => {

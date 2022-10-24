@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 
 exports.getSchedule = (req, res, next) => {
   const day = ["m", "t", "w", "th", "f", "s", null];
-  console.log(req.query);
   Curriculum.aggregate([
     {
       $match: { "semesters._id": mongoose.Types.ObjectId(req.query.sem) },
@@ -38,7 +37,7 @@ exports.getSchedule = (req, res, next) => {
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
         sort: {
-          indexOfArray: [
+          $indexOfArray: [
             day,
             "$semesters.programs.year.sections.schedules.day",
           ],
@@ -262,6 +261,8 @@ exports.getRoomSchedule = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
@@ -282,6 +283,14 @@ exports.getRoomSchedule = (req, res, next) => {
     },
     {
       $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
         from: "rooms",
         localField: "room",
         foreignField: "_id",
@@ -298,6 +307,7 @@ exports.getRoomSchedule = (req, res, next) => {
     },
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
@@ -310,6 +320,11 @@ exports.getRoomSchedule = (req, res, next) => {
 
 exports.getFacultySchedule = (req, res, next) => {
   Curriculum.aggregate([
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
     {
       $unwind: "$semesters",
     },
@@ -335,6 +350,8 @@ exports.getFacultySchedule = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
@@ -355,6 +372,14 @@ exports.getFacultySchedule = (req, res, next) => {
     },
     {
       $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
         from: "rooms",
         localField: "room",
         foreignField: "_id",
@@ -371,6 +396,7 @@ exports.getFacultySchedule = (req, res, next) => {
     },
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {

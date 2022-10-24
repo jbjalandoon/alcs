@@ -1,8 +1,8 @@
 const facultyTable = $("#facultyTable").DataTable({
   oLanguage: {
     sEmptyTable: `<div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-       </div>`,
+    <span class="visually-hidden">Loading...</span>
+  </div>`,
   },
 });
 
@@ -32,6 +32,7 @@ fetch("/api/faculty", { method: "GET" })
           element.userInformation.faculty_type,
           element.email,
           ` 
+            <a class="btn btn-secondary btn-sm" href="/admin/faculty/${element._id}" target="_blank">View</a>
             <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
           `,
         ])

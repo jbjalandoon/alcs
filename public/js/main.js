@@ -9,3 +9,11 @@ const Toast = Swal.mixin({
     toast.addEventListener("mouseleave", Swal.resumeTimer);
   },
 });
+
+const createButton = $(document.createElement('button'))
+
+function setAttributes(element, attributes) {
+  Object.keys(attributes).forEach(attr => {
+    element.setAttribute(attr, attributes[attr]);
+  });
+}

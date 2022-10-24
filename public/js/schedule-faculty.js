@@ -2,6 +2,10 @@ const sem = $("#sem").val();
 const csrf = $("#csrf").val();
 const faculty = $("#faculty");
 
+let totalUnit;
+
+let unavailableTime = [];
+
 const courseSearch = $("#courseSearch");
 const calendarEl = document.getElementById("calendar");
 const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -190,12 +194,16 @@ fetch("/api/faculty")
   });
 
 faculty.on("change", () => {
+  $("#lectureList").empty();
+  $("#labList").empty();
+  $("#lecture-tab").html(`Lecture (0)`);
+  $("#lab-tab").html(`Lab (0)`);
   $("#loadingCourse").removeClass("d-none");
   $("#loadingCalendar").removeClass("d-none");
   $("#courses").addClass("d-none");
   $("#calendar").addClass("d-none");
-
-  fetch("/api/schedules/faculty/" + faculty.val())
+  totalUnit = 0;
+  fetch(`/api/schedules/faculty/${sem}/${faculty.val()}`)
     .then((response) => {
       return response.json();
     })
@@ -210,12 +218,31 @@ faculty.on("change", () => {
       result.data.forEach((element) => {
         calendar.addEvent({
           id: element._id,
-          title: element.course.course_description,
+          title: `${element.course.course_description} (${element.program.program_code}${element.section_name}) - ${element.room.room_name}`,
           daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
           startTime: element.start_time,
           endTime: element.end_time,
           overlap: false,
           editabe: false,
+        });
+        unavailableTime.push({
+          day: element.day,
+          range: moment.range(
+            new Date(
+              0,
+              0,
+              0,
+              element.start_time.split(":")[0],
+              element.start_time.split(":")[1]
+            ),
+            new Date(
+              0,
+              0,
+              0,
+              element.end_time.split(":")[0],
+              element.end_time.split(":")[1]
+            )
+          ),
         });
       });
       $("#loadingCalendar").addClass("d-none");
@@ -263,6 +290,7 @@ faculty.on("change", () => {
 });
 
 courseSearch.on("change", () => {
+  unavailableTime.length = 0;
   $("#loadingList").removeClass("d-none");
   $("#list").addClass("d-none");
   fetch(`/api/schedules?sem=${sem}&course=${courseSearch.val()}`)
@@ -270,6 +298,7 @@ courseSearch.on("change", () => {
       return response.json();
     })
     .then((result) => {
+      console.log(result);
       const days = ["m", "t", "w", "th", "f", "s", null];
       if (!result.ok) {
         return;
@@ -279,57 +308,97 @@ courseSearch.on("change", () => {
       let lectureCount = 0;
       let labCount = 0;
       result.data.forEach((element) => {
+        let overlap = false;
+        let buttonBg = "bg-primary";
+        const currentRange = moment.range(
+          new Date(
+            0,
+            0,
+            0,
+            element.start_time.split(":")[0],
+            element.start_time.split(":")[1]
+          ),
+          new Date(
+            0,
+            0,
+            0,
+            element.end_time.split(":")[0],
+            element.end_time.split(":")[1]
+          )
+        );
+        for (let i = 0; i < unavailableTime.length; i++) {
+          if (unavailableTime[i].day === element.day) {
+            if (unavailableTime[i].range.overlaps(currentRange)) {
+              overlap = true;
+              buttonBg = "bg-danger";
+              break;
+            }
+          }
+        }
+        const listItem = $(document.createElement("div")).addClass(
+          "list-group-item d-flex justify-content-between align-items-start fc-event"
+        );
+        listItem
+          .append(
+            $(document.createElement("div"))
+              .addClass("ms-2 me-auto")
+              .append(
+                $(document.createElement("div"))
+                  .addClass("fw-bold")
+                  .html(
+                    element.day.toUpperCase() +
+                      " " +
+                      element.start_time +
+                      "-" +
+                      element.end_time +
+                      "(" +
+                      element.room.room_name +
+                      ")"
+                  )
+              )
+              .append(
+                $(document.createElement("div"))
+                  .addClass("drag")
+                  .attr("id", element._id)
+                  .html(
+                    element.course.course_code +
+                      "(" +
+                      element.program.program_code +
+                      "-" +
+                      element.section_name +
+                      ")"
+                  )
+              )
+          )
+          .append(
+            $(document.createElement("button"))
+              .addClass("btn btn-link btn-sm shadow-none add-button btn-assign")
+              .attr({
+                id: element._id,
+                day: element.day,
+                start: element.start_time,
+                end: element.end_time,
+                program: element.program.program_code,
+                section: element.section_name,
+                room: element.room.room_name,
+                course: element.course.course_description,
+              })
+              .click(assignFaculty)
+              .append(
+                $(document.createElement("span"))
+                  .addClass("badge rounded-pill " + buttonBg)
+                  .append(
+                    $(document.createElement("i")).addClass("fa-solid fa-plus")
+                  )
+              )
+          );
         if (element.type == "lecture") {
           lectureCount++;
-          $("#lectureList").append(`
-            <li class="list-group-item d-flex justify-content-between align-items-start fc-event">
-              <div class="ms-2 me-auto">
-              <div class="fw-bold">${element.day.toUpperCase()} ${
-            element.start_time
-          } - ${element.end_time} (${element.room.room_name})</div>
-              <div day="${element.day}" start="${element.start_time}" end="${
-            element.end_time
-          }" class="drag" id="${element._id}"> ${element.course.course_code} (${
-            element.program.program_code
-          } - ${element.section_name}) </div>
-            </div>
-              <button class="btn btn-link btn-sm shadow-none add-button" day="${
-                element.day
-              }" start="${element.start_time}" end="${element.end_time}" id="${
-            element._id
-          }" onClick="assignFaculty(this)">
-                <span class="badge bg-primary rounded-pill">
-                  <i class="fa-solid fa-plus"></i>
-                </span>
-              </button>
-            </li>
-          `);
+          $("#lectureList").append(listItem);
         }
         if (element.type == "lab") {
           labCount++;
-          $("#labList").append(`
-          <li class="list-group-item d-flex justify-content-between align-items-start fc-event">
-            <div class="ms-2 me-auto">
-            <div class="fw-bold">${element.day.toUpperCase()} ${
-            element.start_time
-          } - ${element.end_time} (${element.room.room_name})</div>
-              <div day="${element.day}" start="${element.start_time}" end="${
-            element.end_time
-          }" class="drag" id="${element._id}"> ${element.course.course_code} (${
-            element.program.program_code
-          } - ${element.section_name_name}) </div>
-          </div>
-            <button class="btn btn-link btn-sm shadow-none add-button" day="${
-              element.day
-            }" start="${element.start_time}" end="${element.end_time}" id="${
-            element._id
-          }" onClick="assignFaculty(this)">
-              <span class="badge bg-primary rounded-pill">
-                <i class="fa-solid fa-plus"></i>
-              </span>
-            </button>
-          </li>
-          `);
+          $("#labList").append(listItem);
         }
       });
       if (lectureCount == 0) {
@@ -351,7 +420,7 @@ courseSearch.on("change", () => {
 
 const assignFaculty = (element) => {
   const days = ["m", "t", "w", "th", "f", "s", null];
-  const button = $(element);
+  const button = $(element.currentTarget);
 
   const [startHour, startMin] = button.attr("start").split(":");
   const [endHour, endMin] = button.attr("end").split(":");
@@ -369,7 +438,6 @@ const assignFaculty = (element) => {
       new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
     );
     if (day === element.start.getDay()) {
-      console.log(element);
       if (range1.overlaps(range2)) {
         overlaps.push(element);
         isOverlap = true;
@@ -416,6 +484,8 @@ const assignFaculty = (element) => {
       },
     });
   }
+  console.log($(".btn-assign"));
+
   fetch(`/api/schedules/assign/${button.attr("id")}`, {
     method: "PUT",
     headers: {
@@ -433,7 +503,9 @@ const assignFaculty = (element) => {
       }
       calendar.addEvent({
         id: button.attr("id"),
-        title: "test",
+        title: `${button.attr("course")} (${button.attr(
+          "program"
+        )}${button.attr("section")}) - ${button.attr("room")}`,
         daysOfWeek: [(days.indexOf(button.attr("day")) + 1).toString()],
         startTime: button.attr("start"),
         endTime: button.attr("end"),
@@ -450,6 +522,30 @@ const assignFaculty = (element) => {
         $("#lab-tab").html(`Lab (${count})`);
       }
       button.parent().remove();
+      $(".btn-assign").each((index, element) => {
+        const currentRange = moment.range(
+          new Date(
+            0,
+            0,
+            0,
+            $(element).attr("start").split(":")[0],
+            $(element).attr("start").split(":")[1]
+          ),
+          new Date(
+            0,
+            0,
+            0,
+            $(element).attr("end").split(":")[0],
+            $(element).attr("start").split(":")[1]
+          )
+        );
+        if (currentRange.overlaps(range1)) {
+          $(element)
+            .children("span")
+            .removeClass("bg-primary")
+            .addClass("bg-danger");
+        }
+      });
       Toast.fire({ icon: "success", title: "Successfully Assigned" });
     })
     .catch((error) => {

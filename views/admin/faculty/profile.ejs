@@ -1,0 +1,111 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <div class="col-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-4 h6">Full Name: </div>
+              <div class="col-8">Jerome Bermudez Jalandoon</div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-4 h6">Email Address: </div>
+              <div class="col-8">jerome.jalandoon@gmail.com</div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-4 h6">Phone Number: </div>
+              <div class="col-8">09673104255</div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-4 h6">Address: </div>
+              <div class="col-8">Taguig City</div>
+            </div>
+            <hr>
+          </div>
+        </div>
+      </div>
+        <div class="col-8">
+          <div class="card">
+            <div class="card-header" id="content-header">
+              <ul class="nav nav-tabs" id="tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-tab-pane" type="button" role="tab" aria-controls="calendar-tab-pane" aria-selected="true">Schedule (Calendar View)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table-tab-pane" type="button" role="tab" aria-controls="table-tab-pane" aria-selected="true">Schedule (Table View)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-tab-pane" type="button" role="tab" aria-controls="file-tab-pane" aria-selected="false">Files</button>
+                </li>
+              </ul>
+            </div>
+            <div class="card-body" id="content-body">
+              
+              <!-- <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div> -->
+              <div class="tab-content" id="tabContent">
+                <div class="tab-pane fade show active" id="calendar-tab-pane" role="tabpanel" aria-labelledby="calendar-tab" tabindex="0">
+                  <div class="row">
+                    <div class="col-5">
+                      <select id="school-year" class="form-select">
+                        <option value="" disabled selected>--Select School Year</option>
+                      </select>
+                    </div>
+                    <div class="col-5">
+                      <select id="semester" class="form-select" disabled>
+                        <option value="" disabled selected>--Select Semester</option>
+                      </select>
+                    </div>
+                    <div class="col-2">
+                      <button id="submitSchedule" class="btn btn-primary disabled">Submit</button>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="container">
+                      <div id="calendar"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="table-tab-pane" role="tabpanel" aria-labelledby="table-tab" tabindex="0">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Course/Subject</th>
+                          <th>Units</th>
+                          <th>Schedule</th>
+                        </tr>
+                      </thead>
+                    </table>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="file-tab-pane" role="tabpanel" aria-labelledby="file-tab" tabindex="0">File</div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+    </div>
+       
+    <div class="row mt-4">
+      <div class="col-12">
+        
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <input type="hidden" value="<%= id %>" id="faculty">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/faculty-profile.js"></script>
+</body>
+
+</html>

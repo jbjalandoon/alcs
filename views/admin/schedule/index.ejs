@@ -3,7 +3,7 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid">
     <div class="card">
       <div class="card-header">
         <strong>PLEASE SELECT THE SCHOOL YEAR & SEMESTER</strong>
@@ -12,29 +12,12 @@
         <form id="schedule-form">
           <div class="row mb-3">
             <div class="col-4">
-              <label class="form-label" for="school_year">Select School Year:</label>
-              <select class="form-select" name="school_year" id="school_year">
-                <option value="" selected disabled>--Please Select School Year--</option>
-                <% curriculums.forEach(curriculum => { %>
-                <option value="<%= curriculum.school_year._id %>"><%= curriculum.school_year.year %></option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="col-4">
-              <label class="form-label" for="semester">Select Semester:</label>
-              <select class="form-select" name="semester" id="semester" disabled>
-                <option value="" selected disabled>--Please Select Semester--</option>
-              </select>
-            </div>
-            <div class="col-4">
               <label class="form-label" for="program">Select Porgram:</label>
               <select class="form-select" name="program" id="program" disabled>
                 <option value="" selected disabled>--Please Select Program--</option>
               </select>
             </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-4 offset-2">
+            <div class="col-4">
               <label class="form-label" for="year_level">Select Year Level:</label>
               <select class="form-select" name="year_level" id="year_level" disabled>
                 <option value="" selected disabled>--Please Select Year level--</option>
@@ -96,6 +79,7 @@
 
     </div>
     <input type="hidden" name="_csrf" value="<%= csrf %>" id="csrf">
+    <input type="hidden" name="_csrf" value="<%= semester %>" id="semester-id">
     <%- include('../../includes/footer.ejs') %>
     <script src="/js/schedule.js"></script>
 </body>

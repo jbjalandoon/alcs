@@ -48,8 +48,7 @@ router.post("/rooms/delete", room.deleteRoom);
 
 // Faculty Routes
 router.get("/faculty", faculty.getFaculties);
-
-router.get("/api/faculty", faculty.getFacultyAPI);
+router.get("/faculty/:id", faculty.getOneFaculty);
 
 router.get("/faculty/add", faculty.addFaculty);
 router.post("/faculty/add", validation.faculty, faculty.addFaculty);
@@ -113,7 +112,7 @@ router.post("/years/edit/:id", year.editYear);
 router.post("/years/delete", year.deleteYear);
 
 //Schedule
-router.get("/schedules", schedule.getSchedule);
+router.get("/schedules/:semester", schedule.getSchedule);
 router.get("/schedules/get-semester-list", schedule.getSemesters);
 router.get("/schedules/get-program-list", schedule.getPrograms);
 router.get("/schedules/get-level-list", schedule.getLevels);
