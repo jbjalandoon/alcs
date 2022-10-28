@@ -88,6 +88,7 @@ router.post(
 router.get("/schedules/:schedule", schedule.getOneSchedule);
 router.get("/schedules", schedule.getSchedule);
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
+router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.put("/schedules/set/:schedule", schedule.setSchedule);
 router.put("/schedules/assign/:schedule", schedule.assignSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);

@@ -3,7 +3,7 @@
 /* stylelint-disable-line scss/dollar-variable-default */
 /*!
  * CoreUI - HTML, CSS, and JavaScript UI Components Library
- * @version v4.2.1
+ * @version v4.2.2
  * @link https://coreui.io/
  * Copyright (c) 2022 creativeLabs Łukasz Holeczek
  * License MIT  (https://coreui.io/license/)
@@ -8839,6 +8839,9 @@ html:not([dir=rtl]) .sidebar-nav .nav-icon:first-child {
 *[dir=rtl] .sidebar-nav .nav-icon:first-child {
   margin-right: calc(var(--cui-sidebar-nav-link-padding-x) * -1);
 }
+.sidebar-nav svg.nav-icon {
+  overflow: hidden;
+}
 .sidebar-nav .nav-group {
   position: relative;
   transition: background 0.15s ease-in-out;
@@ -14376,11 +14379,44 @@ html:not([dir=rtl]) .wrapper {
   margin-bottom: 0.5rem;
 }
 
-#asdasd {
-  height: 801px;
-  overflow: visible;
+.counter-box {
+  display: block;
+  background: #f6f6f6;
+  padding: 40px 20px 37px;
+  text-align: center;
+  height: 15rem;
+}
+
+.counter-box p {
+  margin: 5px 0 0;
   padding: 0;
-  position: relative;
+  color: #909090;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.counter-box i {
+  font-size: 60px;
+  margin: 0 0 15px;
+  color: #d2d2d2;
+}
+
+.counter {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #666;
+  line-height: 28px;
+}
+
+.counter-box.colored {
+  background: #3acf87;
+}
+
+.counter-box.colored p,
+.counter-box.colored i,
+.counter-box.colored .counter {
+  color: #fff;
 }
 
 .box {

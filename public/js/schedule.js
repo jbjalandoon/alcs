@@ -5,7 +5,7 @@ const scheduleProgramForm = $("#schedule-form #program");
 const scheduleYearLevelForm = $("#schedule-form #year_level");
 const scheduleSectionForm = $("#schedule-form #section");
 
-const semester = $('#semester-id').val()
+const semester = $("#semester-id").val();
 
 const calendarEl = document.getElementById("calendar");
 
@@ -203,42 +203,11 @@ let draggable;
 // Buttons
 const scheduleSubmitButton = $("#schedule-form #submit");
 let assignSubmitButton;
-console.log(semester)
+console.log(semester);
 let scheduleModal;
 
 // Tables
 const scheduleTable = $("#scheduleTable");
-scheduleSchoolYearForm.on("change", () => {
-  scheduleSubmitButton.addClass("d-none");
-
-  fetch("/api/curriculums/semesters/" + scheduleSchoolYearForm.val())
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        return;
-      }
-      result.data.forEach((element) => {
-        scheduleSemesterForm.append(
-          new Option(element.sem.toUpperCase() + " SEMESTER", element._id)
-        );
-      });
-      scheduleSemesterForm.attr("disabled", false);
-      scheduleSubmitButton.addClass("d-none");
-    });
-  $.ajax({
-    url: "http://localhost:3000/admin/schedules/get-semester-list",
-    type: "GET",
-    data: {
-      school_year: scheduleSchoolYearForm.val(),
-    },
-    dataType: "JSON",
-    success: (response) => {
-      response.semesters.forEach((semester) => {});
-    },
-  });
-});
 
 fetch("/api/curriculums/programs/" + semester)
   .then((response) => {
@@ -316,25 +285,6 @@ scheduleYearLevelForm.on("change", () => {
 });
 
 scheduleSectionForm.on("change", () => {
-  scheduleSubmitButton.removeClass("d-none");
-});
-
-fetch("/api/rooms")
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    if (!result.ok) {
-      return;
-    }
-    result.data.forEach((element) => {
-      $("#roomForm").append(
-        new Option(element.room_name.toUpperCase(), element._id)
-      );
-    });
-  });
-
-scheduleSubmitButton.on("click", () => {
   const events = calendar.getEvents();
   events.forEach((element) => {
     element.remove();
@@ -414,6 +364,23 @@ scheduleSubmitButton.on("click", () => {
       calendar.render();
     });
 });
+
+fetch("/api/rooms")
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    if (!result.ok) {
+      return;
+    }
+    result.data.forEach((element) => {
+      $("#roomForm").append(
+        new Option(element.room_name.toUpperCase(), element._id)
+      );
+    });
+  });
+
+scheduleSubmitButton.on("click", () => {});
 
 $("#roomForm").on("change", () => {
   fetch("/api/schedules/room/" + $("#roomForm").val())

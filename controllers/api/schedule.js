@@ -309,6 +309,97 @@ exports.getRoomSchedule = (req, res, next) => {
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+  
+  ])
+    .then((result) => {
+      res.json({ ok: true, data: result });
+    })
+    .then((error) => {
+      console.log(error);
+    });
+};
+
+exports.getRoomsSchedule = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+      },
+    },
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections.schedules._id",
+        section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
+        course: "$semesters.programs.year.sections.schedules.course",
+        type: "$semesters.programs.year.sections.schedules.type",
+        hour: "$semesters.programs.year.sections.schedules.hour",
+        day: "$semesters.programs.year.sections.schedules.day",
+        start_time: "$semesters.programs.year.sections.schedules.start_time",
+        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        room: "$semesters.programs.year.sections.schedules.room",
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+  
+    {
+      $lookup: {
+        from: "users",
+        localField: "faculty",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: '$room',
+        schedules: { $push: "$$ROOT" },
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "_id",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
       res.json({ ok: true, data: result });

@@ -1,5 +1,6 @@
 const express = require("express");
 const course = require("../controllers/admin/course");
+const dashboard = require("../controllers/admin/dashboard");
 const program = require("../controllers/admin/program");
 const year = require("../controllers/admin/year");
 const room = require("../controllers/admin/room");
@@ -11,6 +12,9 @@ const curriculum = require("../controllers/admin/curriculum");
 const validation = require("../validations/curriculum");
 
 const router = express.Router();
+
+// Dashboard Routes
+router.get('/dashboard', dashboard.getDashboard)
 
 // Course Routes
 router.get("/courses", course.getCourses);
