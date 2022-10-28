@@ -3,7 +3,12 @@ const semester = document.querySelector("#semester");
 const room = document.querySelector("#room");
 const faculty = $("#faculty");
 const content = document.querySelector("#content");
-const roomCalendarContainer = document.querySelector("#calendar-container");
+const roomCalendarContainer = document.querySelector(
+  "#room-calendar-container"
+);
+const facultyCalendarContainer = document.querySelector(
+  "#faculty-calendar-container"
+);
 const pdfEl = document.querySelector("#pdf");
 
 const calendarEl = document.getElementById("calendar");
@@ -24,6 +29,7 @@ const config = {
     end: "22:00:00",
   },
   eventDidMount: function (info) {
+    console.log(info.event.extendedProps.room);
     const titleEl = info.el.querySelector(".fc-event-title");
     const timeEl = info.el.querySelector(".fc-event-time");
     info.el.style.textAlign = "center";
@@ -32,11 +38,11 @@ const config = {
       info.event.extendedProps.course +
       "<br>" +
       info.event.extendedProps.program +
-      info.event.extendedProps.section;
+      info.event.extendedProps.section +
+      "<br>" +
+      info.event.extendedProps.room;
   },
 };
-
-const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 fetch("/api/curriculums/school-year")
   .then((response) => {
@@ -133,7 +139,7 @@ room.addEventListener("change", () => {
       return response.json();
     })
     .then((result) => {
-      calendarContainer.innerHTML = "";
+      roomCalendarContainer.innerHTML = "";
       const days = ["m", "t", "w", "th", "f", "s"];
       const newCalendar = document.createElement("div");
       newCalendar.classList.add("schedule");
@@ -146,6 +152,7 @@ room.addEventListener("change", () => {
           section: element.section_name,
           program: element.program.program_code,
           course: element.course.course_description,
+          room: room.options[room.selectedIndex].text,
           daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
           startTime: element.start_time,
           endTime: element.end_time,
@@ -180,7 +187,7 @@ document
           const newCalendar = document.createElement("div");
           newCalendar.setAttribute("room", element.room.room_name);
           newCalendar.classList.add("schedules");
-          calendarContainer.append(newCalendar);
+          roomCalendarContainer.append(newCalendar);
           var calendar = new FullCalendar.Calendar(newCalendar, config);
           calendar.render();
           element.schedules.forEach((schedule) => {
@@ -189,6 +196,7 @@ document
               course: schedule.course.course_description,
               program: schedule.program.program_code,
               section: schedule.section_name,
+              room: element.room.room_name,
               daysOfWeek: [(days.indexOf(schedule.day) + 1).toString()],
               startTime: schedule.start_time,
               endTime: schedule.end_time,
@@ -226,7 +234,7 @@ document
             pdf.addPage();
             if (index == result.data.length - 1) {
               room.value = "";
-              calendarContainer.innerHTML = "";
+              roomCalendarContainer.innerHTML = "";
               document
                 .querySelector("#download-room")
                 .setAttribute("disabled", true);
@@ -275,4 +283,42 @@ document.querySelector("#download-room").addEventListener("click", () => {
     );
     pdf.save(`${element.getAttribute("room")} - Schedules`);
   });
+});
+
+faculty.on("change", () => {
+  fetch(`/api/schedules/faculty/${semester.value}/${faculty.val()}`)
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      const days = ["m", "t", "w", "th", "f", "s", null];
+      if (!result.ok) {
+        return;
+      }
+      facultyCalendarContainer.innerHTML = "";
+      const newCalendar = document.createElement("div");
+      newCalendar.classList.add("schedule");
+      facultyCalendarContainer.append(newCalendar);
+      const calendar = new FullCalendar.Calendar(newCalendar, config);
+      result.data.forEach((element) => {
+        console.log(element.room.room_name);
+        calendar.addEvent({
+          id: element._id,
+          section: element.section_name,
+          program: element.program.program_code,
+          course: element.course.course_description,
+          room: element.room.room_name,
+          daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
+          startTime: element.start_time,
+          endTime: element.end_time,
+          overlap: false,
+          editabe: false,
+        });
+      });
+      document.querySelector("#download-room").removeAttribute("disabled");
+      calendar.render();
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 });
