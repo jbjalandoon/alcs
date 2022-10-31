@@ -27,28 +27,28 @@
             <div class="col-3">
              <div class="counter-box colored">
               <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter">2147</span>
+              <span class="counter" id="program-offered-count">0</span>
               <p>Progam Offered This Semester</p>
              </div>
             </div>
             <div class="col-3">
              <div class="counter-box colored">
               <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter">2147</span>
+              <span class="counter" id="active-faculty-count">0</span>
               <p>Active Faculty This Semester</p>
              </div>
             </div>
             <div class="col-3">
              <div class="counter-box colored">
               <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter">2147</span>
+              <span class="counter" id="unassigned-course-count">0</span>
               <p>Unassigned Course Schedule</p>
              </div>
             </div>
             <div class="col-3">
              <div class="counter-box colored">
               <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter">2147</span>
+              <span class="counter" id="unloaded-course-count">0</span>
               <p>Unassigned Faculty Load</p>
              </div>
             </div>
@@ -94,10 +94,15 @@
                 <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
                   <div class="container mt-3">
                     <div class="row">
-                      <div class="col-12">
+                      <div class="col-12 mb-3">
                         <select name="" class="form-control" id="faculty">
                           <option value="" selected disabled>--Select Faculty--</option>
                         </select>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12">
+                        <button class="btn btn-primary" id="faculty-download" disabled>Download this schedule (PDF)</button>
                       </div>
                     </div>
                     <div class="row">
@@ -109,8 +114,34 @@
                     </div>
                   </div>
                 </div>
-                <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">...</div>
-                <div class="tab-pane fade" id="disabled-tab-pane" role="tabpanel" aria-labelledby="disabled-tab" tabindex="0">...</div>
+                <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+                  <div class="container">
+                    <div class="row mt-3">
+                      <div class="col-6">
+                        <select class="form-select" id="program">
+                          <option value="" selected disabled>--Select Program--</option>
+                        </select>
+                      </div>
+                      <div class="col-6">
+                        <select class="form-select" id="level" disabled>
+                          <option value="" selected disabled>--Select Year Level--</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="row mt-3">
+                      <div class="col-12">
+                        <button class="btn btn-primary" id="section-download" disabled>Download Schedule (PDF)</button>
+                      </div>
+                    </div>
+                    <div class="row mt-3">
+                      <div class="col-12">
+                        <div id="section-calendar-container">
+                          
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>    
             </div>
           </div>

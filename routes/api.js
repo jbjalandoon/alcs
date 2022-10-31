@@ -87,6 +87,7 @@ router.post(
 
 router.get("/schedules/:schedule", schedule.getOneSchedule);
 router.get("/schedules", schedule.getSchedule);
+router.get('/schedules/year-level/:yearLevel', schedule.getYearLevelSchedules)
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
 router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.put("/schedules/set/:schedule", schedule.setSchedule);
@@ -95,5 +96,8 @@ router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
 router.get("/schedules/faculty/:semester/:faculty", schedule.getFacultySchedule);
 router.delete("/schedules/:schedule", schedule.deleteSchedule);
 router.get("/schedules/assignable-course/:sem", schedule.getAssignableCourse);
+router.get("/schedules/faculties/:semester", schedule.getFacultiesSchedule);
+router.get('/schedules/unassigned-schedule/:semester', schedule.getUnassignedSchedules);
+router.get('/schedules/unloaded-schedule/:semester', schedule.getUnloadedSchedules);
 
 module.exports = router;

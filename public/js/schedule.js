@@ -291,7 +291,7 @@ scheduleSectionForm.on("change", () => {
   });
   $("#facultyLink").attr(
     "href",
-    `/admin/schedules/faculty/${scheduleSemesterForm.val()}`
+    `/admin/schedules/faculty/${semester}`
   );
   if ($("#roomForm").val() != null) {
     fetch("/api/schedules/room/" + $("#roomForm").val())

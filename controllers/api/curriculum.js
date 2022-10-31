@@ -460,6 +460,13 @@ exports.getSectionSchedules = (req, res, next) => {
   if (!req.params.section.match(/^[0-9a-fA-F]{24}$/))
     return res.json({ ok: false, msg: "Invalid Query" });
   Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
+          req.params.section
+        ),
+      },
+    },
     { $unwind: "$semesters" },
     { $unwind: "$semesters.programs" },
     { $unwind: "$semesters.programs.year" },
