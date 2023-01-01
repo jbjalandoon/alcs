@@ -17,6 +17,7 @@ const db_uri = "mongodb://localhost:27017/alcs";
 
 const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
+const userRoutes = require("./routes/user");
 const authenticationRoutes = require("./routes/authentication");
 const store = new mongoDBStore({
   uri: db_uri,
@@ -79,6 +80,7 @@ app.use((req, res, next) => {
   }
 });
 app.use("/admin", adminRoutes);
+app.use("/user", userRoutes);
 app.use("/api", apiRoutes);
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);

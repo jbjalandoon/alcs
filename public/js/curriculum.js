@@ -52,14 +52,15 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
-    console.log(result);
     if (!result.ok) {
       return Toast.fire({ icon: "warning", title: "Something went wrong" });
     }
 
     result.data.forEach((element) => {
-      viewProgram.append(new Option(element.program.program_code, element._id));
-      programs.push(element.program.program_code);
+      viewProgram.append(
+        new Option(element.program.programCode.toUpperCase(), element._id)
+      );
+      programs.push(element.program.programCode.toUpperCase());
     });
     $("#submit-button").attr("disabled", true);
     viewProgram.attr("disabled", false);
@@ -74,19 +75,15 @@ $(addModal._element).on("show.bs.modal", () => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        ok = false;
-        return;
-      }
-      console.log(programs);
       const filteredData = result.data.filter((element) => {
-        return !programs.includes(element.program_code);
+        return !programs.includes(element.programCode);
       });
-      console.log(filteredData);
       addProgram.val("");
       addProgram.empty();
       filteredData.forEach((element) => {
-        addProgram.append(new Option(element.program_name, element._id));
+        addProgram.append(
+          new Option(element.programName.toUpperCase(), element._id)
+        );
         addProgram.select2({
           multitple: true,
           width: "100%",
@@ -117,20 +114,14 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        return;
-      }
       result.data.course.forEach((element) => {
         existingCourse.push(element);
       });
-      return fetch("/api/course").then((response) => {
+      return fetch("/api/courses").then((response) => {
         return response.json();
       });
     })
     .then((result) => {
-      if (!result.ok) {
-        return;
-      }
       const filteredData = result.data.filter((element) => {
         return !existingCourse.includes(element._id);
       });
@@ -142,7 +133,12 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
       $("#unitsCount").html("0");
       filteredData.forEach((element) => {
         newCourse.append(
-          new Option(element.course_description.toUpperCase(), element._id)
+          new Option(
+            element.courseCode.toUpperCase() +
+              " - " +
+              element.courseDescription.toUpperCase(),
+            element._id
+          )
         );
       });
     })
@@ -214,8 +210,8 @@ $("#addCourseButton").on("click", (event) => {
       result.courses.forEach((element) => {
         $(`#${programYear}`).children("tbody").append(`
           <tr>
-            <td>${element.course_code}</td>
-            <td>${element.course_description}</td>
+            <td>${element.courseCode.toUpperCase()}</td>
+            <td>${element.courseDescription.toUpperCase()}</td>
             <td>${element.lab}</td>
             <td>${element.lecture}</td>
             <td>${element.units}</td>
@@ -235,7 +231,7 @@ $("#addCourseButton").on("click", (event) => {
 
 newCourse.on("change", () => {
   let unitCount;
-  fetch("/api/course/units?programs=" + newCourse.val())
+  fetch("/api/courses/units?programs=" + newCourse.val())
     .then((response) => {
       return response.json();
     })
@@ -270,14 +266,6 @@ $("#add-button").on("click", () => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        // addProgram
-        //   .addClass(result.errors.program ? "is-invalid" : "")
-        //   .siblings("div .invalid-feedback")
-        //   .html(result.errors.program ? result.errors.program.msg : "");
-        // Toast.fire({ icon: "warning", title: "Something went wrong" });
-        return Promise.reject("Something went wrong");
-      }
       addModal.hide();
       addProgram.removeClass("is-invalid").val("");
       addSemester.removeClass("is-invalid").val("");
@@ -287,16 +275,12 @@ $("#add-button").on("click", () => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
-      if (!result.ok) {
-        return Toast.fire({ icon: "warning", title: "Something went wrong" });
-      }
       viewProgram.find("option").not(":first").remove();
       result.data.forEach((element) => {
         viewProgram.append(
-          new Option(element.program.program_code, element._id)
+          new Option(element.program.programCode.toUpperCase(), element._id)
         );
-        programs.push(element.program.program_code);
+        programs.push(element.program.programCode.toUpperCase());
       });
       return Toast.fire({ icon: "success", title: "Successfull Added" });
     })
@@ -448,7 +432,7 @@ viewProgram.on("change", () => {
             element._id
           }" type="button" role="tab" aria-controls="v-pills-${
             element._id
-          }" aria-selected="true">${element.year.level}</button>`
+          }" aria-selected="true">${element.year.yearLevel.toUpperCase()}</button>`
         );
         $("#nav-year #v-pills-tabContent").append(
           `<div class="tab-pane fade show ${
@@ -512,8 +496,8 @@ viewProgram.on("change", () => {
           return;
         }
         element.course.forEach((course) => {
-          $(`#${element._id} tbody`).append(`<tr><td>${course.course_code}</td>
-          <td>${course.course_description}</td>
+          $(`#${element._id} tbody`).append(`<tr><td>${course.courseCode.toUpperCase()}</td>
+          <td>${course.courseDescription.toUpperCase()}</td>
           <td>${course.lab}</td>
           <td>${course.lecture}</td>
           <td>${course.units}</td>

@@ -39,7 +39,7 @@ exports.program = [
   check("programName")
     .notEmpty()
     .withMessage("Program name is required.")
-    .isAlphanumeric("en-US", { ignore: " -" })
+    .isAlphanumeric("en-US", { ignore: " -'" })
     .withMessage("No special characters allowed.")
     .trim(),
 ];
