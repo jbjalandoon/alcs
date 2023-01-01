@@ -1,22 +1,31 @@
 const Faculty = require("../../models/user");
+const AcademicQualification = require("../../models/academic-qualification");
+const Tag = require("../../models/tag");
 const { validationResult } = require("express-validator");
+const readXlsxFile = require("read-excel-file/node");
+
 const bcrypt = require("bcrypt");
+const FacultyType = require("../../models/faculty-type");
+
 exports.get = (req, res, next) => {
-  Faculty.find({ deleted_at: null, role: "user" })
+  Faculty.find({ deleted: false, role: "user" })
+    .populate("userInformation.academicQualifications.academicQualification")
+    .populate("userInformation.academicQualifications.licenseIndustry")
+    .populate("userInformation.courseTaken")
+    .populate("userInformation.facultyType")
     .then((faculty) => {
-      if (faculty.length == 0) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: faculty });
+      res.json({ status: 200, data: faculty });
     })
     .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.getOne = (req, res, next) => {
   Faculty.findOne({ role: "user", _id: req.params.id })
+    .populate("userInformation.academicQualifications.academicQualification")
+    .populate("userInformation.academicQualifications.licenseIndustry")
+    .populate("userInformation.courseTaken")
     .then((faculty) => {
       if (!faculty) {
         return res.json({ ok: false });
@@ -30,48 +39,415 @@ exports.getOne = (req, res, next) => {
 };
 
 exports.post = (req, res, next) => {
-  console.log(req.body);
   errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
   }
+  let generatedPassword;
   bcrypt
     .hash("password", 12)
     .then((password) => {
+      generatedPassword = password;
+      return Faculty.findOne({
+        "userInformation.facultyCode": req.body.facultyCode,
+      });
+    })
+    .then((result) => {
+      if (result) {
+        result.email = req.body.email;
+        result.password = generatedPassword;
+        result.deleted = false;
+        result.userInformation = {
+          facultyCode: req.body.facultyCode,
+          firstName: req.body.firstName,
+          middleName: req.body.middleName,
+          lastName: req.body.lastName,
+          facultyType: req.body.facultyType,
+          schedulePreference: req.body.schedulePreference,
+          academicQualifications: req.body.academicQualifications,
+        };
+        return result.save();
+      }
       return new Faculty({
         email: req.body.email,
-        password: password,
+        password: generatedPassword,
         userInformation: {
-          faculty_code: req.body.faculty_code,
-          first_name: req.body.first_name,
-          middle_name: req.body.middle_name,
-          last_name: req.body.last_name,
-          faculty_type: req.body.faculty_type,
+          facultyCode: req.body.facultyCode,
+          firstName: req.body.firstName,
+          middleName: req.body.middleName,
+          lastName: req.body.lastName,
+          facultyType: req.body.facultyType,
+          schedulePreference: req.body.schedulePreference,
+          academicQualifications: req.body.academicQualifications,
         },
       }).save();
     })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.academicQualification",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.licenseIndustry",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.courseTaken" });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.facultyType" });
+    })
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
+    });
+  return;
+};
+
+exports.put = (req, res, next) => {
+  errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ ok: false, errors: errors.mapped() });
+  }
+  Faculty.findOneAndUpdate(
+    { _id: req.params.id },
+    {
+      email: req.body.email,
+      userInformation: {
+        facultyCode: req.body.facultyCode,
+        firstName: req.body.firstName,
+        middleName: req.body.middleName,
+        lastName: req.body.lastName,
+        facultyType: req.body.facultyType,
+        schedulePreference: req.body.schedulePreference,
+        academicQualifications: req.body.academicQualifications,
+      },
+    },
+    { new: true }
+  )
+    .then((result) => {
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.academicQualification",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.licenseIndustry",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.courseTaken" });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.facultyType" });
+    })
+    .then((result) => {
+      res.status(201).json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      res.status(500).json({ status: 500, data: error });
+    });
+};
+
+exports.postCourse = (req, res, next) => {
+  Faculty.findOneAndUpdate(
+    { _id: req.params.id },
+    { "userInformation.courseTaken": req.body.courses },
+    { new: true }
+  )
+    .then((result) => {
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.academicQualification",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, {
+        path: "userInformation.academicQualifications.licenseIndustry",
+      });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.courseTaken" });
+    })
+    .then((result) => {
+      return Faculty.populate(result, { path: "userInformation.facultyType" });
+    })
+    .then((result) => {
+      return res.json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      return res.json({ status: 500, data: error });
+    });
+};
+
+exports.putAcademicQualification = (req, res, next) => {
+  console.log(req.body.academicQualifications);
+  Faculty.findOneAndUpdate(
+    { _id: req.params.id },
+    {
+      "userInformation.academicQualifications": req.body.academicQualifications,
+    }
+  )
+    .then((result) => {
+      console.log(result);
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      return res.json({ ok: false, data: result });
+    })
+    .catch((error) => {
+      return res.json({ ok: false, data: error });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Faculty.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Faculty.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.json({ status: 202, data: result });
+    })
+    .catch((error) => {
+      res.json({ status: 500, result: error });
+    });
+};
+
+exports.postSpreadsheet = (req, res, next) => {
+  const degreeEquivalent = ["associates", "bachelors", "masters", "doctoral"];
+
+  let tags = [],
+    fetchedTag,
+    academicQualifications = [],
+    storedLicenseIndustry = [],
+    newLicenseIndustry = [],
+    data;
+  readXlsxFile(Buffer.from(req.file.buffer))
+    .then((rows) => {
+      rows.shift();
+      data = rows.map((element) => {
+        const academicQualification = element[6]
+          .toLowerCase()
+          .split(",")
+          .map((e) => {
+            const array = e.toLowerCase().split("-");
+            const degreeLicense = array[1].toLowerCase().split("/");
+            const degree = degreeLicense[0].replace(/\s/g, "");
+            const licenseIndustry = degreeLicense[1]
+              ? degreeLicense[1].toLowerCase().split(".")
+              : [];
+            return {
+              academicQualification: array[0].toLowerCase().replace(/\s/g, ""),
+              degree:
+                degreeEquivalent.indexOf(degree.toLowerCase()) < 0
+                  ? 0
+                  : degreeEquivalent.indexOf(degree.toLowerCase()),
+              licenseIndustry: licenseIndustry,
+            };
+          });
+
+        return {
+          facultyCode: element[1].toLowerCase(),
+          lastName: element[2] ? element[2].toLowerCase() : null,
+          firstName: element[3] ? element[3].toLowerCase() : null,
+          middleName: element[4] ? element[4].toLowerCase() : null,
+          email: element[5].toLowerCase().replace(/\s/g, ""),
+          facultyType: element[7],
+          academicQualification: academicQualification,
+        };
+      });
+      data.forEach((element) => {
+        element.academicQualification.forEach((element) => {
+          if (element.licenseIndustry) {
+            element.licenseIndustry.forEach((element) => {
+              tags.push(element);
+            });
+          }
+        });
+      });
+      return Tag.bulkWrite(
+        tags.map((e) => {
+          return {
+            updateOne: {
+              filter: { tag: e },
+              update: {
+                tag: e,
+              },
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      return Tag.find({ tag: { $in: tags } });
+    })
+    .then((result) => {
+      data = data.map((element) => {
+        return {
+          facultyCode: element.facultyCode,
+          lastName: element.lastName,
+          firstName: element.firstName,
+          middleName: element.middleName,
+          email: element.email,
+          facultyType: element.facultyType,
+          academicQualification: element.academicQualification.map(
+            (element) => {
+              return {
+                academicQualification: element.academicQualification,
+                degree: element.degree,
+                licenseIndustry: element.licenseIndustry.map((element) => {
+                  let id;
+                  for (let i = 0; i < result.length; i++) {
+                    if (result[i].tag === element) {
+                      id = result[i]._id;
+                      break;
+                    }
+                  }
+                  return id;
+                }),
+              };
+            }
+          ),
+        };
+      });
+      data.forEach((element) => {
+        element.academicQualification.forEach((element) => {
+          academicQualifications.push({
+            academicQualification: element.academicQualification,
+            licenseIndustry: element.licenseIndustry,
+          });
+        });
+      });
+      return AcademicQualification.bulkWrite(
+        academicQualifications.map((e) => {
+          return {
+            updateOne: {
+              filter: { academicQualification: e.academicQualification },
+              update: {
+                academicQualification: e.academicQualification,
+                $addToSet: { licenseIndustry: e.licenseIndustry },
+              },
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      return AcademicQualification.find({
+        academicQualification: {
+          $in: academicQualifications.map((e) => e.academicQualification),
+        },
+      });
+    })
+    .then((result) => {
+      data = data.map((element) => {
+        return {
+          facultyCode: element.facultyCode,
+          lastName: element.lastName,
+          firstName: element.firstName,
+          middleName: element.middleName,
+          email: element.email,
+          facultyType: element.facultyType,
+          academicQualification: element.academicQualification.map(
+            (element) => {
+              let id;
+              for (let i = 0; i < result.length; i++) {
+                if (
+                  result[i].academicQualification ===
+                  element.academicQualification
+                ) {
+                  id = result[i]._id;
+                }
+              }
+              return {
+                academicQualification: id,
+                degree: element.degree,
+                experience: 0,
+                licenseIndustry: element.licenseIndustry,
+              };
+            }
+          ),
+        };
+      });
+      return FacultyType.find({ deleted: false });
+    })
+    .then((result) => {
+      data = data.map((element) => {
+        let facultyType;
+        for (let i = 0; i < result.length; i++) {
+          if (
+            result[i].facultyType.toLowerCase() ===
+            element.facultyType.toLowerCase()
+          ) {
+            facultyType = result[i]._id;
+            break;
+          }
+        }
+        return {
+          facultyCode: element.facultyCode.toLowerCase(),
+          lastName: element.lastName.toLowerCase(),
+          firstName: element.firstName.toLowerCase(),
+          middleName: element.middleName,
+          email: element.email.toLowerCase(),
+          facultyType: facultyType,
+          academicQualification: element.academicQualification,
+        };
+      });
+      return bcrypt.hash("password", 12);
+    })
+    .then((password) => {
+      return Faculty.bulkWrite(
+        data.map((e) => {
+          return {
+            updateOne: {
+              filter: { "userInformation.facultyCode": e.facultyCode },
+              update: {
+                email: e.email,
+                password: password,
+                userInformation: {
+                  schedulePreference: ["m", "t", "w", "th", "f", "s"],
+                  facultyCode: e.facultyCode,
+                  lastName: e.lastName,
+                  firstName: e.firstName,
+                  middleName: e.middleName,
+                  facultyType: e.facultyType,
+                  academicQualifications: e.academicQualification,
+                },
+              },
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      return Faculty.find({ deleted: false, role: "user" })
+        .populate(
+          "userInformation.academicQualifications.academicQualification"
+        )
+        .populate("userInformation.academicQualifications.licenseIndustry")
+        .populate("userInformation.courseTaken")
+        .populate("userInformation.facultyType");
+    })
+    .then((result) => {
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
+};
+
+Array.prototype.unique = function () {
+  var a = this.concat();
+  for (var i = 0; i < a.length; ++i) {
+    for (var j = i + 1; j < a.length; ++j) {
+      if (a[i] === a[j]) a.splice(j--, 1);
+    }
+  }
+
+  return a;
 };

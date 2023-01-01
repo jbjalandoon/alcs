@@ -1,24 +1,42 @@
 const Course = require("../../models/course");
+const Tag = require("../../models/tag");
 const { validationResult } = require("express-validator");
-const excelToJson = require("convert-excel-to-json");
+const readXlsxFile = require("read-excel-file/node");
+const mongoose = require("mongoose");
+const AcademicQualification = require("../../models/academic-qualification");
 const fs = require("fs");
 
 exports.get = (req, res, next) => {
-  Course.find({ deleted_at: null })
+  Course.find({ deleted: false })
+    .populate("qualification.academicQualification")
+    .populate("qualification.licenseIndustry")
     .then((course) => {
-      if (course.length == 0) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: course });
+      res.json({ status: 200, data: course });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.getUnits = (req, res, next) => {
+  Course.find({
+    _id: {
+      $in: req.query.programs.split(",").map((e) => mongoose.Types.ObjectId(e)),
+    },
+  })
+    .then((result) => {
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false, data: error });
     });
 };
 
 exports.getOne = (req, res, next) => {
   Course.findOne({ _id: req.params.id })
+    .populate("qualification.academicQualification")
+    .populate("qualification.licenseIndustry")
     .then((course) => {
       if (!course) {
         return res.json({ ok: false });
@@ -34,25 +52,54 @@ exports.getOne = (req, res, next) => {
 exports.post = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
-  new Course({
-    course_code: req.body.course_code,
-    course_description: req.body.course_description,
-    lecture: req.body.lecture,
-    lab: req.body.lab,
-    units: req.body.units,
-  })
-    .save()
+  Course.findOne({ courseCode: req.body.courseCode })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
+      if (result) {
+        result.courseCode = req.body.courseCode;
+        result.courseDescription = req.body.courseDescription;
+        result.lecture = req.body.lecture;
+        result.lab = req.body.lab;
+        result.units = req.body.units;
+        result.examination = req.body.examination;
+        result.qualification = {
+          academicQualification: req.body.academicQualification,
+          licenseIndustry: req.body.licenseIndustry,
+          degree: req.body.degree,
+          experience: req.body.experience,
+        };
+        return result.save();
       }
-      res.json({ ok: true, data: result });
+      return new Course({
+        courseCode: req.body.courseCode,
+        courseDescription: req.body.courseDescription,
+        lecture: req.body.lecture,
+        lab: req.body.lab,
+        units: req.body.units,
+        examination: req.body.examination,
+        qualification: {
+          academicQualification: req.body.academicQualification,
+          licenseIndustry: req.body.licenseIndustry,
+          degree: req.body.degree,
+          experience: req.body.experience,
+        },
+      }).save();
+    })
+    .then((result) => {
+      return Course.populate(result, { path: "qualification.licenseIndustry" });
+    })
+    .then((result) => {
+      return Course.populate(result, {
+        path: "qualification.academicQualification",
+      });
+    })
+    .then((result) => {
+      res.status(201).json({ status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.status(500).json({ status: 500, data: error });
     });
 };
 
@@ -64,75 +111,256 @@ exports.edit = (req, res, next) => {
   Course.findOneAndUpdate(
     { _id: req.params.id },
     {
-      course_code: req.body.course_code,
-      course_description: req.body.course_description,
+      courseCode: req.body.courseCode,
+      courseDescription: req.body.courseDescription,
       lecture: req.body.lecture,
       lab: req.body.lab,
       units: req.body.units,
-    }
+      examination: req.body.examination,
+      qualification: {
+        academicQualification: req.body.academicQualification,
+        licenseIndustry: req.body.licenseIndustry,
+        degree: req.body.degree,
+        experience: req.body.experience,
+      },
+    },
+    { new: true }
   )
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      return Course.populate(result, {
+        path: "qualification.licenseIndustry",
+      });
+    })
+    .then((result) => {
+      return Course.populate(result, {
+        path: "qualification.academicQualification",
+      });
+    })
+    .then((result) => {
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Course.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Course.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      console.log(result);
+      res.json({ status: 202, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.postSpreadsheet = (req, res, next) => {
-  let filteredData, removedData;
-  const data = excelToJson({
-    sourceFile: req.file.path,
-    columnToKey: {
-      A: "course_code",
-      B: "course_description",
-      C: "lecture",
-      D: "lab",
-      E: "units",
-    },
-    header: {
-      rows: 1,
-    },
-  });
-  Course.find({
-    course_code: { $in: data.sheet1.map((element) => element.course_code) },
-  })
-    .then((result) => {
-      filteredData = data.sheet1.filter((element) => {
-        return !result.some((course) => {
-          return course.course_code === element.course_code;
-        });
-      });
+  let tags,
+    fetchedTag = [];
+  let academicQualificationUnique = [];
+  let storedLicenseIndustry = [];
+  let newLicenseIndustry = [];
+  let data;
+  readXlsxFile(Buffer.from(req.file.buffer))
+    .then((rows) => {
+      rows.shift();
+      data = rows.map((element) => {
+        let licenseIndustry = [];
+        const academicQualification = element[2]
+          .replace(/\s/g, "")
+          .toLowerCase()
+          .split(",");
 
-      removedData = data.sheet1.filter((element) => {
-        return result.some((course) => {
-          return course.course_code === element.course_code;
+        academicQualificationUnique = academicQualificationUnique
+          .concat(academicQualification)
+          .unique();
+
+        academicQualification.forEach((e) => {
+          const array = e.replace(/\s/g, "").toLowerCase().split("-");
+          array.shift();
+          if (array[0]) {
+            licenseIndustry = licenseIndustry
+              .concat(array[0].split("."))
+              .unique();
+          } else {
+            licenseIndustry = [];
+          }
         });
+
+        return {
+          courseCode: element[0].toLowerCase(),
+          courseDescription: element[1].toLowerCase(),
+          academicQualification: academicQualification.map(
+            (e) => e.split("-")[0]
+          ),
+          licenseIndustry: licenseIndustry,
+          units: element[3],
+          lecture: element[4],
+          lab: element[5],
+          experience: element[6],
+          degree: element[7],
+        };
       });
-      return Course.insertMany(filteredData);
+      academicQualificationUnique = academicQualificationUnique
+        .map((e) => {
+          const split = e.toLowerCase().split("-");
+          if (split[1]) {
+            storedLicenseIndustry.push({
+              academicQualification: split[0],
+              licenseIndustry: split[1].split("."),
+            });
+          }
+          return split[0];
+        })
+        .unique();
+      academicQualificationUnique = academicQualificationUnique.map(
+        (e, index) => {
+          const licenseIndustry = [];
+          storedLicenseIndustry.forEach((element) => {
+            if (element.academicQualification === e) {
+              licenseIndustry.push(...element.licenseIndustry);
+            }
+            newLicenseIndustry.push(...element.licenseIndustry);
+          });
+          return {
+            academicQualification: e,
+            licenseIndustry: licenseIndustry.unique(),
+          };
+        }
+      );
+      tags = newLicenseIndustry.unique();
+      return Tag.find({ tag: { $in: tags } });
     })
     .then((result) => {
-      res.json({ ok: true, removedData: removedData, addedData: result });
+      const tagId = [];
+      fetchedTag.push(...result);
+      result.forEach((element) => {
+        tagId.push(element._id);
+      });
+      const newTag = tags.filter(
+        (element) =>
+          !result
+            .map((e) => {
+              return e.tag;
+            })
+            .includes(element)
+      );
+      return Tag.insertMany(
+        newTag.map((e) => {
+          return { tag: e };
+        })
+      );
+    })
+    .then((result) => {
+      fetchedTag.push(...result);
+      academicQualificationUnique = academicQualificationUnique.map((aq) => {
+        return {
+          academicQualification: aq.academicQualification,
+          licenseIndustry: aq.licenseIndustry.map((e) => {
+            let id;
+            fetchedTag.forEach((tags) => {
+              if (tags.tag === e) {
+                id = tags._id;
+              }
+            });
+            return id;
+          }),
+        };
+      });
+      return AcademicQualification.bulkWrite(
+        academicQualificationUnique.map((e) => {
+          console.log(e);
+          return {
+            updateOne: {
+              filter: { academicQualification: e.academicQualification },
+              update: {
+                academicQualification: e.academicQualification,
+                $addToSet: { licenseIndustry: e.licenseIndustry },
+              },
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      console.log(result);
+      return Tag.find();
+    })
+    .then((result) => {
+      tags = result;
+      return AcademicQualification.find();
+    })
+    .then((result) => {
+      // console.log(data);
+      data = data.map((e) => {
+        return {
+          courseCode: e.courseCode,
+          courseDescription: e.courseDescription,
+          qualification: {
+            academicQualification: e.academicQualification.map((e) => {
+              let id;
+              for (let i = 0; i < result.length; i++) {
+                if (result[i].academicQualification === e) {
+                  id = result[i]._id;
+                  break;
+                }
+              }
+              return id;
+            }),
+            licenseIndustry: e.licenseIndustry.map((e) => {
+              let id;
+              for (let i = 0; i < tags.length; i++) {
+                if (tags[i].tag === e) {
+                  id = tags[i]._id;
+                  break;
+                }
+              }
+              return id;
+            }),
+            experience: e.experience,
+            degree: e.degree,
+          },
+          units: e.units,
+          lab: e.lab,
+          lecture: e.lecture,
+        };
+      });
+      return Course.bulkWrite(
+        data.map((e) => {
+          return {
+            updateOne: {
+              filter: { courseCode: e.courseCode },
+              update: e,
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      return Course.find({ deleted: false })
+        .populate("qualification.academicQualification")
+        .populate("qualification.licenseIndustry");
+    })
+    .then((result) => {
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
+      res.json({ status: 500, data: error });
     });
+};
+
+Array.prototype.unique = function () {
+  var a = this.concat();
+  for (var i = 0; i < a.length; ++i) {
+    for (var j = i + 1; j < a.length; ++j) {
+      if (a[i] === a[j]) a.splice(j--, 1);
+    }
+  }
+
+  return a;
 };

@@ -3,17 +3,18 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ProgramSchema = new Schema({
-  program_name: {
+  programName: {
     type: String,
     required: true,
   },
-  program_code: {
+  programCode: {
     type: String,
+    unique:true,
     required: true,
   },
-  deleted_at: {
-    type: Date,
-    default: null,
+  deleted: {
+    type: Boolean,
+    default: false,
   },
 });
 

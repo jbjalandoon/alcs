@@ -17,6 +17,15 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   },
 });
 
+const degreeEquivalent = [
+  "Associate's Degree",
+  "Bachelors's Degree",
+  "Masters's Degree",
+  "Doctoral",
+];
+
+let semester;
+
 const faculty = document.querySelector("#faculty").value;
 const body = document.querySelector("#content-body");
 const header = document.querySelector("#content-header");
@@ -30,46 +39,71 @@ const schoolYearSelect = document.querySelector("#school-year");
 const semesterSelect = document.querySelector("#semester");
 const submitSchedule = document.querySelector("#submitSchedule");
 
-fetch("/api/curriculums/school-year")
+fetch("/api/curriculums/active")
   .then((response) => {
     return response.json();
   })
   .then((result) => {
-    result.data.forEach((element) => {
-      schoolYearSelect.append(
-        new Option(element.school_year.year.toUpperCase(), element.school_year._id)
-      );
-    });
-    console.log(result);
+    if (result.data.length === 0) {
+      return Toast.fire({
+        title: "There is no current active semester",
+        icon: "warning",
+      });
+    }
+    semester = result.data[0].semesters._id;
+    return fetch("/api/faculty/" + faculty);
   })
-  .catch((error) => {
-    console.log(error);
-  });
-
-schoolYearSelect.addEventListener("change", (event) => {
-  console.log(schoolYearSelect.value)
-  semesterSelect.removeAttribute("disabled");
-  fetch("/api/curriculums/semesters/" + schoolYearSelect.value)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      console.log(result);
-      result.data.forEach(element => {
-        semesterSelect.append(new Option((element.sem + ' semester').toUpperCase(), element._id))
-      })
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-});
-
-semesterSelect.addEventListener('change', (event) => {
-  submitSchedule.classList.remove('disabled')
-})
-
-submitSchedule.addEventListener('click', (event) => {
-  fetch(`/api/schedules/faculty/${semesterSelect.value}/${faculty}` )
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    $("#facultyCode").html(
+      result.data.userInformation.faculty_code.toUpperCase()
+    );
+    $("#facultyType").html(
+      result.data.userInformation.faculty_type.toUpperCase()
+    );
+    $("#schedulePreference").html(
+      result.data.userInformation.schedulePreference
+        .map((element) => {
+          return element.toUpperCase();
+        })
+        .join(", ")
+    );
+    $("#fullName").html(
+      `${result.data.userInformation.first_name} ${result.data.userInformation.middle_name} ${result.data.userInformation.last_name}`
+    );
+    $("#email").html(result.data.email.toUpperCase());
+    $("#academicQualification").html(
+      result.data.userInformation.academicQualifications
+        .map((element) => {
+          return `
+    <div>
+      <h6>${element.academicQualification.academicQualification}</h6>
+      <ul>
+        <li>${element.experience} year/s of experience.</li>
+        <li>${degreeEquivalent[element.degree - 1]}</li>
+        ${element.licenseIndustry
+          .map((element) => {
+            return "<li>" + element.tag.toUpperCase() + "</li>";
+          })
+          .join("")}
+      </ul>
+    </div>`;
+        })
+        .join("")
+    );
+    $("#examTaken").html(
+      result.data.userInformation.courseTaken.length !== 0
+        ? result.data.userInformation.courseTaken
+            .map((element) => {
+              return element.course_code;
+            })
+            .join(", ")
+        : "N/A"
+    );
+    return fetch(`/api/schedules/faculty/${semester}/${faculty}`);
+  })
   .then((response) => {
     return response.json();
   })
@@ -89,12 +123,15 @@ submitSchedule.addEventListener('click', (event) => {
     spinners.forEach((element) => {
       element.classList.add("d-none");
     });
-    calendar.render()
+    calendar.render();
     tab.classList.remove("d-none");
     tabContent.classList.remove("d-none");
   })
   .catch((error) => {
     console.log(error);
   });
-})
 
+$("#downloadSchedule").on("click", () => {
+  const table = document.querySelector("#calendar");
+  TableToExcel.convert(table);
+});

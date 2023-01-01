@@ -1,3 +1,5 @@
+const csrf = $("#csrf").val();
+
 const schoolYear = document.querySelector("#school-year");
 const semester = document.querySelector("#semester");
 const room = document.querySelector("#room");
@@ -15,6 +17,8 @@ const sectionCalendarContainer = document.querySelector(
   "#section-calendar-container"
 );
 const pdfEl = document.querySelector("#pdf");
+
+let sem, activeYear, activeSemester;
 
 const calendarEl = document.getElementById("calendar");
 const config = {
@@ -52,139 +56,110 @@ const config = {
   },
 };
 
-fetch("/api/curriculums/school-year")
+const addModal = new bootstrap.Modal($("#addModal"));
+let addModalElement = $(addModal._element);
+
+fetch("/api/curriculums/active")
   .then((response) => {
     return response.json();
   })
   .then((result) => {
-    result.data.forEach((element) => {
-      schoolYear.append(
-        new Option(
-          element.school_year.year.toUpperCase(),
-          element.school_year._id
-        )
-      );
-    });
+    if (result.data.length === 0) {
+      return Toast.fire({
+        icon: "warning",
+        title: "There is no current active semester",
+      });
+    }
+    sem = result.data[0].semesters._id;
   })
   .catch((error) => {
+    // Toast.fire({ icon: "error", title: "Something went wrong" });
     console.log(error);
   });
 
-schoolYear.addEventListener("change", (event) => {
-  fetch("/api/curriculums/semesters/" + schoolYear.value)
+addModalElement.on("show.bs.modal", (event) => {
+  if (activeYear) activeYear.off("change");
+  if (activeSemester) activeSemester.off("change");
+  activeYear = $(event.currentTarget).find("#year");
+  activeSemester = $(event.currentTarget).find("#semester");
+  activeYear.empty();
+  activeSemester.empty();
+  activeSemester.append(
+    $("<option>--Select Semester--</option>").attr({
+      selected: true,
+      disabled: true,
+    })
+  );
+  fetch("/api/curriculums/school-year")
     .then((response) => {
       return response.json();
     })
     .then((result) => {
+      activeYear.append(
+        $("<option>--Select Year--</option>").attr({
+          selected: true,
+          disabled: true,
+        })
+      );
       result.data.forEach((element) => {
-        semester.append(
-          new Option(element.sem.toUpperCase() + " SEMESTER", element._id)
+        activeYear.append(
+          new Option(element.school_year.year, element.school_year._id)
         );
       });
-      semester.removeAttribute("disabled");
+      activeYear.on("change", (event) => {
+        console.log(activeYear.val());
+        fetch("/api/curriculums/semesters/" + activeYear.val())
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            $("#addButton").addClass("disabled");
+            activeSemester.empty();
+            activeSemester.append(
+              $("<option>--Select Semester--</option>").attr({
+                selected: true,
+                disabled: true,
+              })
+            );
+            result.data.forEach((element) => {
+              activeSemester.append(
+                new Option(element.sem.toUpperCase(), element._id)
+              );
+            });
+            activeSemester.removeAttr("disabled");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
+      activeSemester.on("change", (event) => {
+        $("#addButton").removeClass("disabled");
+      });
     })
     .catch((error) => {
       console.log(error);
     });
 });
 
-semester.addEventListener("change", () => {
-  fetch(`/api/schedules/rooms/${semester.value}`)
+$("#addButton").on("click", () => {
+  fetch("/api/curriculums/active/" + activeSemester.val(), {
+    method: "PUT",
+    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+  })
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      $(room).find("option").not(":first").remove();
-      result.data.forEach((element) => {
-        room.append(
-          new Option(element.room.room_name.toUpperCase(), element._id)
-        );
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  fetch("/api/faculty")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
+      if (!result) {
         return;
       }
-      result.data.forEach((element) => {
-        faculty.append(
-          new Option(
-            (
-              element.userInformation.first_name +
-              " " +
-              element.userInformation.middle_name +
-              " " +
-              element.userInformation.last_name
-            ).toUpperCase(),
-            element._id
-          )
-        );
+      addModal.hide();
+      Toast.fire({
+        icon: "success",
+        title: "Successfully Set an Active Semester",
       });
-      faculty.select2({
-        width: "100%",
-      });
-      $("#firstLoading").addClass("d-none");
-      $("#facultySelect").removeClass("d-none");
     })
-    .catch((error) => {
-      Toast.fire({ icon: "error", title: "Something went wrong" });
-      console.log(error);
-    });
-
-  fetch("/api/curriculums/programs/" + semester.value)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      result.data.forEach((element) => {
-        program.append(
-          new Option(element.program.program_name.toUpperCase(), element._id)
-        );
-      });
-      $("#program-offered-count").html(result.data.length);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  fetch("/api/schedules/faculties/" + semester.value)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      $("#active-faculty-count").html(result.data.length);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  fetch("/api/schedules/unassigned-schedule/" + semester.value)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      $("#unassigned-course-count").html(result.data.length);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  fetch("/api/schedules/unloaded-schedule/" + semester.value)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      $("#unloaded-course-count").html(result.data.length);
-      content.classList.remove("d-none");
-    })
-    .catch((error) => {
+    .then((error) => {
       console.log(error);
     });
 });

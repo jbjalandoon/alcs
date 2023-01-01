@@ -1,0 +1,128 @@
+<%- include('../includes/header.ejs') %>
+</head>
+
+<%- include('../includes/navbar.ejs') %>
+
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <strong>Faculty Types</strong>
+          <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#addFacultyTypeModal">
+            Add FacultyType
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-12">
+                <div class="table-responsive">
+                  <table id="facultyTypeTable" class="table">
+                    <thead>
+                      <tr>
+                        <th>Faculty Type</th>
+                        <th>Units Cap</th>
+                        <th>Hours Cap</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addFacultyTypeModal" tabindex="-1" aria-labelledby="addFacultyTypeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addFacultyTypeModalLabel">Add Faculty Types</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation">
+          <div class="container">
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="facultyType">Faculty Type</label>
+                <input type="text" class="form-control" id="facultyType">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="unitsCap">Unit Cap:</label>
+                <input type="number" class="form-control" id="unitsCap">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="hoursCap">Hours Cap:</label>
+                <input type="number" class="form-control" id="hoursCap">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="addButton">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editFacultyTypeModal" tabindex="-1" aria-labelledby="editFacultyTypeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editFacultyTypeModalLabel">Edit Faculty Types</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation">
+          <div class="container">
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="facultyType">Faculty Type</label>
+                <input type="text" class="form-control" id="facultyType">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="unitsCap">Unit Cap:</label>
+                <input type="number" class="form-control" id="unitsCap">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="hoursCap">Hours Cap:</label>
+                <input type="number" class="form-control" id="hoursCap">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="editButton">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="hidden" value="<%= csrf %>" id="csrf">
+<%- include('../includes/footer.ejs') %>
+<script src="/js/faculty-type.js"></script>
+</body>

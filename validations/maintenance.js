@@ -4,67 +4,71 @@ const Year = require("../models/year");
 const Faculty = require("../models/user");
 const Level = require("../models/level");
 const Course = require("../models/course");
+const AcademicQualification = require("../models/academic-qualification");
+const FacultyType = require("../models/faculty-type");
 const Room = require("../models/room");
 
-exports.postProgram = [
-  check("program_code")
+exports.program = [
+  check("programCode")
     .notEmpty()
-    .withMessage("Course code is empty.")
-    .isAlpha("en-US", { ignore: " -" })
-    .withMessage("Only alpha is allowed.")
+    .withMessage("Program Code is required.")
+    .isAlphanumeric("en-US", { ignore: " -" })
+    .withMessage("No special characters allowed.")
     .trim()
-    .custom((value) => {
-      return Program.findOne({ program_code: value }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          programCode: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          programCode: value,
+          id: { $ne: req.params.id },
+        };
+      }
+      return Program.findOne(query).then((data) => {
         if (data) {
+          if (data.deleted)
+            return Promise.reject("Program code is in recycle bin.");
           return Promise.reject("Program code already exists.");
         }
       });
     }),
-  check("program_name")
+  check("programName")
     .notEmpty()
-    .withMessage("Course code is empty.")
-    .isAlpha("en-US", { ignore: " -" })
-    .withMessage("Only alpha is allowed.")
-    .trim()
-    .custom((value) => {
-      return Program.findOne({ program_name: value }).then((data) => {
-        if (data) {
-          return Promise.reject("Program name already exists.");
-        }
-      });
-    }),
+    .withMessage("Program name is required.")
+    .isAlphanumeric("en-US", { ignore: " -" })
+    .withMessage("No special characters allowed.")
+    .trim(),
 ];
 
-exports.putPorgram = [
-  check("program_code")
+exports.academicQualification = [
+  check("academicQualification")
     .notEmpty()
-    .withMessage("Course code is empty.")
-    .isAlpha("en-US", { ignore: " -" })
-    .withMessage("Only alpha is allowed.")
+    .withMessage("Academic Qualification is required.")
+    .isAlphanumeric("en-US", { ignore: "-" })
+    .withMessage("No space and special character is allowed")
     .trim()
-    .custom((value, { req, loc, path }) => {
-      return Program.findOne({
-        _id: { $ne: req.params.id },
-        program_code: value,
-      }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          academicQualification: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          academicQualification: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return AcademicQualification.findOne(query).then((data) => {
         if (data) {
-          return Promise.reject("Program code already exists.");
-        }
-      });
-    }),
-  check("program_name")
-    .notEmpty()
-    .withMessage("Course code is empty.")
-    .isAlpha("en-US", { ignore: " -" })
-    .withMessage("Only alpha is allowed.")
-    .trim()
-    .custom((value, { req, loc, path }) => {
-      return Program.findOne({
-        _id: { $ne: req.params.id },
-        program_name: value,
-      }).then((data) => {
-        if (data) {
-          return Promise.reject("Program name already exists.");
+          if (data.deleted)
+            return Promise.reject("Academic Qualification is in Recycle Bin.");
+          return Promise.reject("Academic Qualification already exists.");
         }
       });
     }),
@@ -89,7 +93,7 @@ exports.postYear = [
 ];
 
 exports.putYear = [
-  check("year")
+  check("yearLevel")
     .notEmpty()
     .withMessage("School Year is Empty")
     .isAlphanumeric("en-US", { ignore: "-" })
@@ -107,120 +111,161 @@ exports.putYear = [
     }),
 ];
 
-exports.postLevel = [
-  check("year_level")
+exports.level = [
+  check("yearLevel")
     .notEmpty()
-    .withMessage("Year level is empty.")
+    .withMessage("Year level is required.")
     .isAlphanumeric("en-US", { ignore: " -" })
-    .withMessage("Wrong Format")
+    .withMessage("No Special Character")
     .trim()
-    .custom((value) => {
-      return Level.findOne({
-        level: value,
-      }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          yearLevel: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          yearLevel: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Level.findOne(query).then((data) => {
         if (data) {
+          if (data.deleted)
+            return Promise.reject("Year Level is in recycle bin.");
           return Promise.reject("Year level already exists.");
         }
       });
     }),
-];
-
-exports.putLevel = [
-  check("year_level")
+  check("display")
     .notEmpty()
-    .withMessage("Year level is empty.")
+    .withMessage("Display is required.")
     .isAlphanumeric("en-US", { ignore: " -" })
-    .withMessage("Wrong Format")
+    .withMessage("No Special Characters")
     .trim()
-    .custom((value, { req, loc, path }) => {
-      return Level.findOne({
-        _id: { $ne: req.params.id },
-        level: value,
-      }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          display: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          display: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Level.findOne(query).then((data) => {
         if (data) {
-          return Promise.reject("Year level already exists.");
+          if (data.deleted) return Promise.reject("Display is in recycle bin.");
+          return Promise.reject("Display already exists.");
         }
       });
     }),
 ];
 
-exports.postRoom = [
-  check("room_name")
-    .notEmpty()
-    .withMessage("Room name is empty.")
-    .isAlphanumeric("en-US", { ignore: " -" })
-    .withMessage("Wrong Format")
-    .trim()
-    .custom((value) => {
-      return Room.findOne({ room_name: value }).then((data) => {
-        if (data) {
-          return Promise.reject("Room name already exists.");
-        }
-      });
-    }),
-];
-
-exports.putRoom = [
-  check("room_name")
+exports.room = [
+  check("roomName")
     .notEmpty()
     .withMessage("Room name is empty.")
     .isAlphanumeric("en-US", { ignore: " -" })
     .withMessage("Wrong Format")
     .trim()
     .custom((value, { req }) => {
-      return Room.findOne({
-        _id: { $ne: req.params.id },
-        room_name: value,
-      }).then((data) => {
+      console.log("current id: ", req.params.id);
+      let query;
+      if (req.method === "POST") {
+        query = {
+          roomName: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          roomName: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      console.log(query);
+      return Room.findOne(query).then((data) => {
+        console.log("data: ", data);
         if (data) {
+          if (data.deleted) return Promise.reject("Room is in Recycle Bin");
           return Promise.reject("Room name already exists.");
         }
       });
     }),
 ];
 
-exports.postCourse = [
-  check("course_code")
+exports.course = [
+  check("courseCode")
     .notEmpty()
-    .withMessage("This field is required")
+    .withMessage("Course code is required.")
     .isAlphanumeric("en-US", { ignore: " -" })
-    .withMessage("Wrong format")
+    .withMessage("No Special Characters Allowed")
     .trim()
-    .custom((value) => {
-      return Course.findOne({ course_code: value }).then((data) => {
-        console.log(data);
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          courseCode: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          courseCode: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Course.findOne(query).then((data) => {
         if (data) {
+          if (data.deleted) Promise.reject("Course code is in recycle bin.");
           return Promise.reject("Course code already exists.");
         }
       });
     }),
-  check("course_description")
+  check("courseDescription")
     .notEmpty()
     .withMessage("This field is required")
-    .isAlphanumeric("en-US", { ignore: " -/" })
+    .isAlphanumeric("en-US", { ignore: " -/," })
+    .withMessage("No special characters allowed.")
     .trim(),
   check("lecture")
     .notEmpty()
     .withMessage("This field is required")
     .isNumeric()
-    .withMessage("Only numbers are allowed"),
+    .withMessage("Only numbers are allowed")
+    .trim(),
   check("lab")
     .notEmpty()
     .withMessage("This field is required")
     .isNumeric()
-    .withMessage("Only numbers are allowed"),
+    .withMessage("Only numbers are allowed")
+    .trim(),
   check("units")
     .notEmpty()
     .withMessage("This field is required")
     .isNumeric()
+    .withMessage("Only numbers are allowed")
+    .trim(),
+  check("experience")
+    .notEmpty()
+    .withMessage("This field is required")
+    .isNumeric()
     .withMessage("Only numbers are allowed"),
+  check("academicQualification")
+    .notEmpty()
+    .withMessage("This field is required"),
+  check("degree").notEmpty().withMessage("This field is required"),
 ];
 
 exports.putCourse = [
   check("course_code")
     .notEmpty()
     .withMessage("This field is required")
-    .isAlphanumeric("en-US", { ignore: " -" })
+    .isAlphanumeric("en-US", { ignore: " -," })
     .withMessage("Wrong format")
     .trim()
     .custom((value, { req }) => {
@@ -236,7 +281,7 @@ exports.putCourse = [
   check("course_description")
     .notEmpty()
     .withMessage("This field is required")
-    .isAlphanumeric("en-US", { ignore: " -/" })
+    .isAlphanumeric("en-US", { ignore: " -/," })
     .trim(),
   check("lecture")
     .notEmpty()
@@ -255,21 +300,33 @@ exports.putCourse = [
     .withMessage("Only numbers are allowed"),
 ];
 
-exports.postFaculty = [
-  check("faculty_code")
+exports.faculty = [
+  check("facultyCode")
     .notEmpty()
     .withMessage("This field is required.")
-    .isAlphanumeric("en-US", { ignore: " -" })
+    .isAlphanumeric("en-US", { ignore: "-" })
+    .withMessage('Only "-" special character is allowed.')
     .trim()
-    .custom((value) => {
-      return Faculty.findOne({ "userInformation.faculty_code": value }).then(
-        (data) => {
-          console.log(data);
-          if (data) {
-            return Promise.reject("Faculty code already exists.");
-          }
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          "userInformation.facultyCode": value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          "userInformation.facultyCode": value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Faculty.findOne(query).then((data) => {
+        if (data) {
+          if (data.deleted)
+            return Promise.reject("Faculty Code is in recycle bin");
+          return Promise.reject("Faculty code already exists.");
         }
-      );
+      });
     }),
   check("email")
     .notEmpty()
@@ -277,36 +334,40 @@ exports.postFaculty = [
     .isEmail()
     .withMessage("Email is not valid.")
     .normalizeEmail()
-    .custom((value) => {
-      return Faculty.findOne({ email: value }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          email: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          email: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Faculty.findOne(query).then((data) => {
         if (data) {
           return Promise.reject("Email is already exists.");
         }
       });
     }),
-  check("faculty_type")
-    .notEmpty()
-    .withMessage("This field is required.")
-    .isAlpha("en-US", { ignore: " -" })
-    .trim(),
-  check("first_name")
+  check("facultyType").notEmpty().withMessage("This field is required.").trim(),
+  check("firstName")
     .notEmpty()
     .withMessage("This field is required.")
     .isAlpha("en-US", { ignore: " -" })
     .withMessage("Numbers and Special characters are not allowed")
     .trim(),
-  check("middle_name")
+  check("lastName")
     .notEmpty()
     .withMessage("This field is required.")
     .isAlpha("en-US", { ignore: " -" })
     .withMessage("Numbers and Special characters are not allowed")
     .trim(),
-  check("last_name")
-    .notEmpty()
-    .withMessage("This field is required.")
-    .isAlpha("en-US", { ignore: " -" })
-    .withMessage("Numbers and Special characters are not allowed")
-    .trim(),
+  check("schedulePreference").notEmpty().withMessage("This field is required."),
+  check("academicQualifications").notEmpty(),
 ];
 
 exports.postYearLevel = [
@@ -335,4 +396,57 @@ exports.postCurriculumCourse = [
 exports.postCurriculumProgram = [
   check("semester").notEmpty().withMessage("Please select semester"),
   check("program").notEmpty().withMessage("Please select something"),
+];
+
+exports.facultyType = [
+  check("facultyType")
+    .notEmpty()
+    .withMessage("This field is required.")
+    .isAlpha("en-US", { ignore: " -/," })
+    .withMessage("Only alphabet is allowed")
+    .custom((value, { req, loc, path }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          facultyType: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          facultyType: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return FacultyType.findOne(query).then((data) => {
+        if (data) {
+          if (data.deleted)
+            return Promise.reject("Faculty Type is in Recycle Bin");
+          return Promise.reject("Faculty Type already exists.");
+        }
+      });
+    })
+    .trim()
+    .escape(),
+  check("unitsCap")
+    .notEmpty()
+    .withMessage("This field is required.")
+    .isNumeric()
+    .withMessage("Only number is allowed.")
+    .custom((value) => {
+      if (value % 1 !== 0) {
+        return Promise.reject("Only whole number is allowed.");
+      }
+      return Promise.resolve();
+    }),
+  check("hoursCap")
+    .notEmpty()
+    .withMessage("This field is required")
+    .isNumeric()
+    .withMessage("Only number is allowed")
+    .custom((value) => {
+      if (value % 1 !== 0) {
+        return Promise.reject("Only whole number is allowed.");
+      }
+      return Promise.resolve();
+    }),
 ];

@@ -3,157 +3,183 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>Dashboard</strong>
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Set Active Semester
+        </button>
       </div>
       <div class="card-body">
-       <div class="container-fluid">
-        <div class="row">
-         <div class="col-6">
-          <select class="form-select" id="school-year">
-           <option value="" disabled selected>--Select School Year--</option>
-          </select>
-         </div>
-         <div class="col-6">
-          <select class="form-select" id="semester" disabled>
-           <option value="" disabled selected>--Select Semester--</option>
-          </select>
-         </div>
-        </div>
-        <div class="d-none" id="content">
-          <div class="row mt-3 mb-3">
-            <div class="col-3">
-             <div class="counter-box colored">
-              <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter" id="program-offered-count">0</span>
-              <p>Progam Offered This Semester</p>
-             </div>
-            </div>
-            <div class="col-3">
-             <div class="counter-box colored">
-              <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter" id="active-faculty-count">0</span>
-              <p>Active Faculty This Semester</p>
-             </div>
-            </div>
-            <div class="col-3">
-             <div class="counter-box colored">
-              <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter" id="unassigned-course-count">0</span>
-              <p>Unassigned Course Schedule</p>
-             </div>
-            </div>
-            <div class="col-3">
-             <div class="counter-box colored">
-              <i class="fa fa-thumbs-o-up"></i>
-              <span class="counter" id="unloaded-course-count">0</span>
-              <p>Unassigned Faculty Load</p>
-             </div>
+        <div class="container-fluid">
+          <div class="row mb-3">
+            <div class="col-12">
             </div>
           </div>
-          <hr>
-          <div class="row">
-            <div class="col-12">
-              <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Room Schedules</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Faculty Schedules</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Sections Schedule</button>
-                </li>
-              </ul>
+          <div class="d-none" id="content">
+            <div class="row mt-3 mb-3">
+              <div class="col-3">
+                <div class="counter-box colored">
+                  <i class="fa fa-thumbs-o-up"></i>
+                  <span class="counter" id="program-offered-count">0</span>
+                  <p>Progam Offered This Semester</p>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="counter-box colored">
+                  <i class="fa fa-thumbs-o-up"></i>
+                  <span class="counter" id="active-faculty-count">0</span>
+                  <p>Active Faculty This Semester</p>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="counter-box colored">
+                  <i class="fa fa-thumbs-o-up"></i>
+                  <span class="counter" id="unassigned-course-count">0</span>
+                  <p>Unassigned Course Schedule</p>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="counter-box colored">
+                  <i class="fa fa-thumbs-o-up"></i>
+                  <span class="counter" id="unloaded-course-count">0</span>
+                  <p>Unassigned Faculty Load</p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-12">
-              <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                  <div class="container">
-                    <div class="row mt-3">
-                      <div class="col-12">
-                        <select name="" class="form-select" id="room">
-                          <option value="" selected disabled>--Select Room--</option>
-                        </select>
+            <hr>
+            <div class="row">
+              <div class="col-12">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Room Schedules</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Faculty Schedules</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Sections Schedule</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div class="tab-content" id="myTabContent">
+                  <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                    <div class="container">
+                      <div class="row mt-3">
+                        <div class="col-12">
+                          <select name="" class="form-select" id="room">
+                            <option value="" selected disabled>--Select Room--</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                    <div class="row mt-3">
-                      <div class="col-6">
-                        <button id="download-all-room" class="btn btn-primary">Download All Room Schedule (PDF)</button>
-                        <button id="download-room" class="btn btn-primary" disabled>Download This Schedule (PDF)</button>
-                      </div>
-                      <div id="room-calendar-container">
+                      <div class="row mt-3">
+                        <div class="col-6">
+                          <button id="download-all-room" class="btn btn-primary">Download All Room Schedule (PDF)</button>
+                          <button id="download-room" class="btn btn-primary" disabled>Download This Schedule (PDF)</button>
+                        </div>
+                        <div id="room-calendar-container">
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
-                  <div class="container mt-3">
-                    <div class="row">
-                      <div class="col-12 mb-3">
-                        <select name="" class="form-control" id="faculty">
-                          <option value="" selected disabled>--Select Faculty--</option>
-                        </select>
+                  <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                    <div class="container mt-3">
+                      <div class="row">
+                        <div class="col-12 mb-3">
+                          <select name="" class="form-control" id="faculty">
+                            <option value="" selected disabled>--Select Faculty--</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <button class="btn btn-primary" id="faculty-download" disabled>Download this schedule (PDF)</button>
+                      <div class="row">
+                        <div class="col-12">
+                          <button class="btn btn-primary" id="faculty-download" disabled>Download this schedule (PDF)</button>
+                        </div>
                       </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <div id="faculty-calendar-container">
+                      <div class="row">
+                        <div class="col-12">
+                          <div id="faculty-calendar-container">
 
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+                    <div class="container">
+                      <div class="row mt-3">
+                        <div class="col-6">
+                          <select class="form-select" id="program">
+                            <option value="" selected disabled>--Select Program--</option>
+                          </select>
+                        </div>
+                        <div class="col-6">
+                          <select class="form-select" id="level" disabled>
+                            <option value="" selected disabled>--Select Year Level--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row mt-3">
+                        <div class="col-12">
+                          <button class="btn btn-primary" id="section-download" disabled>Download Schedule (PDF)</button>
+                        </div>
+                      </div>
+                      <div class="row mt-3">
+                        <div class="col-12">
+                          <div id="section-calendar-container">
+
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
-                  <div class="container">
-                    <div class="row mt-3">
-                      <div class="col-6">
-                        <select class="form-select" id="program">
-                          <option value="" selected disabled>--Select Program--</option>
-                        </select>
-                      </div>
-                      <div class="col-6">
-                        <select class="form-select" id="level" disabled>
-                          <option value="" selected disabled>--Select Year Level--</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="row mt-3">
-                      <div class="col-12">
-                        <button class="btn btn-primary" id="section-download" disabled>Download Schedule (PDF)</button>
-                      </div>
-                    </div>
-                    <div class="row mt-3">
-                      <div class="col-12">
-                        <div id="section-calendar-container">
-                          
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>    
+              </div>
             </div>
           </div>
         </div>
-       </div>
-      
+
+      </div>
     </div>
-  </div>
-
-  <input type="hidden" value="<%= csrf %>" id="csrf">
-  <%- include('../../includes/footer.ejs') %>
-  <script src="/js/dashboard.js"></script>
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="activeSemesterForm" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label for="year" class="col-form-label">School Year:</label>
+                <select class="form-select" id="year">
+                </select>
+                <div class="invalid-feedback">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="semester" class="col-form-label">Semester:</label>
+                <select class="form-select" id="semester" disabled>
+                </select>
+                <div class="invalid-feedback">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <input type="hidden" value="<%= csrf %>" id="csrf">
+    <%- include('../../includes/footer.ejs') %>
+    <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

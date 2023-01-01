@@ -2,15 +2,12 @@ const Level = require("../../models/level");
 const { validationResult } = require("express-validator");
 
 exports.get = (req, res, next) => {
-  Level.find({ deleted_at: null })
+  Level.find({ deleted: false })
     .then((level) => {
-      if (level.length == 0) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: level });
+      res.json({ ok: true, status: 200, data: level });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
@@ -28,51 +25,63 @@ exports.getOne = (req, res, next) => {
 };
 
 exports.post = (req, res, next) => {
+  console.log(req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res
+      .status(400)
+      .json({ ok: false, status: 400, errors: errors.mapped() });
   }
-  new Level({
-    level: req.body.year_level,
+  Level.findOne({
+    $or: [{ yearLevel: req.body.yearLevel }, { display: req.body.display }],
   })
-    .save()
     .then((result) => {
-      console.log(result);
-      if (!result) {
-        return res.json({ ok: false });
+      if (result) {
+        result.yearLevel = req.body.yearLevel;
+        dispaly = req.body.display;
+        return result.save();
       }
-      res.json({ ok: true, data: result });
+      return new Level({
+        yearLevel: req.body.yearLevel,
+        display: req.body.display,
+      }).save();
+    })
+    .then((result) => {
+      res.json({ ok: true, status: 201, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      console.log(error);
+      res.json({ status: 500, ok: false, data: error });
     });
 };
 
 exports.edit = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res
+      .status(400)
+      .json({ ok: false, status: 400, errors: errors.mapped() });
   }
-  Level.findOneAndUpdate({ _id: req.params.id }, { level: req.body.year_level })
+  Level.findOneAndUpdate(
+    { _id: req.params.id },
+    { yearLevel: req.body.yearLevel, display: req.body.display },
+    { new: true }
+  )
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.status(201).json({ ok: true, status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.status(500).json({ ok: false, status: 500, data: error });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Level.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Level.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      console.log(result);
-      res.json({ ok: true });
+      res.status(202).json({ status: 202, ok: true, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.status(500).json({ status: 500, ok: false, data: error });
     });
 };

@@ -3,32 +3,54 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const CourseSchema = new Schema({
-  course_code: {
+  courseCode: {
     type: String,
     required: true,
     unique: true,
   },
-  course_description: {
+  courseDescription: {
     type: String,
     required: true,
   },
   lecture: {
     type: Number,
-    required: true,
   },
   lab: {
     type: Number,
-    required: true,
   },
   units: {
     type: Number,
-    required: true,
   },
-  deleted_at: {
-    type: Date,
-    default: null,
+  deleted: {
+    type: Boolean,
+    default: false,
   },
-  qualifications: [{ type: mongoose.Types.ObjectId, ref: "Qualification" }],
+  examination: {
+    type: Boolean,
+    default: false,
+  },
+  qualification: {
+    academicQualification: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Qualification",
+      },
+    ],
+    licenseIndustry: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Tag",
+      },
+    ],
+    degree: {
+      type: Number,
+      default: 0,
+    },
+    experience: {
+      type: Number,
+      default: 0,
+    },
+  },
 });
 
 module.exports = mongoose.model("Course", CourseSchema);

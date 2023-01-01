@@ -3,7 +3,7 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE FACULTY/S</strong>
@@ -11,28 +11,35 @@
         <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
           Add Faculty
         </button>
+        <button type="button" class="btn btn-primary btn-sm float-end me-1" data-bs-toggle="modal" data-bs-target="#uploadModal">
+          Upload Spreadsheet
+        </button>
       </div>
       <div class="card-body">
-        <table id="facultyTable" class="table table-striped datatables" style="width:100%">
-          <thead>
-            <tr>
-              <th>Faculty Code</th>
-              <th>Name</th>
-              <th>Faculty Type</th>
-              <th>Email</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div class="table-responsive">
+          <table id="facultyTable" class="table table-striped datatables" style="width:100%">
+            <thead>
+              <tr>
+                <th width="5% ">Faculty Code</th>
+                <th width="15%">Name</th>
+                <th width="10%">Faculty Type</th>
+                <th width="15%">Email</th>
+                <th width="20%">Academic Qualifications</th>
+                <th width="10%">Course Taken</th>
+                <th width="20%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
 
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="addModalLabel">Adding new program</h5>
@@ -40,52 +47,273 @@
         </div>
         <div class="modal-body">
           <form id="addForm" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="first-name" class="col-form-label">First Name: </label>
-              <input type="text" class="form-control" id="first-name">
-              <div class="invalid-feedback">
+            <div class="container">
+              <div class="row">
+                <div class="col-8 mb-3">
+                  <label for="facultyCode" class="col-form-label">Faculty Code: </label>
+                  <input type="text" class="form-control" id="facultyCode">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-4 mb-3">
+                  <label for="facultyType" class="col-form-label">Faculty Type: </label>
+                  <select type="text" class="form-select" id="facultyType">
+                    <option value="" selected disabled>--Select Faculty Type--</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="firstName" class="col-form-label">First Name: </label>
+                  <input type="text" class="form-control" id="firstName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="middleName" class="col-form-label">Middle Name: </label>
+                  <input type="text" class="form-control" id="middleName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="lastName" class="col-form-label">Last Name: </label>
+                  <input type="text" class="form-control" id="lastName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="email" class="col-form-label">Email: </label>
+                  <input type="text" class="form-control" id="email">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="schedulePreference" class="col-form-label">Schedule Preference: </label>
+                  <select id="schedulePreference" class="form-control" multiple>
+                    <option value="m" selected>Monday</option>
+                    <option value="t" selected>Tuesday</option>
+                    <option value="w" selected>Wednesday</option>
+                    <option value="th" selected>Thursday</option>
+                    <option value="f" selected>Friday</option>
+                    <option value="s" selected>Saturday</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="container">
+                  <div class="card">
+                    <div class="card-header">
+                      Academic Qualification
+                    </div>
+                    <div class="card-body" id="qaCard">
+                      <div id="academicQualificationForm">
+                        <div class="row">
+                          <div class="col-12 mb-3">
+                            <label for="academicQualification" class="col-form-label">Academic Qualification: </label>
+                            <select id="academicQualification" class="form-select form-select-sm academic-qualification">
+                              <option value=""></option>
+                            </select>
+                            <div class="invalid-feedback">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <div class="col-md-6">
+                            <label for="experience" class="form-label">Years of Experience: </label>
+                            <input type="number" class="form-control form-control-sm experience " id="experience" value="0" disabled>
+                            <div class="invalid-feedback">
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label for="degree" class="form-label small-font-size ">Degree: </label>
+                            <select id="degree" class="form-select form-select-sm degree " disabled>
+                              <option value="1">Associate's Degree</option>
+                              <option value="2">Bachelor's Degree</option>
+                              <option value="3">Master's Degree</option>
+                              <option value="3">Doctoral</option>
+                            </select>
+                            <div class="invalid-feedback">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mb-3">
+                          <div class="col-12">
+                            <label for="licenseIndustry" class="form-label">Professional License and Industry Qualification: </label>
+                            <select class="form-control license-industry " id="licenseIndustry" multiple disabled></select>
+                            <div class="invalid-feedback">
+                            </div>
+                          </div>
+                        </div>
+                        <hr>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="disabled btn btn-secondary" id="removeAcademicQualification">Remove Academic Qualification</button>
+          <button type="button" class="btn btn-secondary" id="newAcademicQualification">Add Academic Qualification</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadModalLabel">Upload Spreadsheet</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="uploadForm">
             <div class="mb-3">
-              <label for="middle-name" class="col-form-label">Middle Name: </label>
-              <input type="text" class="form-control" id="middle-name">
-              <div class="invalid-feedback">
-              </div>
+              <label for="spreadsheet" class="col-form-label">Insert File:</label>
+              <input type="file" name="spreadsheet" class="form-control" id="spreadsheet" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"">
+              <div class=" invalid-feedback">
             </div>
-            <div class="mb-3">
-              <label for="last-name" class="col-form-label">Last Name: </label>
-              <input type="text" class="form-control" id="last-name">
-              <div class="invalid-feedback">
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="uploadButton" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing School Year</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="container">
+              <div class="row">
+                <div class="col-8 mb-3">
+                  <label for="facultyCode" class="col-form-label">Faculty Code: </label>
+                  <input type="text" class="form-control" id="facultyCode">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-4 mb-3">
+                  <label for="facultyType" class="col-form-label">Faculty Type: </label>
+                  <select type="text" class="form-select" id="facultyType">
+                    <option value="" selected disabled>--Select Faculty Type--</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="faculty-code" class="col-form-label">Faculty Code: </label>
-              <input type="text" class="form-control" id="faculty-code">
-              <div class="invalid-feedback">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="firstName" class="col-form-label">First Name: </label>
+                  <input type="text" class="form-control" id="firstName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="middleName" class="col-form-label">Middle Name: </label>
+                  <input type="text" class="form-control" id="middleName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="lastName" class="col-form-label">Last Name: </label>
+                  <input type="text" class="form-control" id="lastName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="email" class="col-form-label">Email: </label>
-              <input type="text" class="form-control" id="email">
-              <div class="invalid-feedback">
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="email" class="col-form-label">Email: </label>
+                  <input type="text" class="form-control" id="email">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="faculty-type" class="col-form-label">Faculty Type: </label>
-              <select type="text" class="form-control" id="faculty-type">
-                <option value="" selected disabled>--Select Faculty Type--</option>
-                <option value="regular">Regular</option>
-                <option value="full-time">Full Time</option>
-                <option value="part-time">Part Time</option>
-              </select>
-              <div class="invalid-feedback">
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="schedulePreference" class="col-form-label">Schedule Preference: </label>
+                  <select id="schedulePreference" class="form-control" multiple>
+                    <option value="m" selected>Monday</option>
+                    <option value="t" selected>Tuesday</option>
+                    <option value="w" selected>Wednesday</option>
+                    <option value="th" selected>Thursday</option>
+                    <option value="f" selected>Friday</option>
+                    <option value="s" selected>Saturday</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="container">
+                  <div class="card">
+                    <div class="card-header">
+                      Academic Qualification
+                    </div>
+                    <div class="card-body" id="qaCard">
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+          <button type="button" class="disabled btn btn-secondary" id="removeAcademicQualification">Remove Academic Qualification</button>
+          <button type="button" class="btn btn-secondary" id="newAcademicQualification">Add Academic Qualification</button>
+          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCourseModalLabel">Adding New Course</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addCourseForm" class="needs-validation" novalidate>
+            <div class="container">
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="faculty-code" class="col-form-label">Courses: </label>
+                  <select name="" id="course" class="form-control" multiple>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="addCourse">Submit</button>
         </div>
       </div>
     </div>

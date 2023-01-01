@@ -7,43 +7,10 @@ const { validationResult } = require("express-validator");
 const curriculum = require("../../models/curriculum");
 const { mongoose } = require("mongoose");
 
-exports.getCurriculums = (req, res, next) => {
-  const dropdown = {};
-  Program.find()
-    .then((programs) => {
-      dropdown.programs = programs;
-      return Year.find();
-    })
-    .then((years) => {
-      dropdown.years = years;
-      return Level.find();
-    })
-    .then((levels) => {
-      dropdown.levels = levels;
-      return Curriculum.find()
-        .populate({
-          path: "school_year",
-        })
-        .populate({
-          path: "semesters.programs.program",
-        })
-        .populate({
-          path: "semesters.programs.year.year_level",
-        })
-        .populate("semesters.programs.year.courses");
-    })
-    .then((curriculums) => {
-      res.render("admin/curriculum", {
-        title: "ALCS | Curriculum",
-        curriculums: curriculums,
-        dropdown: dropdown,
-        year_levelParam: req.query.year_level,
-        programParam: req.query.program,
-      });
-    })
-    .catch((error) => {
-      throw new Error(error);
-    });
+exports.getCurriculum = (req, res, next) => {
+  res.render("admin/curriculum/index", {
+    title: "ALCS | Curriculum",
+  });
 };
 
 exports.addCurriculum = (req, res, next) => {
@@ -222,7 +189,6 @@ exports.addCurriculum = (req, res, next) => {
 exports.getBySchoolYear = (req, res, next) => {
   res.render("admin/curriculum/index", {
     title: "ALCS | Curriculum",
-    school_year: req.params.id,
   });
 };
 

@@ -4,40 +4,75 @@ const Schema = mongoose.Schema;
 
 const UserSChema = new Schema({
   email: {
-    type: "string",
+    type: String,
     required: true,
     unique: true,
   },
   password: {
-    type: "string",
+    type: String,
     required: true,
   },
   role: {
-    type: "string",
+    type: String,
     required: true,
-    enum: ["user", "admin"],
+    enum: ["user", "admin", "superadmin"],
     default: "user",
   },
   userInformation: {
-    faculty_code: {
-      type: "string",
+    facultyCode: {
+      type: String,
     },
-    first_name: {
-      type: "string",
+    firstName: {
+      type: String,
     },
-    last_name: {
-      type: "string",
+    lastName: {
+      type: String,
     },
-    middle_name: {
-      type: "string",
+    middleName: {
+      type: String,
     },
-    faculty_type: {
-      type: "string",
+    facultyType: {
+      type: mongoose.Types.ObjectId,
+      ref: "FacultyType",
     },
+    schedulePreference: [
+      {
+        type: String,
+        default: ["m", "t", "w", "th", "f", "s"],
+      },
+    ],
+    academicQualifications: [
+      {
+        academicQualification: {
+          type: mongoose.Types.ObjectId,
+          ref: "Qualification",
+        },
+        degree: {
+          type: Number,
+          default: 0,
+        },
+        licenseIndustry: [
+          {
+            type: mongoose.Types.ObjectId,
+            ref: "Tag",
+          },
+        ],
+        experience: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+    courseTaken: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
   },
-  deleted_at: {
-    type: Date,
-    default: null,
+  deleted: {
+    type: Boolean,
+    default: false,
   },
 });
 

@@ -11,7 +11,6 @@ exports.getSchedule = (req, res, next) => {
       res.render("admin/schedule/index", {
         title: "ALCS | Schedule",
         curriculums: curriculums,
-        semester: req.params.semester
       });
     })
     .catch((error) => {
@@ -933,7 +932,6 @@ exports.getFacultySchedule = (req, res, next) => {
       res.render("admin/schedule/faculty", {
         title: "ALCS | Assign Faculty",
         school_years: school_years,
-        sem: req.params.sem,
       });
     })
     .catch((error) => {

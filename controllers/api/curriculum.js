@@ -3,6 +3,7 @@ const { validationResult } = require("express-validator");
 const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
 const Level = require("../../models/level");
+const year = require("../../models/year");
 
 exports.getSchoolYears = (req, res, next) => {
   Curriculum.find({}, "_id school_year")
@@ -14,6 +15,122 @@ exports.getSchoolYears = (req, res, next) => {
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
+      res.json({ ok: false });
+    });
+};
+
+exports.putActiveSemester = (req, res, next) => {
+  Curriculum.updateMany(
+    {},
+    {
+      "semesters.$[].isActive": false,
+    }
+  )
+    .then((result) => {
+      return Curriculum.updateOne(
+        {
+          "semesters._id": req.params.semester,
+        },
+        {
+          "semesters.$[semester].isActive": true,
+        },
+        { arrayFilters: [{ "semester._id": req.params.semester }] }
+      );
+    })
+    .then((result) => {
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false, data: error });
+    });
+};
+
+exports.copySemester = (req, res, next) => {
+  console.log("test", req.params);
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.sem),
+      },
+    },
+    { $unwind: "$semesters" },
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.sem),
+      },
+    },
+    // {
+    //   $project: {
+    //     _id: "$semesters._id",
+    //     school_year: "$school_year",
+    //     sem: "$semesters.sem",
+    //   },
+    // },
+    {
+      $lookup: {
+        from: "years",
+        localField: "school_year",
+        foreignField: "_id",
+        as: "school_year",
+      },
+    },
+  ])
+    .then((result) => {
+      const programs = [];
+      result[0].semesters.programs.forEach((element) => {
+        programs.push({
+          program: element.program,
+          year: element.year.map((element) => {
+            return {
+              year_level: element.year_level,
+              courses: element.courses,
+            };
+          }),
+        });
+      });
+      return Curriculum.updateOne(
+        {
+          "semesters._id": mongoose.Types.ObjectId(req.params.active),
+        },
+        {
+          'semesters.$[semester].programs': programs
+        },
+        { arrayFilters: [{ "semester._id": req.params.active }] }
+      );
+    }).then(result => {
+      console.log(result)
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      res.json({ ok: false, errors: error });
+    });
+};
+
+exports.deleteOneProgram = (req, res, next) => {
+  console.log("hello");
+  Curriculum.updateOne(
+    {
+      "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
+    },
+    {
+      $pull: {
+        "semesters.$[].programs": { _id: req.params.program },
+      },
+    },
+    { arrayFilters: [{ "program._id": req.params.program }] }
+  )
+    .then((result) => {
+      console.log(result);
+      if (!result) {
+        return res.json({ ok: false });
+      }
+      return res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
       res.json({ ok: false });
     });
 };
@@ -36,6 +153,45 @@ exports.getSemesters = (req, res, next) => {
     },
   ])
     .then((response) => {
+      res.json({ ok: true, data: response });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false, errors: error });
+    });
+};
+
+exports.getActiveSemester = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.isActive": true,
+      },
+    },
+    { $unwind: "$semesters" },
+    {
+      $match: {
+        "semesters.isActive": true,
+      },
+    },
+    // {
+    //   $project: {
+    //     _id: "$semesters._id",
+    //     school_year: "$school_year",
+    //     sem: "$semesters.sem",
+    //   },
+    // },
+    {
+      $lookup: {
+        from: "years",
+        localField: "school_year",
+        foreignField: "_id",
+        as: "school_year",
+      },
+    },
+  ])
+    .then((response) => {
+      console.log(response);
       res.json({ ok: true, data: response });
     })
     .catch((error) => {
@@ -158,44 +314,28 @@ exports.postPrograms = (req, res, next) => {
   }
   Level.find({ deleted_at: null })
     .then((result) => {
-      console.log(result);
       fetchedLevel = result.map((element) => {
         return { year_level: element._id };
       });
-      return Curriculum.findOne({
-        school_year: req.params.school_year,
-      });
-    })
-    .then((data) => {
-      fetchedData = data;
-      if (!data) {
-        return new Curriculum({
-          school_year: req.params.school_year,
-          semesters: [
-            {
-              sem: req.body.semester,
-              programs: req.body.program.map((element) => {
+      console.log(fetchedLevel);
+      return Curriculum.updateOne(
+        {
+          "semesters._id": req.params.semester,
+        },
+        {
+          $push: {
+            "semesters.$[semester].programs": req.body.program.map(
+              (element) => {
                 return {
                   program: element,
                   year: fetchedLevel,
                 };
-              }),
-            },
-          ],
-        }).save();
-      }
-      if (!data.semesters.find((element) => element.sem == req.body.semester)) {
-        data.semesters.push({
-          sem: req.body.semester,
-          programs: req.body.program.map((element) => {
-            return {
-              program: element,
-              level: fetchedLevel,
-            };
-          }),
-        });
-        return data.save();
-      }
+              }
+            ),
+          },
+        },
+        { arrayFilters: [{ "semester._id": req.params.semester }] }
+      );
     })
     .then((result) => {
       if (!result) {
@@ -485,6 +625,7 @@ exports.getSectionSchedules = (req, res, next) => {
         section: "$semesters.programs.year.sections._id",
         section_name: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
+        level: "$semesters.programs.year.year_level",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
@@ -519,11 +660,21 @@ exports.getSectionSchedules = (req, res, next) => {
         as: "program",
       },
     },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "level",
+        foreignField: "_id",
+        as: "level",
+      },
+    },
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
+      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -571,8 +722,8 @@ exports.getCourse = (req, res, next) => {
 };
 
 exports.postCourse = (req, res, next) => {
-  const schedules = [];
   let fetchedCourses;
+  const schedules = [];
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
@@ -586,11 +737,6 @@ exports.postCourse = (req, res, next) => {
             course: element._id,
             hour: element.lecture,
             type: "lecture",
-            day: null,
-            start_time: null,
-            end_time: null,
-            room: null,
-            faculty: null,
           });
         }
         if (element.lab != 0) {
@@ -598,11 +744,6 @@ exports.postCourse = (req, res, next) => {
             course: element._id,
             hour: element.lab,
             type: "lab",
-            day: null,
-            start_time: null,
-            end_time: null,
-            room: null,
-            faculty: null,
           });
         }
       });
@@ -627,7 +768,6 @@ exports.postCourse = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
       res.json({ ok: true, data: result, courses: fetchedCourses });
     })
     .catch((error) => {

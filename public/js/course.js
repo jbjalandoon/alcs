@@ -1,4 +1,4 @@
-const courseTable = $("#courseTable").DataTable({
+const table = $("#courseTable").DataTable({
   oLanguage: {
     sEmptyTable: `<div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -7,256 +7,317 @@ const courseTable = $("#courseTable").DataTable({
 });
 const csrf = $("#csrf").val();
 
-let editModal = new bootstrap.Modal($("#editModal"));
-let addModal = new bootstrap.Modal($("#addModal"));
-let uploadModal = new bootstrap.Modal($("#uploadModal"));
-let modalElement = $(editModal._element);
+const degrees = [
+  "Associate's Degree",
+  "Bachelors's Degree",
+  "Masters's Degree",
+  "Doctoral",
+];
 
-let button, id, courseCode, courseDescription, units, lab, lecture;
+const tableData = (operation, data) => {
+  operation([
+    data.courseCode.toUpperCase(),
+    data.courseDescription.toUpperCase(),
+    data.lecture ? data.lecture : "N/A",
+    data.lab ? data.lab : "N/A",
+    data.units,
+    degrees[data.qualification.degree - 1].toUpperCase(),
+    data.qualification.experience,
+    data.qualification.academicQualification.length !== 0
+      ? data.qualification.academicQualification
+          .map((element) => {
+            return ("aq-" + element.academicQualification).toUpperCase();
+          })
+          .join(", ")
+      : "N/A",
+    data.qualification.licenseIndustry.length === 0
+      ? "N/A"
+      : data.qualification.licenseIndustry
+          .map((element) => {
+            return element.tag.toUpperCase();
+          })
+          .join(", "),
+    actionButton(data._id),
+  ]).draw();
+};
 
-fetch("/api/course", { method: "GET" })
+fetch("/api/courses", { method: "GET" })
   .then((response) => {
     return response.json();
   })
   .then((course) => {
-    if (!course.ok) {
-      Toast.fire({ icon: "warning", title: "Something went wrong!" });
-      return;
-    }
     course.data.forEach((element) => {
-      courseTable.row
-        .add([
-          element.course_code,
-          element.course_description,
-          element.lecture ? element.lecture : "N/A",
-          element.lab ? element.lab : "N/A",
-          element.units,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
-          `,
-        ])
-        .draw();
+      tableData(table.row.add, element);
     });
-    Toast.fire({ icon: "success", title: "Data loading is success" });
+  })
+  .catch((error) => {
+    console.log(error);
   });
 
-$("#add-button").on("click", () => {
-  courseCode = $("#addForm #course-code");
-  courseDescription = $("#addForm #course-description");
-  units = $("#addForm #units");
-  lab = $("#addForm #lab");
-  lecture = $("#addForm #lecture");
-  courseCode.removeClass("is-invalid");
-  courseDescription.removeClass("is-invalid");
-  units.removeClass("is-invalid");
-  lab.removeClass("is-invalid");
-  lecture.removeClass("is-invalid");
-  fetch("/api/course", {
-    method: "POST",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `course_code=${courseCode.val()}&course_description=${courseDescription.val()}&units=${units.val()}&lab=${lab.val()}&lecture=${lecture.val()}`,
-  })
+let editModal = new bootstrap.Modal($("#editModal"));
+let addModal = new bootstrap.Modal($("#addModal"));
+let uploadModal = new bootstrap.Modal($("#uploadModal"));
+
+$(addModal._element).on("show.bs.modal", (event) => {
+  $(event.currentTarget).find("#academicQualification").off("change");
+  const courseCode = $(event.currentTarget).find("#courseCode");
+  const courseDescription = $(event.currentTarget).find("#courseDescription");
+  const lecture = $(event.currentTarget).find("#lecture");
+  const lab = $(event.currentTarget).find("#lab");
+  const units = $(event.currentTarget).find("#units");
+  const academicQualification = $(event.currentTarget)
+    .find("#academicQualification")
+    .select2({
+      multiple: true,
+      width: "100%",
+    });
+  const experience = $(event.currentTarget).find("#experience");
+  const degree = $(event.currentTarget).find("#degree");
+  const licenseIndustry = $(event.currentTarget)
+    .find("#licenseIndustry")
+    .select2({
+      multiple: true,
+      width: "100%",
+    });
+  const examination = $(event.currentTarget).find("#examination");
+  const button = $(event.currentTarget).find("#addButton");
+  button.off("click");
+  courseCode.val("");
+  courseDescription.val("");
+  lecture.val("");
+  lab.val("");
+  units.val("");
+  academicQualification.empty();
+  experience.val("");
+  degree.val("");
+  licenseIndustry.empty();
+  examination.prop("checked", false);
+  fetch("/api/academic-qualifications")
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        courseCode
-          .addClass(result.errors.course_code ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.course_code.msg);
-        courseDescription
-          .addClass(result.errors.course_description ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.course_description.msg);
-        units
-          .addClass(result.errors.units ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.units.msg);
-        lab
-          .addClass(result.errors.lab ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.lab.msg);
-        lecture
-          .addClass(result.errors.lecture ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.lecture.msg);
-        Toast.fire({ icon: "warning", title: "Something went wrong" });
-        return;
-      }
-      addModal.hide();
-      courseCode.removeClass("is-invalid").val("");
-      courseDescription.removeClass("is-invalid").val("");
-      units.removeClass("is-invalid").val("");
-      lab.removeClass("is-invalid").val("");
-      lecture.removeClass("is-invalid").val("");
-      courseTable.row
-        .add([
-          result.data.course_code,
-          result.data.course_description,
-          result.data.lecture ? result.data.lecture : "N/A",
-          result.data.lab ? result.data.lab : "N/A",
-          result.data.units,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${result.data._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
-          `,
-        ])
-        .draw();
-      Toast.fire({ icon: "success", title: "sucessfully added" });
-    })
-    .catch((error) => {
-      console.log(error);
-      Toast.fire({ icon: "warning", title: "Something went wrong" });
-    });
-});
-
-modalElement.on("show.bs.modal", (event) => {
-  button = event.relatedTarget;
-  id = button.getAttribute("data-bs-id");
-  courseCode = modalElement.find(".modal-body #course-code");
-  courseDescription = modalElement.find(".modal-body  #course-description");
-  units = modalElement.find(".modal-body #units");
-  lab = modalElement.find(".modal-body #lab");
-  lecture = modalElement.find(".modal-body #lecture");
-
-  courseCode.removeClass("is-invalid").val("");
-  courseDescription.removeClass("is-invalid").val("");
-  units.removeClass("is-invalid").val("");
-  lab.removeClass("is-invalid").val("");
-  lecture.removeClass("is-invalid").val("");
-
-  fetch("/api/course/" + id, {
-    method: "GET",
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((program) => {
-      if (!program.ok) {
-        Toast.fire({ icon: "warning", title: "Failed to Fetch Data" });
-      }
-      courseCode.val(program.data.course_code);
-      courseDescription.val(program.data.course_description);
-      units.val(program.data.units);
-      lab.val(program.data.lab);
-      lecture.val(program.data.lecture);
-    });
-});
-
-$("#uploadButton").on("click", () => {
-  const body = new FormData(document.getElementById("uploadForm"));
-  console.log(body.get("spreadsheet"));
-  fetch("/api/course/upload", {
-    method: "POST",
-    headers: { "csrf-token": csrf },
-    body: body,
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        return;
-      }
-      $("#uploadForm").val("");
-      uploadModal.hide();
-      result.addedData.forEach((element) => {
-        courseTable.row
-          .add([
-            element.course_code,
-            element.course_description,
-            element.lecture ? element.lecture : "N/A",
-            element.lab ? element.lab : "N/A",
-            element.units,
-            `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
-          `,
-          ])
-          .draw();
+      // academicQualification.off("change");
+      result.data.forEach((e) => {
+        academicQualification
+          .append(new Option(e.academicQualification.toUpperCase(), e._id))
+          .trigger("change");
       });
-      Toast.fire({ icon: "success", title: "Successfully Added" });
+      academicQualification.on("change", () => {
+        fetch(
+          "/api/academic-qualifications/multiple/" + academicQualification.val()
+        )
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            licenseIndustry.empty();
+            if (result.data.length !== 0) {
+              result.data.forEach((el) => {
+                el.licenseIndustry.map((e) => {
+                  return licenseIndustry.append(
+                    new Option(
+                      el.academicQualification.toUpperCase() +
+                        "-" +
+                        e.tag.toUpperCase(),
+                      e._id
+                    )
+                  );
+                });
+              });
+            }
+          });
+      });
+      button.on("click", () => {
+        fetch("/api/courses", {
+          method: "POST",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseCode: courseCode.val().toLowerCase(),
+            courseDescription: courseDescription.val().toLowerCase(),
+            units: units.val(),
+            lab: lab.val(),
+            lecture: lecture.val(),
+            academicQualification: academicQualification.val(),
+            experience: experience.val(),
+            degree: degree.val(),
+            examination: examination.is(":checked"),
+            licenseIndustry: licenseIndustry.val(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            console.log(result);
+            if (result.errors) {
+              displayValidationError(result.errors, event.currentTarget);
+              return displayToast(result);
+            }
+            addModal.hide();
+            tableData(table.row.add, result.data);
+            return displayToast(result);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
     })
     .catch((error) => {
-      Toast.fire({ icon: "error", title: "Something went wrong" });
       console.log(error);
     });
 });
 
-$("#edit-button").on("click", () => {
-  courseCode.removeClass("is-invalid");
-  courseDescription.removeClass("is-invalid");
-  units.removeClass("is-invalid");
-  lab.removeClass("is-invalid");
-  lecture.removeClass("is-invalid");
-
-  fetch("/api/course/" + id, {
-    method: "PUT",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `course_code=${courseCode.val()}&course_description=${courseDescription.val()}&units=${units.val()}&lab=${lab.val()}&lecture=${lecture.val()}`,
-  })
+$(editModal._element).on("show.bs.modal", (event) => {
+  $(event.currentTarget).find("#academicQualification").off("change");
+  const id = $(event.relatedTarget).attr("data-bs-id");
+  const courseCode = $(event.currentTarget).find("#courseCode");
+  const courseDescription = $(event.currentTarget).find("#courseDescription");
+  const lecture = $(event.currentTarget).find("#lecture");
+  const lab = $(event.currentTarget).find("#lab");
+  const units = $(event.currentTarget).find("#units");
+  const academicQualification = $(event.currentTarget)
+    .find("#academicQualification")
+    .select2({
+      multiple: true,
+      width: "100%",
+    });
+  academicQualification.empty();
+  const experience = $(event.currentTarget).find("#experience");
+  const degree = $(event.currentTarget).find("#degree");
+  const licenseIndustry = $(event.currentTarget)
+    .find("#licenseIndustry")
+    .select2({
+      multiple: true,
+      width: "100%",
+    });
+  licenseIndustry.empty();
+  const examination = $(event.currentTarget).find("#examination");
+  const button = $(event.currentTarget).find("#editButton");
+  button.off("click");
+  fetch("/api/academic-qualifications")
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
-      if (!result.ok) {
-        courseCode
-          .addClass(result.errors.course_code ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.course_code ? result.errors.course_code.msg : "");
-        courseDescription
-          .addClass(result.errors.course_description ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(
-            result.errors.course_description
-              ? result.errors.course_description.msg
-              : ""
-          );
-        units
-          .addClass(result.errors.units ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.units ? result.errors.units.msg : "");
-        lab
-          .addClass(result.errors.lab ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.lab ? result.errors.lab.msg : "");
-        lecture
-          .addClass(result.errors.lecture ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.lecture ? result.errors.lecture.msg : "");
-        Toast.fire({ icon: "warning", title: "Something went Wrong" });
-        return;
-      }
-      editModal.hide();
-      Toast.fire({
-        icon: "success",
-        title: "Successfuly Edited",
+      result.data.forEach((e) => {
+        academicQualification.append(
+          new Option(e.academicQualification.toUpperCase(), e._id)
+        );
       });
-      button.closest("tr").innerHTML = `
-        <td>${courseCode.val()}</td>
-        <td>${courseDescription.val()}</td>
-        <td>${lecture.val()}</td>
-        <td>${lab.val()}</td>
-        <td>${units.val()}</td>
-        <td>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${id}">Edit</button>
-          <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${id}', this)">Delete</button>
-        </td>
-      `;
+      return fetch("/api/courses/" + id);
     })
-    .catch((error) => {
-      console.log(error);
-      Toast.fire({ icon: "warning", title: "Something went wrong" });
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      let licenseIndustryValue = result.data.qualification.licenseIndustry.map(
+        (e) => e._id
+      );
+      academicQualification.on("change", () => {
+        fetch(
+          "/api/academic-qualifications/multiple/" + academicQualification.val()
+        )
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            licenseIndustry.empty();
+            result.data.forEach((el) => {
+              el.licenseIndustry.forEach((e) => {
+                console.log(e._id);
+                licenseIndustry.append(new Option(e.tag.toUpperCase(), e._id));
+              });
+            });
+            licenseIndustry.val(licenseIndustryValue).trigger("change");
+          });
+      });
+      console.log(result.data.courseCode);
+      courseCode.val(result.data.courseCode);
+      courseDescription.val(result.data.courseDescription);
+      lecture.val(result.data.lecture);
+      lab.val(result.data.lab);
+      units.val(result.data.units);
+      academicQualification
+        .val(result.data.qualification.academicQualification.map((e) => e._id))
+        .trigger("change");
+      degree.val(result.data.qualification.degree);
+      experience.val(result.data.qualification.experience);
+      examination.prop("checked", result.data.examination);
+      button.on("click", () => {
+        fetch("/api/courses/" + id, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseCode: courseCode.val().toLowerCase(),
+            courseDescription: courseDescription.val().toLowerCase(),
+            units: units.val(),
+            lab: lab.val(),
+            lecture: lecture.val(),
+            academicQualification: academicQualification.val(),
+            experience: experience.val(),
+            degree: degree.val(),
+            examination: examination.is(":checked"),
+            licenseIndustry: licenseIndustry.val(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            console.log(result);
+            if (result.errors) {
+              displayValidationError(result.errors, event.currentTarget);
+              return displayToast(result);
+            }
+            editModal.hide();
+            tableData(
+              table.row($(event.relatedTarget).closest("tr")).data,
+              result.data
+            );
+            return displayToast(result);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
     });
+});
+
+$(uploadModal._element).on("show.bs.modal", (event) => {
+  const button = $(event.currentTarget).find("#uploadButton");
+  const body = new FormData();
+  button.off("click");
+  button.on("click", () => {
+    body.append(
+      "spreadsheet",
+      $(event.currentTarget).find("#spreadsheet")[0].files[0]
+    );
+    fetch("/api/courses/upload", {
+      method: "POST",
+      headers: { "csrf-token": csrf },
+      body: body,
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        console.log(result);
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        uploadModal.hide();
+        result.data.forEach((element) => {
+          tableData(table.row.add, element);
+        });
+        displayToast(result);
+      })
+      .catch((error) => {
+        console.log(error);
+        displayToast(error);
+      });
+  });
 });
 
 const deleteData = (id, element) => {
@@ -269,7 +330,7 @@ const deleteData = (id, element) => {
     cancelButtonColor: "#d33",
     confirmButtonText: "Yes, delete it!",
     preConfirm: () => {
-      return fetch("/api/course/" + id, {
+      return fetch("/api/courses/" + id, {
         method: "DELETE",
         headers: {
           "csrf-token": csrf,
@@ -282,19 +343,15 @@ const deleteData = (id, element) => {
           console.log(error);
         });
     },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      if (!result.value.ok) {
-        return Toast.fire({
-          icon: "warning",
-          title: "Something Went Wrong!",
-        });
+  })
+    .then((result) => {
+      if (result.isConfirmed) {
+        table.row(element.closest("tr")).remove().draw();
+        return displayToast(result.value);
       }
-      courseTable.row(element.closest("tr")).remove().draw();
-      Toast.fire({
-        icon: "success",
-        title: "Successfully Deleted",
-      });
-    }
-  });
+    })
+    .catch((error) => {
+      console.log(error);
+      displayToast(error);
+    });
 };

@@ -4,33 +4,33 @@ const { validationResult } = require("express-validator");
 const excelToJson = require("convert-excel-to-json");
 
 exports.get = (req, res, next) => {
-  Program.find({ deleted_at: null })
+  Program.find({ deleted: false })
     .then((program) => {
       res.status(200).json({
-        ok: true,
+        status: 200,
         data: program,
-        length: program.length,
       });
     })
     .catch((error) => {
       res.json({
-        ok: false,
+        status: 500,
+        data: error,
       });
     });
 };
 
 exports.getOne = (req, res, next) => {
-  Program.findOne({ _id: req.params.id, deleted_at: null })
+  Program.findOne({ _id: req.params.id })
     .then((program) => {
       res.status(200).json({
-        ok: true,
+        status: 200,
         data: program,
-        length: program.length,
       });
     })
     .catch((error) => {
       res.json({
-        ok: false,
+        status: 500,
+        data: error,
       });
     });
 };
@@ -38,50 +38,61 @@ exports.getOne = (req, res, next) => {
 exports.post = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
-  new Program({
-    program_code: req.body.program_code,
-    program_name: req.body.program_name,
-  })
-    .save()
+  Program.findOne({ programCode: req.body.programCode })
+    .then((result) => {
+      if (result) {
+        result.programCode = req.body.programCode;
+        result.programName = req.body.programName;
+        return result.save();
+      }
+      return new Program({
+        programCode: req.body.programCode,
+        programName: req.body.programName,
+      }).save();
+    })
     .then((result) => {
       console.log(result);
       res.json({
-        ok: true,
         data: result,
+        status: 201,
       });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      console.log(error);
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.edit = (req, res, next) => {
   const errors = validationResult(req);
-  console.log(errors);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
   Program.findOneAndUpdate(
     { _id: req.params.id },
-    { program_code: req.body.program_code, program_name: req.body.program_name }
+    {
+      programCode: req.body.programCode,
+      programName: req.body.programName,
+    },
+    { new: true }
   )
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Program.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Program.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      res.json({ ok: true });
+      res.json({ status: 202, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
@@ -118,7 +129,7 @@ exports.postSpreadsheet = (req, res, next) => {
       res.json({ ok: true, removedData: removedData, addedData: result });
     })
     .catch((error) => {
-      res.json({ ok: false});
+      res.json({ ok: false });
       console.log(error);
     });
 };

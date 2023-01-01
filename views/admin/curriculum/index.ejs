@@ -3,41 +3,35 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid px-4">
+  <div class="container-fluid px-4 mt-3">
     <div class="card">
       <div class="card-header">
-        <strong>LIST OF AVAILABLE CURRICULUMS/S</strong>
-        <button type="button" class="btn btn-sm btn-primary float-end d-none" id="addModalButton" data-bs-toggle="modal" data-bs-target="#addModal">
+        <strong id="card-title">Curriculum</strong>
+        <button type="button" class="btn btn-sm btn-primary m-1 float-end" id="copyModalButton" data-bs-toggle="modal" data-bs-target="#copyModal">
+          Copy From Another Sem
+        </button>
+        <button type="button" class="btn btn-sm btn-primary m-1 float-end" id="addModalButton" data-bs-toggle="modal" data-bs-target="#addModal">
           Add Program Offered
         </button>
       </div>
       <div class="card-body">
         <div class="d-flex justify-content-center" id="content-loading">
-          <strong>Loading...</strong>
-          <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </div>
         <div class="d-none" id="content">
           <div class="row">
-            <div class="col-4 offset-1">
-              <select class="form-select" id="view-semester">
-                <option value="" disabled selected>--Select Semester--</option>
-              </select>
-            </div>
-            <div class="col-4">
+            <div class="col-12">
               <select class="form-select" id="view-program" disabled>
                 <option value="" disabled selected>--Select Program--</option>
               </select>
             </div>
-            <div class="col-2">
-              <button class="btn form-control btn-primary" id="submit-button" disabled>Submit</button>
-            </div>
           </div>
           <div class="d-none" id="yearList">
             <div class="row m-3">
-              <div class="col-2">
-                <a class="btn btn-secondary" id="assign-schedule" target="_blank">
-                  Assign Schedule
-                </a>
+              <div class="col-4">
+                <button class="btn btn-danger btn-sm text-light" id="removeProgram">Remove this Program</button>
               </div>
             </div>
             <div class="d-flex justify-content-center m-3" id="year-loading">
@@ -69,14 +63,6 @@
         </div>
         <div class="modal-body">
           <form id="addForm" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="program-code" class="col-form-label">Semester:</label>
-              <select class="form-select" id="add-semester">
-                <option value="">--Select Semester--</option>
-              </select>
-              <div class="invalid-feedback">
-              </div>
-            </div>
             <div class="col-12 mb-3">
               <label for="add-program" class="col-form-label">Programs:</label>
               <select class="form-control" width="100%" multiple="true" id="add-program">
@@ -94,7 +80,7 @@
     </div>
   </div>
 
-  <div class="modal fade" id="addYeaModal" tabindex="-1" aria-labelledby="addYearModalLabel" aria-hidden="true">
+  <!-- <div class="modal fade" id="addYeaModal" tabindex="-1" aria-labelledby="addYearModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -133,19 +119,19 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <div class="modal fade" id="addNewCourseModal" tabindex="-1" aria-labelledby="addNewCourseModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="addNewCourseModalLabel">New message</h1>
+          <h1 class="modal-title fs-5" id="addNewCourseModalLabel">Adding Course</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="new-course" class="col-form-label">Courses (0 Units Selected):</label>
+              <label for="new-course" class="col-form-label">Courses (<span id="unitsCount">0</span> Units Selected):</label>
               <select id="newCourseSelect">
               </select>
               <div class="invalid-feedback">
@@ -155,7 +141,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addCourseButton">Send message</button>
+          <button type="button" class="btn btn-primary" id="addCourseButton">Submit</button>
         </div>
       </div>
     </div>
@@ -165,13 +151,13 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="addNewCourseModalLabel">New message</h1>
+          <h1 class="modal-title fs-5" id="addNewCourseModalLabel">Adding New Sections</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="newSectionSelect" class="col-form-label">New Sections: </label>
+              <label for="newSectionSelect" class="col-form-label">Sections: </label>
               <select id="newSectionSelect">
               </select>
               <div class="invalid-feedback">
@@ -181,14 +167,46 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addSectionButton">Send message</button>
+          <button type="button" class="btn btn-primary" id="addSectionButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="copyModal" tabindex="-1" aria-labelledby="copyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="copyModalLabel">Copy From Another Semester</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="copyForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="year" class="col-form-label">School Year:</label>
+              <select class="form-select" id="year">
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="semester" class="col-form-label">Semester:</label>
+              <select class="form-select" id="semester" disabled>
+              </select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary disabled" id="copySubmit">Submit</button>
         </div>
       </div>
     </div>
   </div>
 
   <input type="hidden" id="csrf" value="<%= csrf %>">
-  <input type="hidden" id="school-year" value="<%= school_year %>">
   <%- include('../../includes/footer.ejs') %>
   <script src="/js/curriculum.js"></script>
 </body>

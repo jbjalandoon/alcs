@@ -3,13 +3,19 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const LevelSchema = new Schema({
-  level: {
+  yearLevel: {
     type: String,
     required: true,
+    unique:true
   },
-  deleted_at: {
-    type: Date,
-    default: null,
+  display: {
+    type: String,
+    required: true,
+    unique:true,
+  },
+  deleted: {
+    type: Boolean,
+    default: false,
   },
 });
 

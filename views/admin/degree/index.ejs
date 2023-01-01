@@ -1,0 +1,98 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE YEAR LEVEL/S</strong>
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add New Year Level
+        </button>
+      </div>
+      <div class="card-body">
+        <table id="degreeTable" class="table table-striped" style="width:100%">
+          <thead>
+            <tr>
+              <th>Degree</th>
+              <th>Abbreviation</th>
+              <th>Tags</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new school year</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="degree" class="form-label">Degree:</label>
+              <input type="text" class="form-control" id="degree">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="abbreviation" class="form-label">Abbreviation:</label>
+              <input type="text" class="form-control" id="abbreviation">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="tags" class="form-label">Tags:</label>
+              <select id="tags" class="form-control"></select>
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing Year Level</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="needs-validation">
+            <div class="mb-3">
+              <label for="year_level" class="col-form-label">Year Level:</label>
+              <input type="text" class="form-control" id="year-level">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" name="" value="<%= csrf %>" id="csrf">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/degree.js"></script>
+</body>
+
+</html>

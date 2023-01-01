@@ -6,6 +6,35 @@
     </svg>
   </div>
   <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="">
+    <% if (role === 'user') { %>
+    <li class="nav-title">Profile</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/user/profile">
+        <i class="fa-solid fa-chart-line nav-icon"></i>
+        My Profile
+      </a>
+    </li>
+    <li class="nav-title">My Schedule</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/user/schedule">
+        <i class="fa-solid fa-chart-line nav-icon"></i>
+        Current Schedule
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/user/other-schedules">
+        <i class="fa-solid fa-chart-line nav-icon"></i>
+        Other Schedules
+      </a>
+    </li>
+    <li class="nav-title">Preferences</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/user/faculty">
+        <i class="fa-solid fa-chalkboard-user nav-icon"></i>
+        Schedule Preference
+      </a>
+    </li>
+    <% } else if (role === 'superadmin') { %>
     <li class="nav-item">
       <a class="nav-link" href="/admin/dashboard">
         <i class="fa-solid fa-chart-line nav-icon"></i>
@@ -19,22 +48,27 @@
         Faculty
       </a>
     </li>
-  
     <li class="nav-title">Curriculum</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/curriculum/">
+        <i class="fa-solid fa-table-columns nav-icon"></i>
+        Curriculum
+      </a>
+    </li>
     <li class="nav-item">
       <a class="nav-link" href="/admin/years/">
         <i class="fa-solid fa-table-columns nav-icon"></i>
         View School Year
       </a>
     </li>
-   
+    <li class="nav-title">Maintenance</li>
     <li class="nav-item">
-      <a class="nav-link" href="/admin/qualifications/">
+      <a class="nav-link" href="/admin/aq/">
         <i class="fa-solid fa-check-circle nav-icon"></i>
-        View Qualifications
+        Academic Qualification
       </a>
     </li>
-    <li class="nav-title">Maintenance</li>
+
     <li class="nav-item">
       <a class="nav-link" href="/admin/programs/">
         <i class="fa-solid fa-school nav-icon"></i>
@@ -59,6 +93,96 @@
         View Rooms
       </a>
     </li>
+    <% } else { %>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/dashboard">
+        <i class="fa-solid fa-chart-line nav-icon"></i>
+        Dashboard
+      </a>
+    </li>
+    <li class="nav-title">Faculty</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/faculty">
+        <i class="fa-solid fa-chalkboard-user nav-icon"></i>
+        Faculty
+      </a>
+    </li>
+    <li class="nav-title">Scheduling</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/schedules/">
+        <i class="fa-solid fa-table-columns nav-icon"></i>
+        Assign Schedule
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/schedules/faculty">
+        <i class="fa-solid fa-table-columns nav-icon"></i>
+        Faculty Loading
+      </a>
+    </li>
+    <li class="nav-title">Curriculum</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/curriculum/">
+        <i class="fa-solid fa-table-columns nav-icon"></i>
+        Curriculum
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/years/">
+        <i class="fa-solid fa-table-columns nav-icon"></i>
+        View School Year
+      </a>
+    </li>
+    <li class="nav-title">Maintenance</li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/aq/">
+        <i class="fa-solid fa-check-circle nav-icon"></i>
+        Academic Qualification
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/programs/">
+        <i class="fa-solid fa-school nav-icon"></i>
+        View Programs
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/courses/">
+        <i class="fa-solid fa-book nav-icon"></i>
+        View Courses
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/faculty-types/">
+        <i class="fa-solid fa-book nav-icon"></i>
+        Faculty Types
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/levels/">
+        <i class="fa-solid fa-door-open nav-icon"></i>
+        View Year Level
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/admin/rooms/">
+        <i class="fa-solid fa-door-open nav-icon"></i>
+        View Rooms
+      </a>
+    </li>
+    <% } %>
+
+
+
+
+
+    <!-- <li class="nav-item">
+      <a class="nav-link" href="/admin/tag/">
+        <i class="fa-solid fa-door-open nav-icon"></i>
+        View Tags
+      </a>
+    </li> -->
   </ul>
   <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>
 </div>

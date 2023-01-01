@@ -1,4 +1,5 @@
 const Year = require("../../models/year");
+const Curriculum = require("../../models/curriculum");
 const { validationResult } = require("express-validator");
 
 exports.get = (req, res, next) => {
@@ -23,7 +24,7 @@ exports.getOne = (req, res, next) => {
 };
 
 exports.post = (req, res, next) => {
-  console.log(req.body)
+  let year;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors.mapped());
@@ -34,10 +35,21 @@ exports.post = (req, res, next) => {
   })
     .save()
     .then((result) => {
+      year = result
+      return new Curriculum({
+        school_year: result._id,
+        semesters: [
+          { sem: "first", isActive: false },
+          { sem: "second", isActive: false },
+          { sem: "summer", isActive: false },
+        ],
+      }).save();
+    })
+    .then((result) => {
       if (!result) {
         res.json({ ok: false });
       }
-      res.json({ ok: true, data: result });
+      res.json({ ok: true, data: year });
     })
     .catch((error) => {
       console.log(error);

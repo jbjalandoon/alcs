@@ -1,4 +1,5 @@
-const school_year = $("#school-year");
+let school_year, semester;
+const programs = [];
 
 const csrf = $("#csrf").val();
 
@@ -17,86 +18,58 @@ const assignScheduleButton = document.querySelector("#assign-schedule");
 let programYear;
 
 const addModal = new bootstrap.Modal($("#addModal"));
-const addYearModal = new bootstrap.Modal($("#addYeaModal"));
+const copyModal = new bootstrap.Modal($("#copyModal"));
+
+let copyYear, copySem;
+
+// const addYearModal = new bootstrap.Modal($("#addYeaModal"));
 const addNewCourseModal = new bootstrap.Modal($("#addNewCourseModal"));
 const addNewSectionModal = new bootstrap.Modal($("#addNewSectionModal"));
-
-fetch("/admin/curriculum/semester/" + school_year.val(), { method: "GET" })
+fetch("/api/curriculums/active")
   .then((response) => {
     return response.json();
   })
   .then((result) => {
-    if (!result.ok) {
-      Toast.fire({ icon: "warning", title: "Something went wrong" });
-      return;
+    if (!result) {
     }
-    if (result.data != null) {
-      if (result.data.length != 3) {
-        $("#addModalButton").removeClass("d-none");
-      }
-      $("#content-loading").remove();
-      $("#content").removeClass("d-none");
-      return result.data.forEach((element) => {
-        viewSemester.append(
-          new Option((element.sem + " Semester").toUpperCase(), element._id)
-        );
+    if (result.data.length === 0) {
+      $("#addModalButton").addClass("d-none");
+      return Toast.fire({
+        icon: "warning",
+        title: "There is no current active semester",
       });
     }
-    $("#addModalButton").removeClass("d-none");
-    $("#content-loading").html("Please add new semester and program");
+    console.log(result.data[0].semesters);
+    semester = result.data[0].semesters._id;
+    document.querySelector("#card-title").innerHTML = `${
+      result.data[0].school_year[0].year
+    } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`;
+    $("#content-loading").remove();
+    $("#content").removeClass("d-none");
+    return fetch(`/api/curriculums/programs/${semester}`);
   })
-  .catch((error) => {
-    Toast.fire({ icon: "warning", title: "Something went wrong" });
-    console.log(error);
-  });
-
-fetch("/api/levels")
   .then((response) => {
     return response.json();
   })
   .then((result) => {
+    console.log(result);
     if (!result.ok) {
-      return;
+      return Toast.fire({ icon: "warning", title: "Something went wrong" });
     }
-    result.data.forEach((element) => {
-      yearLevel.append(new Option(element.level, element._id));
-    });
-  })
-  .catch((error) => {
-    console.log(error);
-  });
 
-fetch("/api/course")
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    if (!result.ok) {
-      return;
-    }
     result.data.forEach((element) => {
-      course.append(new Option(element.course_description, element._id));
+      viewProgram.append(new Option(element.program.program_code, element._id));
+      programs.push(element.program.program_code);
     });
-    course
-      .select2({
-        multiple: true,
-        width: "100%",
-      })
-      .val(null)
-      .trigger("change");
+    $("#submit-button").attr("disabled", true);
+    viewProgram.attr("disabled", false);
   })
   .catch((error) => {
     console.log(error);
   });
 
 $(addModal._element).on("show.bs.modal", () => {
-  let ok;
-  addProgram.empty();
-  addSemester
-    .empty()
-    .append('<option value="" disabled selected>--Select Semester--</option>');
-  $("#add-button").attr("disabled", false);
-  fetch("/admin/curriculum/semester/" + school_year.val(), { method: "GET" })
+  fetch("/api/programs")
     .then((response) => {
       return response.json();
     })
@@ -105,50 +78,14 @@ $(addModal._element).on("show.bs.modal", () => {
         ok = false;
         return;
       }
-      let semester = ["first", "second", "summer"];
-      const filteredSemester = [];
-      if (result.data == null) {
-        semester.forEach((element) => {
-          addSemester.append(
-            $("<option>", {
-              class: "text-uppercase",
-              value: element,
-              text: element + " Semester",
-            })
-          );
-        });
-        ok = true;
-        return;
-      }
-      result.data.forEach((element) => {
-        const index = semester.indexOf(element.sem);
-        if (index > -1) {
-          semester.splice(index, 1);
-        }
+      console.log(programs);
+      const filteredData = result.data.filter((element) => {
+        return !programs.includes(element.program_code);
       });
-      semester.forEach((element) => {
-        addSemester.append(
-          new Option((element + " semester").toUpperCase(), element)
-        );
-      });
-
-      ok = true;
-    })
-    .catch((error) => {
-      ok = false;
-      console.log(error);
-    });
-
-  fetch("/api/programs", { method: "GET" })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        ok = false;
-        return;
-      }
-      result.data.forEach((element) => {
+      console.log(filteredData);
+      addProgram.val("");
+      addProgram.empty();
+      filteredData.forEach((element) => {
         addProgram.append(new Option(element.program_name, element._id));
         addProgram.select2({
           multitple: true,
@@ -202,6 +139,7 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
         width: "100%",
         multiple: true,
       });
+      $("#unitsCount").html("0");
       filteredData.forEach((element) => {
         newCourse.append(
           new Option(element.course_description.toUpperCase(), element._id)
@@ -216,6 +154,7 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
 $(addNewSectionModal._element).on("show.bs.modal", (event) => {
   const button = event.relatedTarget;
   programYear = button.getAttribute("level");
+  $("#newSectionSelect").val("");
   $("#newSectionSelect").select2({ tags: true, width: "100%", multiple: true });
 });
 
@@ -269,6 +208,9 @@ $("#addCourseButton").on("click", (event) => {
       if (!result.ok) {
         return;
       }
+      if ($(`#${programYear}`).children("tbody").find(".empty").length !== 0) {
+        $(`#${programYear}`).children("tbody").find(".empty").remove();
+      }
       result.courses.forEach((element) => {
         $(`#${programYear}`).children("tbody").append(`
           <tr>
@@ -291,123 +233,21 @@ $("#addCourseButton").on("click", (event) => {
     });
 });
 
-$("#submit-button").on("click", () => {
-  viewSemesterValue = viewSemester.val();
-  viewProgramValue = viewProgram.val();
-  assignScheduleButton.setAttribute(
-    "href",
-    `/admin/schedules/${viewSemesterValue}`
-  );
-
-  fetch(
-    `/api/curriculums/program/${viewProgramValue}`
-  )
+newCourse.on("change", () => {
+  let unitCount;
+  fetch("/api/course/units?programs=" + newCourse.val())
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        return Toast.fire({ icon: "warning", title: "Something went wrong" });
-      }
-      $("#yearList").removeClass("d-none");
-      if (result.data == 0) {
-        $("#year-loading").removeClass("d-none");
-        $("#nav-year").addClass("d-none");
-        return $("#year-loading").html(
-          "There is no year level, Please add a year level"
-        );
-      }
-      $("#nav-year #v-pills-tab").empty();
-      $("#nav-year #v-pills-tabContent").empty();
-      result.data.forEach((element, index) => {
-        $("#nav-year #v-pills-tab").append(
-          `<button class="nav-link ${index == 0 ? "active" : ""}" id="v-pills-${
-            element._id
-          }-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${
-            element._id
-          }" type="button" role="tab" aria-controls="v-pills-${
-            element._id
-          }" aria-selected="true">${element.year.level}</button>`
-        );
-        $("#nav-year #v-pills-tabContent").append(
-          `<div class="tab-pane fade show ${
-            index == 0 ? "active" : ""
-          }" id="v-pills-${
-            element._id
-          }" role="tabpanel" aria-labelledby="v-pills-${
-            element._id
-          }-tab" tabindex="0">
-          <div class="row">
-            <div class="col-8">
-              List of Section: <span id="section${element._id}"></span>
-            </div>
-            <div class=" col-4">
-              <div class="float-end">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewSectionModal" level="${
-                  element._id
-                }">
-                  Add Section
-                </button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewCourseModal" level="${
-                  element._id
-                }">
-                  Add New Course
-                </button>
-              </div>
-            </div>
-          </div>
-            <table class="table" id='${element._id}'>
-              <thead>
-                <tr>
-                  <th>Course Code</th>
-                  <th>Course Description</th>
-                  <th>Course Lab</th>
-                  <th>Course Lecture</th>
-                  <th>Course Units</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-              </tbody>
-          </table>
-        </div>`
-        );
-
-        element.sections.section.forEach((section) => {
-          $(`#section${element._id}`).append(
-            `
-              <span class="badge text-bg-primary">
-                ${section}
-                <button type="button" class="btn-close" aria-label="Close"></button>
-              </span>
-            `
-          );
-        });
-
-        if (element.course.length == 0) {
-          $(`#${element._id} tbody`).append(
-            `<tr><td colspan="6" class="text-center">There are no courses in this year level</td></tr>`
-          );
-          return;
-        }
-        element.course.forEach((course) => {
-          $(`#${element._id} tbody`).append(`<tr><td>${course.course_code}</td>
-          <td>${course.course_description}</td>
-          <td>${course.lab}</td>
-          <td>${course.lecture}</td>
-          <td>${course.units}</td>
-          <td>  
-            <button class="btn btn-sm btn-danger" onClick="deleteData('${course._id}', '${element._id}' , this)">Delete</button>
-          </td></tr>`);
-        });
-      });
-
-      $("#year-loading").addClass("d-none");
-      $("#nav-year").removeClass("d-none");
+      unitCount = result.data
+        .map((e) => e.units)
+        .reduce((prev, next) => prev + next);
+      $("#unitsCount").html(unitCount);
+      console.log(result);
     })
     .catch((error) => {
       console.log(error);
-      return Toast.fire({ icon: "warning", title: "Something went wrong" });
     });
 });
 
@@ -415,7 +255,7 @@ $("#add-button").on("click", () => {
   addProgram.removeClass("is-invalid");
   addSemester.removeClass("is-invalid");
   console.log(addProgram.val());
-  fetch("/api/curriculums/programs/" + school_year.val(), {
+  fetch("/api/curriculums/programs/" + semester, {
     method: "POST",
     headers: {
       "csrf-token": csrf,
@@ -431,33 +271,33 @@ $("#add-button").on("click", () => {
     })
     .then((result) => {
       if (!result.ok) {
-        addProgram
-          .addClass(result.errors.program ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.program ? result.errors.program.msg : "");
-        addSemester
-          .addClass(result.errors.semester ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.semester ? result.errors.semester.msg : "");
-        Toast.fire({ icon: "warning", title: "Something went wrong" });
-        return;
+        // addProgram
+        //   .addClass(result.errors.program ? "is-invalid" : "")
+        //   .siblings("div .invalid-feedback")
+        //   .html(result.errors.program ? result.errors.program.msg : "");
+        // Toast.fire({ icon: "warning", title: "Something went wrong" });
+        return Promise.reject("Something went wrong");
       }
       addModal.hide();
       addProgram.removeClass("is-invalid").val("");
       addSemester.removeClass("is-invalid").val("");
-      viewSemester
-        .empty()
-        .append(
-          '<option value="" disabled selected>--Select Semester--</option>'
-        );
-      $("#content-loading").remove();
-      $("#content").removeClass("d-none");
-      result.data.semesters.forEach((element) => {
-        viewSemester.append(new Option(element.sem + " Semester", element.sem));
-      });
-      if (result.data.semesters.length == 3) {
-        $("#addModalButton").addClass("d-none");
+      return fetch(`/api/curriculums/programs/${semester}`);
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      console.log(result);
+      if (!result.ok) {
+        return Toast.fire({ icon: "warning", title: "Something went wrong" });
       }
+      viewProgram.find("option").not(":first").remove();
+      result.data.forEach((element) => {
+        viewProgram.append(
+          new Option(element.program.program_code, element._id)
+        );
+        programs.push(element.program.program_code);
+      });
       return Toast.fire({ icon: "success", title: "Successfull Added" });
     })
     .catch((error) => {
@@ -575,28 +415,116 @@ $("#add-year-button").on("click", () => {
     });
 });
 
-viewSemester.on("change", () => {
-  viewProgram
-    .attr("disabled", true)
-    .empty()
-    .append('<option value="" disabled selected>--Select Semester--</option>');
-  fetch(`/api/curriculums/programs/${viewSemester.val()}`)
+viewProgram.on("change", () => {
+  viewSemesterValue = viewSemester.val();
+  viewProgramValue = viewProgram.val();
+  $("#faculty-load").attr(
+    "href",
+    `/admin/schedules/faculty/${viewSemesterValue}`
+  );
+  fetch(`/api/curriculums/program/${viewProgramValue}`)
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
       if (!result.ok) {
         return Toast.fire({ icon: "warning", title: "Something went wrong" });
       }
-
-      result.data.forEach((element) => {
-        viewProgram.append(
-          new Option(element.program.program_code, element._id)
+      $("#yearList").removeClass("d-none");
+      if (result.data == 0) {
+        $("#year-loading").removeClass("d-none");
+        $("#nav-year").addClass("d-none");
+        return $("#year-loading").html(
+          "There is no year level, Please add a year level"
         );
+      }
+      $("#nav-year #v-pills-tab").empty();
+      $("#nav-year #v-pills-tabContent").empty();
+      result.data.forEach((element, index) => {
+        $("#nav-year #v-pills-tab").append(
+          `<button class="nav-link ${index == 0 ? "active" : ""}" id="v-pills-${
+            element._id
+          }-tab" data-bs-toggle="pill" data-bs-target="#v-pills-${
+            element._id
+          }" type="button" role="tab" aria-controls="v-pills-${
+            element._id
+          }" aria-selected="true">${element.year.level}</button>`
+        );
+        $("#nav-year #v-pills-tabContent").append(
+          `<div class="tab-pane fade show ${
+            index == 0 ? "active" : ""
+          }" id="v-pills-${
+            element._id
+          }" role="tabpanel" aria-labelledby="v-pills-${
+            element._id
+          }-tab" tabindex="0">
+          <div class="row">
+            <div class="col-8">
+              List of Section: <span id="section${element._id}"></span>
+            </div>
+            <div class=" col-4">
+              <div class="float-end">
+                <button type="button" class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addNewSectionModal" level="${
+                  element._id
+                }">
+                  Add Section
+                </button>
+                <button type="button" class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addNewCourseModal" level="${
+                  element._id
+                }">
+                  Add New Course
+                </button>
+              </div>
+            </div>
+          </div>
+            <table class="table" id='${element._id}'>
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Description</th>
+                  <th>Course Lab</th>
+                  <th>Course Lecture</th>
+                  <th>Course Units</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+          </table>
+        </div>`
+        );
+
+        element.sections.section.forEach((section) => {
+          $(`#section${element._id}`).append(
+            `
+              <span class="badge text-bg-primary">
+                ${section}
+                <button type="button" class="btn-close" aria-label="Close"></button>
+              </span>
+            `
+          );
+        });
+
+        if (element.course.length == 0) {
+          $(`#${element._id} tbody`).append(
+            `<tr><td colspan="6" class="text-center empty">There are no courses in this year level</td></tr>`
+          );
+          return;
+        }
+        element.course.forEach((course) => {
+          $(`#${element._id} tbody`).append(`<tr><td>${course.course_code}</td>
+          <td>${course.course_description}</td>
+          <td>${course.lab}</td>
+          <td>${course.lecture}</td>
+          <td>${course.units}</td>
+          <td>  
+            <button class="btn btn-sm btn-danger" onClick="deleteData('${course._id}', '${element._id}' , this)">Delete</button>
+          </td></tr>`);
+        });
       });
-      $("#submit-button").attr("disabled", true);
-      viewProgram.attr("disabled", false);
+
+      $("#year-loading").addClass("d-none");
+      $("#nav-year").removeClass("d-none");
     })
     .catch((error) => {
       console.log(error);
@@ -604,10 +532,43 @@ viewSemester.on("change", () => {
     });
 });
 
-viewProgram.on("change", () => {
-  if (viewProgram.val() != "") {
-    $("#submit-button").removeAttr("disabled");
-  }
+$("#removeProgram").on("click", () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    preConfirm: () => {
+      return fetch("/api/curriculums/program/" + viewProgram.val(), {
+        method: "DELETE",
+        headers: {
+          "csrf-token": csrf,
+        },
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      viewProgram.find(":selected").remove();
+      viewProgram.val("");
+      $("#nav-year").addClass("d-none");
+      $("#yearList").addClass("d-none");
+      $("#year-loading").addClass("d-none");
+
+      Toast.fire({
+        icon: "success",
+        title: "Successfully Deleted",
+      });
+    }
+  });
 });
 
 const deleteData = (course, year, element) => {
@@ -654,3 +615,83 @@ const deleteData = (course, year, element) => {
     }
   });
 };
+
+$(copyModal._element).on("show.bs.modal", (event) => {
+  if (copyYear) copyYear.off("change");
+  if (copySem) copySem.off("change");
+  copyYear = $("#year");
+  copySem = $("#semester");
+
+  fetch("/api/curriculums/school-year")
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      copyYear.empty();
+      copySem.empty();
+      copySem.attr("disabled", true);
+      copyYear.append(
+        "<option disabled selected>--Select School Year</option>"
+      );
+
+      result.data.forEach((element) => {
+        copyYear.append(
+          new Option(element.school_year.year, element.school_year._id)
+        );
+      });
+      copyYear.on("change", () => {
+        fetch("/api/curriculums/semesters/" + copyYear.val())
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            $("#copySubmit").addClass("disabled");
+            copySem.append(
+              "<option disabled selected>--Select School Sem</option>"
+            );
+            result.data.forEach((element) => {
+              copySem.append(
+                new Option(element.sem.toUpperCase(), element._id)
+              );
+            });
+            copySem.removeAttr("disabled");
+            copySem.on("change", () => {
+              $("#copySubmit").removeClass("disabled");
+            });
+          });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
+$("#copySubmit").on("click", () => {
+  if (semester === copySem.val()) {
+    return Toast.fire({
+      icon: "warning",
+      title: "Active Semester and Selected Semester is same",
+    });
+  }
+  console.log("/api/curriculums/copy/" + semester + "/" + copySem.val());
+  fetch("/api/curriculums/copy/" + semester + "/" + copySem.val(), {
+    method: "POST",
+    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      alert("test");
+      if (!result) {
+        return;
+      }
+      copyModal.hide();
+      return Toast.fire({
+        icon: "success",
+        title: "successfully copied",
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});

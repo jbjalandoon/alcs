@@ -3,7 +3,7 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE YEAR/S</strong>
@@ -12,17 +12,18 @@
         </button>
       </div>
       <div class="card-body">
-        <table id="yearTable" class="table table-striped" style="width:100%">
-          <thead>
-            <tr>
-              <th>School Year</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table id="yearTable" class="table table-striped" style="width:100%">
+            <thead>
+              <tr>
+                <th>School Year</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

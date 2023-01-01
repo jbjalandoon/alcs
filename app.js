@@ -23,16 +23,16 @@ const store = new mongoDBStore({
   collection: "session",
 });
 
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads"));
-  },
-  filename: (req, file, cb) => {
-    cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
-  },
-});
+// const fileStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, path.join(__dirname, "uploads"));
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
+//   },
+// });
 
-app.use(multer({ storage: fileStorage }).single("spreadsheet"));
+app.use(multer({ storage: multer.memoryStorage() }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({}));
 
@@ -54,6 +54,8 @@ app.set("views", "views");
 app.use((req, res, next) => {
   res.locals.csrf = req.csrfToken();
   res.locals.isActive = req.session.user ? true : false;
+  res.locals.email = req.session.user ? req.session.user.email : null;
+  res.locals.role = req.session.user ? req.session.user.role : null;
   res.locals.input_success_message = req.flash("input_success_message")[0];
   next();
 });
@@ -79,7 +81,7 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use("/api", apiRoutes);
 app.use("/", error.get404);
-
+mongoose.set("strictQuery", false);
 mongoose
   .connect(db_uri)
   .then((result) => {
@@ -92,12 +94,21 @@ mongoose
       return bcrypt
         .hash("adminpassword", 12)
         .then((password) => {
-          return new User({
-            email: "jerome.jalandoon@gmail.com",
-            password: password,
-          }).save();
+          return User.insertMany([
+            {
+              email: "superadmin",
+              password: password,
+              role: "superadmin",
+            },
+            {
+              email: "jerome.jalandoon@gmail.com",
+              password: password,
+              role: "admin",
+            },
+          ]);
         })
         .then((result) => {
+          console.log(result);
           app.listen(3000);
         });
     } else {

@@ -5,13 +5,65 @@ const scheduleProgramForm = $("#schedule-form #program");
 const scheduleYearLevelForm = $("#schedule-form #year_level");
 const scheduleSectionForm = $("#schedule-form #section");
 
-const semester = $("#semester-id").val();
+let semester;
+let isLaboratorySelect;
+let draggable;
+
+// Buttons
+const scheduleSubmitButton = $("#schedule-form #submit");
+let assignSubmitButton;
+console.log(semester);
+let scheduleModal;
+
+// Tables
+const scheduleTable = $("#scheduleTable");
+
+fetch("/api/curriculums/active")
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    if (!result) {
+    }
+    if (result.data.length === 0) {
+      return Toast.fire({
+        title: "There is no current active semester",
+        icon: "warning",
+      });
+    }
+    semester = result.data[0].semesters._id;
+    document.querySelector("#card-title").innerHTML = `${
+      result.data[0].school_year[0].year
+    } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER )`;
+    return fetch("/api/curriculums/programs/" + semester);
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    if (!result.ok) {
+      return;
+    }
+    result.data.forEach((element) => {
+      scheduleProgramForm.append(
+        new Option(element.program.program_name.toUpperCase(), element._id)
+      );
+    });
+    scheduleYearLevelForm.val("");
+    scheduleYearLevelForm.attr("disabled", true);
+    scheduleProgramForm.val("");
+    scheduleProgramForm.attr("disabled", false);
+    scheduleSubmitButton.addClass("d-none");
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 
 const calendarEl = document.getElementById("calendar");
 
 const csrf = $("#csrf").val();
 
-var calendar = new FullCalendar.Calendar(calendarEl, {
+const calendar = new FullCalendar.Calendar(calendarEl, {
   allDaySlot: false,
   hiddenDays: [0],
   height: "auto",
@@ -29,7 +81,7 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   eventReceive: function (info) {
-    if ($("#roomForm").val() == null) {
+    if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
       return info.revert();
     }
@@ -41,7 +93,7 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
       info.event.end.getMinutes() == 0
         ? "00"
         : info.event.end.getMinutes().toString();
-
+    console.log(info.event.id);
     fetch("/api/schedules/set/" + info.event.id, {
       method: "PUT",
       headers: {
@@ -58,16 +110,30 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
       }),
     })
       .then((response) => {
-        console.log(response);
         return response.json();
       })
       .then((result) => {
-        info.draggedEl.parentNode.removeChild(info.draggedEl);
+        $(info.draggedEl.parentNode).remove();
         if (!result.ok) {
           info.revert();
 
           return Toast.fire({ icon: "error", title: "Something went wrong" });
         }
+        // const titleEl = info.draggedEl.querySelector(".fc-event-title");
+        // const timeEl = info.draggedEl.querySelector(".fc-event-time");
+        // info.draggedEl.style.textAlign = "center";
+
+        // const course = info.event.extendedProps.course;
+        // const program = info.event.extendedProps.program;
+        // const courseType = info.event.extendedProps.courseType;
+        // const section = info.event.extendedProps.section;
+        // const room = info.event.extendedProps.room;
+        // const level = info.event.extendedProps.level;
+        // const faculty = info.event.extendedProps.faculty
+        //   ? info.event.extendedProps.faculty
+        //   : "";
+
+        // titleEl.innerHTML = `${course} (${courseType.toUpperCase()}) <br> ${program} (${level} - ${section}) <br> ${room} <br> ${faculty}`;
         Toast.fire({ icon: "success", title: "Successfully added" });
       })
       .catch((error) => {
@@ -76,9 +142,20 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
       });
   },
   eventDrop: function (info) {
-    if ($("#roomForm").val() == null) {
+    if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
       return info.revert();
+    }
+    if (isLaboratorySelect) {
+      if (info.event.extendedProps.courseType === "lecture") {
+        Toast.fire({ icon: "warning", title: "Please select Lecture Room" });
+        return info.revert();
+      }
+    } else {
+      if (info.event.extendedProps.courseType === "lab") {
+        Toast.fire({ icon: "warning", title: "Please select Laboratory Room" });
+        return info.revert();
+      }
     }
     const startMinutes =
       info.event.start.getMinutes() == 0
@@ -111,8 +188,25 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
         if (!result.ok) {
           return;
         }
+        const titleEl = info.el.querySelector(".fc-event-title");
+        const timeEl = info.el.querySelector(".fc-event-time");
+        info.el.style.textAlign = "center";
+
+        const course = info.event.extendedProps.course;
+        const program = info.event.extendedProps.program;
+        const courseType = info.event.extendedProps.courseType;
+        const section = info.event.extendedProps.section;
+        const room = info.event.extendedProps.room;
+        const level = info.event.extendedProps.level;
+        const faculty = info.event.extendedProps.faculty
+          ? info.event.extendedProps.faculty
+          : "";
+
+        titleEl.innerHTML = `${course} (${courseType.toUpperCase()}) <br> ${program} (${level} - ${section}) <br> ${room} <br> ${faculty}`;
+        Toast.fire({ icon: "success", title: "Successfully Edited" });
       })
       .catch((error) => {
+        Toast.fire({ icon: "warning", title: "Something Went Wrong" });
         console.log(error);
       });
   },
@@ -175,15 +269,36 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
                   });
                 }
                 info.event.remove();
+                console.log(result.data);
+                const card = $("<div></div>");
+                card.addClass("card mb-1");
+                const item = $("<li></li>");
+                item.addClass("list-group-item fc-event");
+                item.attr({
+                  id: result.data._id,
+                  hour: result.data.hour,
+                  course: result.data.course.course_code,
+                  program: result.data.program.program_code,
+                  section: result.data.section_name,
+                  // room: element.room.room_name,
+                  courseType: result.data.type,
+                  level: result.data.level.level,
+                });
+                item.html(result.data.course.course_description);
+                card.append(item);
+                if (result.data.type == "lab" && result.data.day == null) {
+                  item.addClass("lab-event");
+                  $("#external-events #labList").append(card);
+                }
                 if (result.data.type == "lab") {
-                  $("#external-events #labList").append(
-                    `<li class="list-group-item fc-event" hour="${result.data.hour}" id="${result.data._id}">${result.data.course.course_description}</li>`
-                  );
+                  item.addClass("lab-event");
+
+                  $("#external-events #labList").append(card);
                 }
                 if (result.data.type == "lecture") {
-                  $("#external-events #lectureList").append(
-                    `<li class="list-group-item fc-event" hour="${result.data.hour}" id="${result.data._id}">${result.data.course.course_description}</li>`
-                  );
+                  item.addClass("lab-event");
+
+                  $("#external-events #labList").append(card);
                 }
                 Toast.fire({ icon: "success", title: "Successfully removed" });
               }
@@ -196,41 +311,24 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
         console.log(error);
       });
   },
+  eventDidMount: function (info) {
+    const titleEl = info.el.querySelector(".fc-event-title");
+    const timeEl = info.el.querySelector(".fc-event-time");
+    info.el.style.textAlign = "center";
+
+    const course = info.event.extendedProps.course;
+    const program = info.event.extendedProps.program;
+    const courseType = info.event.extendedProps.courseType;
+    const section = info.event.extendedProps.section;
+    const room = info.event.extendedProps.room;
+    const level = info.event.extendedProps.level;
+    const faculty = info.event.extendedProps.faculty
+      ? info.event.extendedProps.faculty
+      : "";
+
+    titleEl.innerHTML = `${course} (${courseType.toUpperCase()}) <br> ${program} (${level} - ${section}) <br> ${room} <br> ${faculty}`;
+  },
 });
-
-let draggable;
-
-// Buttons
-const scheduleSubmitButton = $("#schedule-form #submit");
-let assignSubmitButton;
-console.log(semester);
-let scheduleModal;
-
-// Tables
-const scheduleTable = $("#scheduleTable");
-
-fetch("/api/curriculums/programs/" + semester)
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    if (!result.ok) {
-      return;
-    }
-    result.data.forEach((element) => {
-      scheduleProgramForm.append(
-        new Option(element.program.program_name.toUpperCase(), element._id)
-      );
-    });
-    scheduleYearLevelForm.val("");
-    scheduleYearLevelForm.attr("disabled", true);
-    scheduleProgramForm.val("");
-    scheduleProgramForm.attr("disabled", false);
-    scheduleSubmitButton.addClass("d-none");
-  })
-  .catch((error) => {
-    console.log(error);
-  });
 
 scheduleProgramForm.on("change", () => {
   scheduleSubmitButton.addClass("d-none");
@@ -244,6 +342,7 @@ scheduleProgramForm.on("change", () => {
       return response.json();
     })
     .then((result) => {
+      $("#scheduleContent").addClass("d-none");
       if (!result.ok) {
         return;
       }
@@ -269,15 +368,22 @@ scheduleYearLevelForm.on("change", () => {
       return response.json();
     })
     .then((result) => {
+      $("#scheduleContent").addClass("d-none");
       if (!result.ok) {
         return;
       }
-      result.data.forEach((element) => {
-        scheduleSectionForm.append(
-          new Option(element.section.toUpperCase(), element._id)
-        );
+      if (result.data.length !== 0) {
+        result.data.forEach((element) => {
+          scheduleSectionForm.append(
+            new Option(element.section.toUpperCase(), element._id)
+          );
+        });
+        return scheduleSectionForm.attr("disabled", false);
+      }
+      Toast.fire({
+        title: "No Section Found!",
+        icon: "warning",
       });
-      scheduleSectionForm.attr("disabled", false);
     })
     .catch((error) => {
       console.log(error);
@@ -289,12 +395,11 @@ scheduleSectionForm.on("change", () => {
   events.forEach((element) => {
     element.remove();
   });
-  $("#facultyLink").attr(
-    "href",
-    `/admin/schedules/faculty/${semester}`
-  );
-  if ($("#roomForm").val() != null) {
-    fetch("/api/schedules/room/" + $("#roomForm").val())
+  $("#roomForm").val("").trigger("change");
+  $("#facultyLink").attr("href", `/admin/schedules/faculty/${semester}`);
+  console.log($("#roomForm").val());
+  if ($("#roomForm").val() != "") {
+    fetch("/api/schedules/room/" + semester + "/" + $("#roomForm").val())
       .then((response) => {
         return response.json();
       })
@@ -305,11 +410,15 @@ scheduleSectionForm.on("change", () => {
         }
         result.data.forEach((element) => {
           const days = ["m", "t", "w", "th", "f", "s"];
-
           if (element.section != scheduleSectionForm.val()) {
             calendar.addEvent({
               id: element._id,
-              title: `${element.course.course_description} (${element.program.program_code}${element.section_name}) - ${element.room.room_name}`,
+              course: element.course.course_code,
+              program: element.program.program_code,
+              section: element.section_name,
+              room: element.room.room_name,
+              level: element.level.level,
+              courseType: element.type,
               daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
               startTime: element.start_time,
               endTime: element.end_time,
@@ -329,28 +438,48 @@ scheduleSectionForm.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      console.log("ito", result);
       if (!result.ok) {
         return;
       }
       $("#external-events #lectureList").empty();
       $("#external-events #labList").empty();
+
       result.data.forEach((element) => {
+        console.log(element);
+        const card = $("<div></div>");
+        card.addClass("card mb-1");
+        const item = $("<li></li>");
+        item.addClass("list-group-item fc-event");
+        item.attr({
+          id: element._id,
+          hour: element.hour,
+          course: element.course.course_code,
+          program: element.program.program_code,
+          section: element.section_name,
+          // room: element.room.room_name,
+          courseType: element.type,
+          level: element.level.level,
+        });
+        item.html(element.course.course_description);
+        card.append(item);
         if (element.type == "lab" && element.day == null) {
-          $("#external-events #labList").append(
-            `<li class="list-group-item fc-event" hour="${element.hour}" id="${element._id}">${element.course.course_description}</li>`
-          );
+          item.addClass("lab-event");
+          $("#external-events #labList").append(card);
         }
         if (element.type == "lecture" && element.day == null) {
-          $("#external-events #lectureList").append(
-            `<li class="list-group-item fc-event" hour="${element.hour}" id="${element._id}">${element.course.course_description}</li>`
-          );
+          item.addClass("lecture-event");
+          $("#external-events #lectureList").append(card);
         }
         if (element.day != null) {
           const days = ["m", "t", "w", "th", "f", "s"];
           calendar.addEvent({
             id: element._id,
-            title: `${element.course.course_description} (${element.program.program_code}${element.section_name}) - ${element.room.room_name}`,
+            course: element.course.course_code,
+            program: element.program.program_code,
+            section: element.section_name,
+            room: element.room.room_name,
+            courseType: element.type,
+            level: element.level.level,
             daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
             startTime: element.start_time,
             endTime: element.end_time,
@@ -360,6 +489,7 @@ scheduleSectionForm.on("change", () => {
           });
         }
       });
+
       $("#scheduleContent").removeClass("d-none");
       calendar.render();
     });
@@ -374,16 +504,35 @@ fetch("/api/rooms")
       return;
     }
     result.data.forEach((element) => {
-      $("#roomForm").append(
-        new Option(element.room_name.toUpperCase(), element._id)
-      );
+      const roomName = element.room_name;
+      $("#roomForm").select2({
+        placeholder: "Select a Room",
+        width: "100%", // need to override the changed default
+      });
+      if (element.laboratory) {
+        $("#optLab").append(new Option(roomName, element._id));
+      } else {
+        $("#optLecture").append(new Option(roomName, element._id));
+      }
     });
   });
 
-scheduleSubmitButton.on("click", () => {});
-
 $("#roomForm").on("change", () => {
-  fetch("/api/schedules/room/" + $("#roomForm").val())
+  if ($("#roomForm").val() === "") {
+    return;
+  }
+
+  console.log($("#roomForm").val());
+  fetch("/api/rooms/" + $("#roomForm").val())
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      isLaboratorySelect = result.data.laboratory;
+      return fetch(
+        "/api/schedules/room/" + semester + "/" + $("#roomForm").val()
+      );
+    })
     .then((response) => {
       return response.json();
     })
@@ -397,14 +546,17 @@ $("#roomForm").on("change", () => {
           element.remove();
         }
       });
-      console.log(result.data);
       result.data.forEach((element) => {
         const days = ["m", "t", "w", "th", "f", "s"];
-
         if (element.section != scheduleSectionForm.val()) {
           calendar.addEvent({
             id: element._id,
-            title: `${element.course.course_description} (${element.program.program_code}${element.section_name}) - ${element.room.room_name}`,
+            course: element.course.course_code,
+            program: element.program.program_code,
+            section: element.section_name,
+            room: element.room.room_name,
+            level: element.level.level,
+            courseType: element.type,
             daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
             startTime: element.start_time,
             endTime: element.end_time,
@@ -417,9 +569,20 @@ $("#roomForm").on("change", () => {
       if (draggable) {
         draggable.destroy();
       }
-      var Draggable = FullCalendar.Draggable;
+      let Draggable = FullCalendar.Draggable;
+      $(".fc-event").removeClass("bg-primary text-light");
+      $(".fc-event").css("cursor", "default");
+      if (isLaboratorySelect) {
+        selector = ".lab-event";
+        $(".lab-event").addClass("bg-primary text-light");
+        $(".lab-event").css("cursor", "move");
+      } else {
+        selector = ".lecture-event";
+        $(".lecture-event").addClass("bg-primary text-light");
+        $(".lecture-event").css("cursor", "move");
+      }
       draggable = new Draggable(document.getElementById("external-events"), {
-        itemSelector: ".fc-event",
+        itemSelector: selector,
         eventData: function (info) {
           return {
             title: `${info.innerText} (${$(
@@ -429,6 +592,12 @@ $("#roomForm").on("change", () => {
             editable: true,
             current: true,
             overlap: false,
+            course: info.getAttribute("course"),
+            program: info.getAttribute("program"),
+            section: info.getAttribute("section"),
+            room: $("#roomForm").find(":selected").text(),
+            level: info.getAttribute("level"),
+            courseType: info.getAttribute("courseType"),
             id: info.getAttribute("id"),
           };
         },

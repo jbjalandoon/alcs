@@ -1,4 +1,4 @@
-const programTable = $("#programTable").DataTable({
+const table = $("#programTable").DataTable({
   oLanguage: {
     sEmptyTable: `<div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -8,7 +8,131 @@ const programTable = $("#programTable").DataTable({
 const csrf = $("#csrf").val();
 const uploadModal = new bootstrap.Modal($("#uploadModal"));
 
-const editData = (id, element) => {};
+const addModal = new bootstrap.Modal($("#addModal"));
+const editModal = new bootstrap.Modal($("#editModal"));
+
+fetch("/api/programs", {
+  method: "GET",
+})
+  .then((response) => {
+    return response.json();
+  })
+  .then((programs) => {
+    programs.data.forEach((element) => {
+      table.row
+        .add([
+          element.programCode.toUpperCase(),
+          element.programName.toUpperCase(),
+          actionButton(element._id),
+        ])
+        .draw();
+    });
+    displayToast(programs);
+  })
+  .catch((error) => {
+    console.log(error);
+    Toast.fire({
+      icon: "warning",
+      title: "Something Went Wrong",
+    });
+  });
+
+$(addModal._element).on("show.bs.modal", (event) => {
+  const programName = $(event.currentTarget).find("#programName");
+  const programCode = $(event.currentTarget).find("#programCode");
+  const button = $(event.currentTarget).find("#addButton");
+  button.off("click");
+  removeValidationError([programName, programCode]);
+  programName.val("");
+  programCode.val("");
+  button.on("click", () => {
+    fetch("/api/programs", {
+      method: "POST",
+      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        programName: programName.val().toLowerCase(),
+        programCode: programCode.val().toLowerCase(),
+      }),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        console.log(result);
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        addModal.hide();
+        table.row
+          .add([
+            result.data.programCode.toUpperCase(),
+            result.data.programName.toUpperCase(),
+            actionButton(result.data._id),
+          ])
+          .draw();
+        return displayToast(result);
+      })
+      .catch((error) => {
+        console.log(error);
+        displayToast(error);
+      });
+  });
+});
+
+$(editModal._element).on("show.bs.modal", (event) => {
+  const programCode = $(event.currentTarget).find("#programCode");
+  const programName = $(event.currentTarget).find("#programName");
+  const id = $(event.relatedTarget).attr("data-bs-id");
+  const button = $(event.currentTarget).find("#editButton");
+  button.off("click");
+  removeValidationError([programCode, programName]);
+  fetch("/api/programs/" + id)
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      programCode.val(result.data.programCode);
+      programName.val(result.data.programName);
+      button.on("click", () => {
+        fetch("/api/programs/" + id, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            programCode: programCode.val().toLowerCase(),
+            programName: programName.val().toLowerCase(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (result.errors) {
+              displayValidationError(result.errors, event.currentTarget);
+              return displayToast(result);
+            }
+            editModal.hide();
+            table
+              .row($(event.relatedTarget).closest("tr"))
+              .data([
+                result.data.programCode.toUpperCase(),
+                result.data.programName.toUpperCase(),
+                actionButton(result.data._id),
+              ])
+              .draw();
+            return displayToast(result);
+          })
+          .catch((error) => {
+            console.log(error);
+            return displayToast(error);
+          });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      return displayToast(error);
+    });
+});
 
 const deleteData = (id, element) => {
   Swal.fire({
@@ -33,110 +157,20 @@ const deleteData = (id, element) => {
           console.log(error);
         });
     },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      if (!result.value.ok) {
-        return Toast.fire({
-          icon: "warning",
-          title: "Something Went Wrong!",
-        });
-      }
-      programTable.row(element.closest("tr")).remove().draw();
-      Toast.fire({
-        icon: "success",
-        title: "Successfully Deleted",
-      });
-    }
-  });
-};
-
-let formModal = new bootstrap.Modal($("#editModal"));
-let addModal = new bootstrap.Modal($("#addModal"));
-let modalElement = $(formModal._element);
-let button;
-let id;
-let modalTitle;
-let programCode;
-let programName;
-let editButton;
-
-modalElement.on("show.bs.modal", (event) => {
-  button = event.relatedTarget;
-  id = button.getAttribute("data-bs-id");
-  modalTitle = modalElement.find(".modal-title");
-  programCode = modalElement.find(".modal-body #program-code");
-  programName = modalElement.find(".modal-body #program-name");
-  editButton = modalElement.find("#edit-button");
-  programCode.removeClass("is-invalid").val('');
-  programName.removeClass("is-invalid").val('');
-  fetch("/api/programs/" + id, {
-    method: "GET",
   })
-    .then((response) => {
-      return response.json();
-    })
-    .then((program) => {
-      if (!program.ok) {
-        Toast.fire({ icon: "warning", title: "Failed to Fetch Data" });
-      }
-      programCode.val(program.data.program_code);
-      programName.val(program.data.program_name);
-    });
-});
-
-$("#edit-button").on("click", () => {
-  programCode.removeClass("is-invalid");
-  programName.removeClass("is-invalid");
-  fetch("/api/programs/" + id, {
-    method: "PUT",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `program_code=${programCode.val()}&program_name=${programName.val()}`,
-  })
-    .then((response) => {
-      return response.json();
-    })
     .then((result) => {
-      if (result.errors) {
-        programCode
-          .addClass(result.errors.program_code ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.program_code.msg);
-        programName
-          .addClass(result.errors.program_name ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.program_name.msg);
-        return;
-      }
-      if (!result.ok) {
-        return Toast.fire({
-          icon: "warning",
-          title: "Something Went Wrong!",
+      if (result.isConfirmed) {
+        table.row(element.closest("tr")).remove().draw();
+        Toast.fire({
+          icon: "success",
+          title: "Successfully Deleted",
         });
       }
-      formModal.hide();
-      Toast.fire({
-        icon: "success",
-        title: "Successfuly Edited",
-      });
-      button.closest("tr").innerHTML = `
-        <td>${programCode.val()}</td>
-        <td>${programName.val()}</td>
-        <td>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${id}">Edit</button>
-          <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${id}', this)">Delete</button>
-        </td>
-      `;
     })
     .catch((error) => {
-      Toast.fire({
-        icon: "warning",
-        title: "Something Went Wrong!",
-      });
+      console.log(error);
     });
-});
+};
 
 $("#uploadButton").on("click", () => {
   const body = new FormData(document.getElementById("uploadForm"));
@@ -173,89 +207,3 @@ $("#uploadButton").on("click", () => {
       console.log(error);
     });
 });
-
-$("#add-button").on("click", () => {
-  programCode = $("#addForm div #program-code");
-  programName = $("#addForm div #program-name");
-  programCode.removeClass("is-invalid");
-  programName.removeClass("is-invalid");
-  fetch("/api/programs/", {
-    method: "POST",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `program_code=${programCode.val()}&program_name=${programName.val()}`,
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        programCode
-          .addClass(result.errors.program_code ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.program_code.msg);
-        programName
-          .addClass(result.errors.program_name ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.program_name.msg);
-        return;
-      }
-      addModal.hide();
-      programCode.removeClass("is-invalid").val("");
-      programName.removeClass("is-invalid").val("");
-      programTable.row
-        .add([
-          result.data.program_code,
-          result.data.program_name,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${result.data._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
-            `,
-        ])
-        .draw();
-      Toast.fire({ icon: "success", title: "Sucessfuly added new record" });
-    })
-    .catch((error) => {
-      Toast.fire({ icon: "warning", title: "Something Went Wrong!" });
-    });
-});
-
-fetch("/api/programs", {
-  method: "GET",
-})
-  .then((response) => {
-    return response.json();
-  })
-  .then((programs) => {
-    if (!programs.ok) {
-      return Toast.fire({
-        icon: "warning",
-        title: "Something Went Wrong!",
-      });
-    } else {
-      programs.data.forEach((element) => {
-        programTable.row
-          .add([
-            element.program_code,
-            element.program_name,
-            `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
-            `,
-          ])
-          .draw();
-      });
-      Toast.fire({
-        icon: "success",
-        title: "Data Loading is Successful",
-      });
-    }
-  })
-  .catch((error) => {
-    Toast.fire({
-      icon: "warning",
-      title: "Something Went Wrong",
-    });
-  });

@@ -1,14 +1,17 @@
-const sem = $("#sem").val();
+let sem = $("#sem").val();
 const csrf = $("#csrf").val();
 const faculty = $("#faculty");
 
-let totalUnit;
+let totalUnit,
+  preferredSchedule,
+  tags = [];
 
 let unavailableTime = [];
 
 const courseSearch = $("#courseSearch");
-const calendarEl = document.getElementById("calendar");
-const calendar = new FullCalendar.Calendar(calendarEl, {
+const calendarContainer = document.querySelector("#calendar-container");
+let calendar;
+const config = {
   allDaySlot: false,
   hiddenDays: [0],
   height: "auto",
@@ -78,9 +81,9 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
                 if (!clicked.value.ok) {
                   return alert("not ok ");
                 }
+                console.log(info.event);
+                console.log(document.querySelectorAll(".add-button"));
                 info.event.remove();
-                console.log(result);
-                // console.log(result.data.course._id)
                 if (result.data.course._id == courseSearch.val()) {
                   if (result.data.type == "lecture") {
                     $("#lectureList").append(`
@@ -158,9 +161,23 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         });
       });
   },
-});
+};
 
-fetch("/api/faculty")
+fetch("/api/curriculums/active")
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    if (result.data.length === 0) {
+      return Toast.fire({
+        icon: "warning",
+        title: "There is no current active semester",
+      });
+    }
+
+    sem = result.data[0].semesters._id;
+    return fetch("/api/faculty");
+  })
   .then((response) => {
     return response.json();
   })
@@ -168,6 +185,7 @@ fetch("/api/faculty")
     if (!result.ok) {
       return;
     }
+
     result.data.forEach((element) => {
       faculty.append(
         new Option(
@@ -189,7 +207,7 @@ fetch("/api/faculty")
     $("#facultySelect").removeClass("d-none");
   })
   .catch((error) => {
-    Toast.fire({ icon: "error", title: "Something went wrong" });
+    // Toast.fire({ icon: "error", title: "Something went wrong" });
     console.log(error);
   });
 
@@ -203,15 +221,53 @@ faculty.on("change", () => {
   $("#courses").addClass("d-none");
   $("#calendar").addClass("d-none");
   totalUnit = 0;
-  fetch(`/api/schedules/faculty/${sem}/${faculty.val()}`)
+  unavailableTime.length = 0;
+  fetch("/api/faculty/" + faculty.val())
     .then((response) => {
       return response.json();
     })
     .then((result) => {
+      console.log();
+      tags = [];
+      preferredSchedule = result.data.userInformation.schedulePreference;
+      // result.data.userInformation.degrees.forEach((element) => {
+      //   tags.push(...element.tags);
+      // });
+      console.log("tags", tags);
+      return fetch(`/api/schedules/faculty/${sem}/${faculty.val()}`);
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      calendarContainer.innerHTML = "";
+      const newCalendar = document.createElement("div");
+      calendarContainer.append(newCalendar);
+      calendar = new FullCalendar.Calendar(newCalendar, config);
       const days = ["m", "t", "w", "th", "f", "s", null];
+      const classes = [
+        ".fc-day-mon",
+        ".fc-day-tue",
+        ".fc-day-wed",
+        ".fc-day-thu",
+        ".fc-day-fri",
+        ".fc-day-sat",
+      ];
       if (!result.ok) {
         return;
       }
+      preferredSchedule.forEach((element) => {
+        let className;
+        if (element == "m") className = ".fc-day-mon";
+        if (element == "t") className = ".fc-day-tue";
+        if (element == "w") className = ".fc-day-wed";
+        if (element == "th") className = ".fc-day-thu";
+        if (element == "f") className = ".fc-day-fri";
+        if (element == "s") className = ".fc-day-sat";
+        const index = classes.indexOf(className);
+        if (index >= 0) classes.splice(index, 1);
+      });
+
       calendar.getEvents().forEach((element) => {
         element.remove();
       });
@@ -248,49 +304,51 @@ faculty.on("change", () => {
       $("#loadingCalendar").addClass("d-none");
       $("#calendar").removeClass("d-none");
       calendar.render();
+      console.log(classes);
+      classes.forEach((element) => {
+        newCalendar
+          .querySelector(element)
+          .style.setProperty("background-color", "#ffc107", "important");
+      });
+      return fetch(`/api/schedules/assignable-course/${sem}/${faculty.val()}`)
+        .then((response) => {
+          return response.json();
+        })
+        .then((result) => {
+          if (!result.ok) {
+            return;
+          }
+          $(".MyDripdowns").each(function (i, obj) {
+            if (!$(obj).data("select2")) {
+              $("#courseSearch").select2("destroy");
+            }
+          });
+          courseSearch.val("").find("option").not(":first").remove();
+          result.data.forEach((element) => {
+            courseSearch.append(
+              new Option(
+                element.course.course_description.toUpperCase() +
+                  " - " +
+                  element.count,
+                element._id
+              )
+            );
+          });
+          $("#loadingCourse").addClass("d-none");
+          $("#courses").removeClass("d-none");
+          courseSearch.select2({
+            width: "100%",
+          });
+        });
     })
     .catch((error) => {
       console.log(error);
-    });
-
-  fetch(`/api/schedules/assignable-course/${sem}`)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        return;
-      }
-      $(".MyDripdowns").each(function (i, obj) {
-        if (!$(obj).data("select2")) {
-          $("#courseSearch").select2("destroy");
-        }
-      });
-      courseSearch.val("").find("option").not(":first").remove();
-      result.data.forEach((element) => {
-        courseSearch.append(
-          new Option(
-            element.course.course_description.toUpperCase() +
-              " - " +
-              element.count,
-            element._id
-          )
-        );
-      });
-      $("#loadingCourse").addClass("d-none");
-      $("#courses").removeClass("d-none");
-      courseSearch.select2({
-        width: "100%",
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      Toast.fire({ icon: "error", title: "Something went wrong" });
     });
 });
 
 courseSearch.on("change", () => {
-  unavailableTime.length = 0;
+  // unavailableTime.length = 0;
+  console.log("test", unavailableTime);
   $("#loadingList").removeClass("d-none");
   $("#list").addClass("d-none");
   fetch(`/api/schedules?sem=${sem}&course=${courseSearch.val()}`)
@@ -298,7 +356,6 @@ courseSearch.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
       const days = ["m", "t", "w", "th", "f", "s", null];
       if (!result.ok) {
         return;
@@ -326,8 +383,9 @@ courseSearch.on("change", () => {
             element.end_time.split(":")[1]
           )
         );
+        console.log(element.day);
         for (let i = 0; i < unavailableTime.length; i++) {
-          if (unavailableTime[i].day === element.day) {
+          if (unavailableTime[i].day == element.day) {
             if (unavailableTime[i].range.overlaps(currentRange)) {
               overlap = true;
               buttonBg = "bg-danger";
@@ -383,7 +441,7 @@ courseSearch.on("change", () => {
                 room: element.room.room_name,
                 course: element.course.course_description,
               })
-              .click(assignFaculty)
+              .on("click", assignFaculty)
               .append(
                 $(document.createElement("span"))
                   .addClass("badge rounded-pill " + buttonBg)
@@ -484,8 +542,90 @@ const assignFaculty = (element) => {
       },
     });
   }
-  console.log($(".btn-assign"));
 
+  if (!preferredSchedule.includes(button.attr("day"))) {
+    return Swal.fire({
+      icon: "warning",
+      title: "Warning",
+      text: "This schedule is marked as dayoff of the faculty member, you want to continue?",
+      confirmButtonText: "Confirm",
+      showCancelButton: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        return fetch(`/api/schedules/assign/${button.attr("id")}`, {
+          method: "PUT",
+          headers: {
+            "csrf-token": csrf,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ faculty: faculty.val() }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (!result.ok) {
+              return;
+            }
+            calendar.addEvent({
+              id: button.attr("id"),
+              title: `${button.attr("course")} (${button.attr(
+                "program"
+              )}${button.attr("section")}) - ${button.attr("room")}`,
+              daysOfWeek: [(days.indexOf(button.attr("day")) + 1).toString()],
+              startTime: button.attr("start"),
+              endTime: button.attr("end"),
+              overlap: false,
+              editabe: false,
+            });
+            const count = button.parent().siblings().length;
+            if (count == 0) {
+              button.parent().parent().append(`<h5>Nothing to work here</h5>`);
+            }
+            if (
+              button.parent().parent().parent().attr("id") == "lecture-tab-pane"
+            ) {
+              $("#lecture-tab").html(`Lecture (${count})`);
+            } else {
+              $("#lab-tab").html(`Lab (${count})`);
+            }
+            button.parent().remove();
+            $(".btn-assign").each((index, element) => {
+              const currentRange = moment.range(
+                new Date(
+                  0,
+                  0,
+                  0,
+                  $(element).attr("start").split(":")[0],
+                  $(element).attr("start").split(":")[1]
+                ),
+                new Date(
+                  0,
+                  0,
+                  0,
+                  $(element).attr("end").split(":")[0],
+                  $(element).attr("start").split(":")[1]
+                )
+              );
+              if (
+                currentRange.overlaps(range1) &&
+                $(element).attr("day") === day
+              ) {
+                $(element)
+                  .children("span")
+                  .removeClass("bg-primary")
+                  .addClass("bg-danger");
+              }
+            });
+            Toast.fire({ icon: "success", title: "Successfully Assigned" });
+          })
+          .catch((error) => {
+            console.log(error);
+            Toast.fire({ icon: "error", title: "Something went wrong" });
+          });
+      }
+    });
+  }
   fetch(`/api/schedules/assign/${button.attr("id")}`, {
     method: "PUT",
     headers: {

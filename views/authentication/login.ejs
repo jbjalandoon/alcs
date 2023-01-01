@@ -28,7 +28,10 @@
               <div class="form-group d-flex">
                 <input type="password" name="password" class="form-control rounded-left" placeholder="Password" required>
               </div>
-              <div class="form-group d-md-flex">
+              <div class="alert alert-danger d-none" role="alert" id="alert">
+                Email or Password is incorrect.
+              </div>
+              <!-- <div class="form-group d-md-flex">
                 <div class="w-50">
                   <label class="checkbox-wrap checkbox-primary">Remember Me
                     <input type="checkbox" checked>
@@ -38,7 +41,7 @@
                 <div class="w-50 text-md-right">
                   <a href="#">Forgot Password</a>
                 </div>
-              </div>
+              </div> -->
               <div class="form-group">
                 <input type="hidden" name="_csrf" value="<%= csrf %>">
                 <input type="hidden" name="landing" value="<%= landing %>">
@@ -51,10 +54,16 @@
     </div>
   </section>
 
-  <script src="js/jquery.min.js"></script>
-  <script src="js/popper.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/main.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+  <!-- <script src="js/popper.js"></script>
+  <script src="js/bootstrap.min.js"></script> -->
+  <script>
+    const searchParams = new URLSearchParams(window.location.search)
+    if (searchParams.has('valid')) {
+      $('#alert').removeClass('d-none')
+    }
+  </script>
+  <!-- <script src="js/main.js"></script> -->
 
 </body>
 

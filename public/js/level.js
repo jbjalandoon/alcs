@@ -1,4 +1,4 @@
-const levelTable = $("#levelTable").DataTable({
+const table = $("#levelTable").DataTable({
   oLanguage: {
     sEmptyTable: `<div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -10,137 +10,123 @@ const csrf = $("#csrf").val();
 // let editModal = new bootstrap.Modal($("#editModal"));
 const addModal = new bootstrap.Modal($("#addModal"));
 const editModal = new bootstrap.Modal($("#editModal"));
-const modalElement = $(editModal._element);
-let year_level;
-let id;
-let button;
+
 fetch("/api/levels")
   .then((response) => {
     return response.json();
   })
   .then((level) => {
-    console.log(level);
-    if (!level.ok) {
-      Toast.fire({ icon: "warning", title: "Something went Wrong!" });
-      return;
-    }
     level.data.forEach((element) => {
-      levelTable.row
+      table.row
         .add([
-          element.level,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
-          `,
+          element.yearLevel.toUpperCase(),
+          element.display.toUpperCase(),
+          actionButton(element._id),
         ])
         .draw();
     });
-    Toast.fire({ icon: "success", title: "Data successfuly loaded" });
   })
   .catch((error) => {
     console.log(error);
-    Toast.fire({ icon: "warning", title: "Something Went Wrong!" });
+    displayToast(error);
   });
 
-modalElement.on("show.bs.modal", (event) => {
-  button = event.relatedTarget;
-  id = button.getAttribute("data-bs-id");
-  yearLevel = modalElement.find(".modal-body #year-level");
-  editButton = modalElement.find("#edit-button");
-  yearLevel.removeClass("is-invalid").val("");
-  fetch("/api/levels/" + id, {
-    method: "GET",
-  })
-    .then((response) => {
-      return response.json();
+$(addModal._element).on("show.bs.modal", (event) => {
+  const yearLevel = $(event.currentTarget).find("#yearLevel");
+  const display = $(event.currentTarget).find("#display");
+  const button = $(event.currentTarget).find("#addButton");
+  button.off("click");
+  removeValidationError([display, yearLevel]);
+  yearLevel.val("");
+  display.val("");
+  button.on("click", () => {
+    console.log(yearLevel.val());
+    fetch("/api/levels", {
+      method: "POST",
+      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        yearLevel: yearLevel.val().toLowerCase(),
+        display: display.val().toLowerCase(),
+      }),
     })
-    .then((level) => {
-      if (!level.ok) {
-        Toast.fire({ icon: "warning", title: "Failed to Fetch Data" });
-      }
-      yearLevel.val(level.data.level);
-    })
-    .catch((error) => {
-      console.log(error);
-      Toast.fire({ icon: "warning", title: "Failed to Fetch Data" });
-    });
-});
-
-$("#edit-button").on("click", () => {
-  yearLevel.removeClass("is-invalid");
-  fetch("/api/levels/" + id, {
-    method: "PUT",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `year_level=${yearLevel.val()}`,
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        yearLevel
-          .addClass(result.errors.year_level ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.year_level.msg);
-        Toast.fire({ icon: "warning", title: "Something went wrong" });
-        return;
-      }
-      editModal.hide();
-      Toast.fire({
-        icon: "success",
-        title: "Successfuly Edited",
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        console.log(result);
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        addModal.hide();
+        console.log(result);
+        table.row
+          .add([
+            result.data.yearLevel.toUpperCase(),
+            result.data.display.toUpperCase(),
+            actionButton(result.data._id),
+          ])
+          .draw();
+        return displayToast(result);
+      })
+      .catch((error) => {
+        console.log(error);
+        displayToast(error);
       });
-      button.closest("tr").innerHTML = `
-        <td>${yearLevel.val()}</td>
-        <td>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${id}">Edit</button>
-          <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${id}', this)">Delete</button>
-        </td>
-      `;
-    });
+  });
 });
 
-$("#add-button").on("click", () => {
-  year_level = $("#addForm div #year_level");
-  fetch("/api/levels", {
-    method: "POST",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `year_level=${year_level.val()}`,
-  })
+$(editModal._element).on("show.bs.modal", (event) => {
+  const id = $(event.relatedTarget).attr("data-bs-id");
+  const yearLevel = $(event.currentTarget).find("#yearLevel");
+  const display = $(event.currentTarget).find("#display");
+  const button = $(event.currentTarget).find("#editButton");
+  button.off("click");
+  fetch("/api/levels/" + id)
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        year_level
-          .addClass("is-invalid")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.year_level.msg);
-        Toast.fire({ icon: "warning", title: "Something went wrong" });
-        return;
-      }
-      year_level.removeClass("is-invalid").val("");
-      addModal.hide();
-      levelTable.row
-        .add([
-          result.data.level,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${result.data._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
-          `,
-        ])
-        .draw();
-      Toast.fire({ icon: "success", title: "Successfully added" });
+      yearLevel.val(result.data.yearLevel);
+      display.val(result.data.display);
+      removeValidationError([yearLevel, display]);
+      button.on("click", () => {
+        fetch("/api/levels/" + id, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            yearLevel: yearLevel.val().toLowerCase(),
+            display: display.val().toLowerCase(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (result.errors) {
+              displayValidationError(result.errors, event.currentTarget);
+              return displayToast(result);
+            }
+            editModal.hide();
+            table
+              .row($(event.relatedTarget).closest("tr"))
+              .data([
+                result.data.yearLevel.toUpperCase(),
+                result.data.display.toUpperCase(),
+                actionButton(result.data._id),
+              ])
+              .draw();
+            return displayToast(result);
+          })
+          .catch((error) => {
+            console.log(error);
+            displayToast(error);
+          });
+      });
     })
     .catch((error) => {
       console.log(error);
-      Toast.fire({ icon: "warning", title: "Something went wrong" });
+      displayToast(error);
     });
 });
 
@@ -175,7 +161,7 @@ const deleteData = (id, element) => {
           title: "Something Went Wrong!",
         });
       }
-      levelTable.row(element.closest("tr")).remove().draw();
+      table.row(element.closest("tr")).remove().draw();
       Toast.fire({
         icon: "success",
         title: "Successfully Deleted",

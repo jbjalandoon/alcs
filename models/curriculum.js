@@ -1,5 +1,4 @@
 const { default: mongoose } = require("mongoose");
-const monmgoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
@@ -13,6 +12,10 @@ const CurriculumSchema = new Schema({
     {
       sem: {
         type: String,
+      },
+      isActive: {
+        type: Boolean,
+        default: true,
       },
       programs: [
         {
@@ -31,6 +34,10 @@ const CurriculumSchema = new Schema({
                   section: { type: String, required: true },
                   schedules: [
                     {
+                      // _id: {
+                      //   type: String,
+                      //   default: () => nanoid(),
+                      // },
                       course: {
                         type: mongoose.Types.ObjectId,
                         ref: "Course",

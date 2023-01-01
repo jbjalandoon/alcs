@@ -1,0 +1,125 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container-fluid mt-3">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE COURSE/S</strong>
+        <div class="float-end">
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            Upload Spreadsheet
+          </button>
+          <button type="button" class="btn btn-sm btn-primary " data-bs-toggle="modal" data-bs-target="#addModal">
+            Add New Course
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="qualificationTable" class="table table-striped datatables" style="width:100%">
+            <thead>
+              <tr>
+                <th width="10%">Academic Qualification</th>
+                <th width="30%">Professional License & Industry Qualification</th>
+                <th width="10%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadModalLabel">Upload Spreadsheet</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="uploadForm">
+            <div class="mb-3">
+              <label for="spreadsheet" class="col-form-label">Insert File:</label>
+              <input type="file" name="spreadsheet" class="form-control" id="spreadsheet">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="uploadButton" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new Academic Qualification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="academicQualification" class="form-label">Academic Qualification</label>
+              <input type="text" class="form-control" placeholder="CS" id="academicQualification">
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="mb-3">
+              <label for="licenseIndustry" class="form-label">Professional License & Industry Qualification</label>
+              <select id="licenseIndustry" class="form-select" multiple>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="needs-validation">
+            <div class="mb-3">
+              <label for="academicQualification" class="form-label">Academic Qualification</label>
+              <input type="text" class="form-control" placeholder="CS" id="academicQualification">
+            </div>
+            <div class="mb-3">
+              <label for="licenseIndustry" class="form-label">Professional License & Industry Qualification</label>
+              <select id="licenseIndustry" class="form-select" multiple>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/aq.js"></script>
+</body>
+
+</html>

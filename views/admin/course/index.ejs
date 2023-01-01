@@ -21,16 +21,21 @@
           <table id="courseTable" class="table table-striped datatables" style="width:100%">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Lecture</th>
-                <th>Lab</th>
-                <th>Units</th>
-                <th>Actions</th>
+                <th class='text-center' width="10%">Course Code</th>
+                <th class='text-center' width="25%">Course Title</th>
+                <th class='text-center' width="3%">Lecture</th>
+                <th class='text-center' width="3%">Lab</th>
+                <th class='text-center' width="3%">Units</th>
+                <th class='text-center' width="15%">Academic Qualification</th>
+                <th class='text-center' width="3%">Years of Experience Required</th>
+                <th class='text-center' width="3%">Degree Required</th>
+                <th class='text-center' width="20%">Required Professional License and Industry Qualification
+                </th>
+                <th class='text-center' width="15%">Actions</th>
               </tr>
             </thead>
             <tbody>
-  
+
             </tbody>
           </table>
         </div>
@@ -46,25 +51,25 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-         <form id="uploadForm">
-          <div class="mb-3">
-            <label for="spreadsheet" class="col-form-label">Insert File:</label>
-            <input type="file" name="spreadsheet" class="form-control" id="spreadsheet">
-            <div class="invalid-feedback">
+          <form id="uploadForm">
+            <div class="mb-3">
+              <label for="spreadsheet" class="col-form-label">Insert File:</label>
+              <input type="file" name="spreadsheet" class="form-control" id="spreadsheet" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"">
+              <div class=" invalid-feedback">
             </div>
-          </div>
-         </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" id="uploadButton" class="btn btn-primary">Save changes</button>
-        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="uploadButton" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
+  </div>
 
   <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="addModalLabel">Adding new program</h5>
@@ -72,90 +77,196 @@
         </div>
         <div class="modal-body">
           <form id="addForm" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="course-code" class="col-form-label">Course Code:</label>
-              <input type="text" class="form-control" id="course-code">
-              <div class="invalid-feedback">
+            <div class="container-fluid">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="courseCode" class="col-form-label">Course Code:</label>
+                  <input type="text" class="form-control" id="courseCode">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="course-description" class="col-form-label">Course Description:</label>
-              <input type="text" class="form-control" id="course-description">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="courseDescription" class="col-form-label">Course Description:</label>
+                  <input type="text" class="form-control" id="courseDescription">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="units" class="col-form-label">Units:</label>
-              <input type="text" class="form-control" id="units">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label for="units" class="col-form-label">Units:</label>
+                  <input type="text" class="form-control" id="units">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label for="lecture" class="col-form-label">Lecture: </label>
+                  <input type="text" class="form-control" id="lecture">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label for="lab" class="col-form-label">Lab: </label>
+                  <input type="text" class="form-control" id="lab">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="lecture" class="col-form-label">Lecture: </label>
-              <input type="text" class="form-control" id="lecture">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="academicQualification" class="col-form-label">Academic Qualification: </label>
+                  <select class="form-control" id="academicQualification"></select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="lab" class="col-form-label">Lab: </label>
-              <input type="text" class="form-control" id="lab">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="experience" class="form-label">Years of Experience Required: </label>
+                  <input type="number" class="form-control" id="experience" value="0">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="degree" class="form-label">Required Degree: </label>
+                  <select id="degree" class="form-select">
+                    <option value="1">Associate's Degree</option>
+                    <option value="2">Bachelor's Degree</option>
+                    <option value="3">Master's Degree</option>
+                    <option value="3">Doctoral</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="licenseIndustry" class="form-label">Required Professional License and Industry Qualification: </label>
+                  <select class="form-control" id="licenseIndustry" multiple></select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="examination">
+                    <label class="form-check-label" for="examination">
+                      Required Examination
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="editModalLabebl">New message</h1>
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing Course</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form class="needs-validation">
-            <div class="mb-3">
-              <label for="course-code" class="col-form-label">Course Code:</label>
-              <input type="text" class="form-control" id="course-code">
-              <div class="invalid-feedback">
+            <div class="container-fluid">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="courseCode" class="col-form-label">Course Code:</label>
+                  <input type="text" class="form-control" id="courseCode">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="course-description" class="col-form-label">Course Description:</label>
-              <input type="text" class="form-control" id="course-description">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="courseDescription" class="col-form-label">Course Description:</label>
+                  <input type="text" class="form-control" id="courseDescription">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="units" class="col-form-label">Units:</label>
-              <input type="text" class="form-control" id="units">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label for="units" class="col-form-label">Units:</label>
+                  <input type="text" class="form-control" id="units">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label for="lecture" class="col-form-label">Lecture: </label>
+                  <input type="text" class="form-control" id="lecture">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label for="lab" class="col-form-label">Lab: </label>
+                  <input type="text" class="form-control" id="lab">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="lecture" class="col-form-label">Lecture: </label>
-              <input type="text" class="form-control" id="lecture">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="academicQualification" class="col-form-label">Academic Qualification: </label>
+                  <select class="form-control" id="academicQualification"></select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="lab" class="col-form-label">Lab: </label>
-              <input type="text" class="form-control" id="lab">
-              <div class="invalid-feedback">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="experience" class="form-label">Years of Experience Required: </label>
+                  <input type="number" class="form-control" id="experience" value="0">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="degree" class="form-label">Required Degree: </label>
+                  <select id="degree" class="form-select">
+                    <option value="1">Associate's Degree</option>
+                    <option value="2">Bachelor's Degree</option>
+                    <option value="3">Master's Degree</option>
+                    <option value="3">Doctoral</option>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label for="licenseIndustry" class="form-label">Required Professional License and Industry Qualification: </label>
+                  <select class="form-control" id="licenseIndustry" multiple></select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="examination">
+                    <label class="form-check-label" for="examination">
+                      Required Examination
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
         </div>
       </div>
     </div>

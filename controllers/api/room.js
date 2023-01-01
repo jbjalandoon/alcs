@@ -2,12 +2,9 @@ const Room = require("../../models/room");
 const { validationResult } = require("express-validator");
 
 exports.get = (req, res, next) => {
-  Room.find({ deleted_at: null })
+  Room.find({ deleted: false })
     .then((room) => {
-      if (room.length == 0) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: room });
+      res.json({ ok: true, status: 200, data: room });
     })
     .catch((error) => {
       console.log(error);
@@ -32,57 +29,60 @@ exports.getOne = (req, res, next) => {
 exports.post = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res
+      .status(400)
+      .json({ ok: false, status: 400, errors: errors.mapped() });
   }
-  new Room({
-    room_name: req.body.room_name,
-    laboratory: req.body.laboratory,
+  Room.findOne({
+    roomName: req.body.roomName,
+    deleted: true,
   })
-    .save()
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
+      if (result) {
+        result.roomName = req.body.roomName;
+        result.laboratory = req.body.laborator;
+        return result.save();
       }
-      return res.json({ ok: true, data: result });
+      return new Room({
+        roomName: req.body.roomName,
+        laboratory: req.body.laboratory,
+      }).save();
+    })
+    .then((result) => {
+      return res.status(201).json({ ok: false, status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
-      return res.json({ ok: false });
+      return res.status(500).json({ ok: false, status: 500, data: error });
     });
 };
 
 exports.edit = (req, res, next) => {
-  console.log(req.body)
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(401).json({ ok: false, errors: errors.mapped() });
   }
   Room.findOneAndUpdate(
     { _id: req.params.id },
-    { room_name: req.body.room_name, laboratory: req.body.laboratory }
+    { roomName: req.body.roomName, laboratory: req.body.laboratory },
+    { new: true }
   )
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      console.log(result);
+      res.status(201).json({ ok: true, status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.status(500).json({ ok: false, status: 500, data: result });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Room.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Room.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      return res.json({ ok: true, data: result });
+      return res.json({ ok: true, status: 202, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false });
+      res.json({ ok: false, status: 500, data: error });
     });
 };

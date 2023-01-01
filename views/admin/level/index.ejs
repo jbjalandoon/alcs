@@ -3,7 +3,7 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE YEAR LEVEL/S</strong>
@@ -16,6 +16,7 @@
           <thead>
             <tr>
               <th>Year Level</th>
+              <th>Display</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -30,14 +31,20 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="addModalLabel">Adding new school year</h5>
+          <h5 class="modal-title" id="addModalLabel">Adding Year Level</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="addForm" class="needs-validation" novalidate>
+          <form class="needs-validation" novalidate>
             <div class="mb-3">
-              <label for="year" class="col-form-label">School Year:</label>
-              <input type="text" class="form-control" id="year_level">
+              <label for="yearLevel" class="col-form-label">Year Level</label>
+              <input type="text" class="form-control" id="yearLevel">
+              <div class="invalid-feedback">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="display" class="col-form-label">Display</label>
+              <input type="text" class="form-control" id="display">
               <div class="invalid-feedback">
               </div>
             </div>
@@ -45,7 +52,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
         </div>
       </div>
     </div>
@@ -61,16 +68,21 @@
         <div class="modal-body">
           <form class="needs-validation">
             <div class="mb-3">
-              <label for="year_level" class="col-form-label">Year Level:</label>
-              <input type="text" class="form-control" id="year-level">
+              <label for="yearLevel" class="col-form-label">Year Level:</label>
+              <input type="text" class="form-control" id="yearLevel">
               <div class="invalid-feedback">
               </div>
+            </div>
+            <div class="mb-3">
+              <label for="display">Display:</label>
+              <input type="text" class="form-control" id="display">
+              <div class="invalid-feedback"></div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
         </div>
       </div>
     </div>

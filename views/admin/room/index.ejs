@@ -3,7 +3,7 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container">
+  <div class="container-fluid mt-3">
     <div class="card">
       <div class="card-header">
         <strong>LIST OF AVAILABLE ROOM/S</strong>
@@ -21,7 +21,6 @@
             </tr>
           </thead>
           <tbody>
-
           </tbody>
         </table>
       </div>
@@ -39,7 +38,7 @@
           <form id="addForm" class="needs-validation" novalidate>
             <div class="mb-3">
               <label for="room-name" class="col-form-label">Room Name:</label>
-              <input type="text" class="form-control" id="room-name">
+              <input type="text" class="form-control" id="roomName">
               <div class="invalid-feedback">
               </div>
             </div>
@@ -55,7 +54,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="add-button">Submit</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
         </div>
       </div>
     </div>
@@ -72,7 +71,7 @@
           <form class="needs-validation">
             <div class="mb-3">
               <label for="room-name" class="col-form-label">Room Name:</label>
-              <input type="text" class="form-control" id="room-name">
+              <input type="text" class="form-control" id="roomName">
               <div class="invalid-feedback">
               </div>
             </div>
@@ -88,7 +87,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="edit-button">Edit</button>
+          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
         </div>
       </div>
     </div>
