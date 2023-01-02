@@ -3,3 +3,9 @@ exports.getSchedule = (req, res, next) => {
     title: "Current Schedule",
   });
 };
+
+exports.getProfile = (req,res,next) => {
+  res.render("user/profile", {
+    title: "My Profile",
+  });
+}

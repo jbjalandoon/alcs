@@ -139,6 +139,10 @@ router.get(
   "/schedules/faculty/:semester/:faculty/",
   schedule.getFacultySchedule
 );
+router.get(
+  "/schedules/faculty/grouped/:semester/:faculty/",
+  schedule.getGroupedFacultySchedule
+);
 router.delete("/schedules/:schedule", schedule.deleteSchedule);
 router.get(
   "/schedules/assignable-course/:sem/:faculty",

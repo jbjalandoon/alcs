@@ -56,6 +56,7 @@ app.use((req, res, next) => {
   res.locals.csrf = req.csrfToken();
   res.locals.isActive = req.session.user ? true : false;
   res.locals.email = req.session.user ? req.session.user.email : null;
+  res.locals.userId = req.session.user ? req.session.user._id : null;
   res.locals.role = req.session.user ? req.session.user.role : null;
   res.locals.input_success_message = req.flash("input_success_message")[0];
   next();

@@ -40,7 +40,8 @@
     "simplebar": "^5.3.8",
     "sortablejs": "^1.15.0",
     "sweetalert2": "^11.4.29",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.18.10",

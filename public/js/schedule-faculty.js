@@ -182,23 +182,14 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
-    if (!result.ok) {
-      return;
-    }
-
     result.data.forEach((element) => {
-      faculty.append(
-        new Option(
-          (
-            element.userInformation.first_name +
-            " " +
-            element.userInformation.middle_name +
-            " " +
-            element.userInformation.last_name
-          ).toUpperCase(),
-          element._id
-        )
-      );
+      const firstName = element.userInformation.firstName.toUpperCase();
+      const lastName = element.userInformation.lastName.toUpperCase();
+      const middleName = element.userInformation.lastName
+        ? element.userInformation.lastName.toUpperCase()
+        : "";
+      const name = firstName + "" + middleName + " " + lastName;
+      faculty.append(new Option(name.toUpperCase(), element._id));
     });
     faculty.select2({
       width: "100%",
@@ -327,9 +318,7 @@ faculty.on("change", () => {
           result.data.forEach((element) => {
             courseSearch.append(
               new Option(
-                element.course.course_description.toUpperCase() +
-                  " - " +
-                  element.count,
+                element.course.courseDescription.toUpperCase(),
                 element._id
               )
             );

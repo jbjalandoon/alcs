@@ -662,6 +662,14 @@ exports.getSectionSchedules = (req, res, next) => {
     },
     {
       $lookup: {
+        from: "users",
+        localField: "faculty",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $lookup: {
         from: "levels",
         localField: "level",
         foreignField: "_id",
@@ -671,6 +679,7 @@ exports.getSectionSchedules = (req, res, next) => {
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {

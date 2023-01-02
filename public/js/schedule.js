@@ -46,7 +46,7 @@ fetch("/api/curriculums/active")
     }
     result.data.forEach((element) => {
       scheduleProgramForm.append(
-        new Option(element.program.program_name.toUpperCase(), element._id)
+        new Option(element.program.programName.toUpperCase(), element._id)
       );
     });
     scheduleYearLevelForm.val("");
@@ -316,17 +316,29 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     const timeEl = info.el.querySelector(".fc-event-time");
     info.el.style.textAlign = "center";
 
-    const course = info.event.extendedProps.course;
-    const program = info.event.extendedProps.program;
-    const courseType = info.event.extendedProps.courseType;
-    const section = info.event.extendedProps.section;
-    const room = info.event.extendedProps.room;
-    const level = info.event.extendedProps.level;
-    const faculty = info.event.extendedProps.faculty
-      ? info.event.extendedProps.faculty
-      : "";
+    const course = info.event.extendedProps.course.toUpperCase();
+    const program = info.event.extendedProps.program.toUpperCase();
+    const section = info.event.extendedProps.section.toUpperCase();
+    const room = info.event.extendedProps.room.toUpperCase();
+    const level = info.event.extendedProps.level.toUpperCase();
+    let firstName = "",
+      middleName = "",
+      lastName = "";
+    if (info.event.extendedProps.faculty) {
+      firstName = info.event.extendedProps.faculty.userInformation.firstName;
+      middleName = info.event.extendedProps.faculty.userInformation.middleName;
+      lastName = info.event.extendedProps.faculty.userInformation.lastName;
+    }
 
-    titleEl.innerHTML = `${course} (${courseType.toUpperCase()}) <br> ${program} (${level} - ${section}) <br> ${room} <br> ${faculty}`;
+    const initials = `${firstName.charAt(0)}${middleName.charAt(
+      0
+    )}${lastName.charAt(0)}`.toUpperCase();
+    // info.setExtendedProp(
+    //   "customTitle",
+    //   `${course}<br>${program}${level}-${section}<br>${room}<br>${initials}`
+    // );
+    timeEl.innerHTML = "";
+    titleEl.innerHTML = `${course}<br>${program}${level}-${section}<br>${room}<br>${initials}`;
   },
 });
 
@@ -348,7 +360,7 @@ scheduleProgramForm.on("change", () => {
       }
       result.data.forEach((element) => {
         scheduleYearLevelForm.append(
-          new Option(element.level.level.toUpperCase(), element._id)
+          new Option(element.level.yearLevel.toUpperCase(), element._id)
         );
       });
       scheduleYearLevelForm.attr("disabled", false);
@@ -397,27 +409,22 @@ scheduleSectionForm.on("change", () => {
   });
   $("#roomForm").val("").trigger("change");
   $("#facultyLink").attr("href", `/admin/schedules/faculty/${semester}`);
-  console.log($("#roomForm").val());
   if ($("#roomForm").val() != "") {
     fetch("/api/schedules/room/" + semester + "/" + $("#roomForm").val())
       .then((response) => {
         return response.json();
       })
       .then((result) => {
-        console.log(result);
-        if (!result.ok) {
-          return;
-        }
         result.data.forEach((element) => {
           const days = ["m", "t", "w", "th", "f", "s"];
           if (element.section != scheduleSectionForm.val()) {
             calendar.addEvent({
               id: element._id,
-              course: element.course.course_code,
-              program: element.program.program_code,
+              course: element.course.courseCode,
+              program: element.program.programCode,
               section: element.section_name,
-              room: element.room.room_name,
-              level: element.level.level,
+              room: element.room.roomName,
+              level: element.level.yearLevel,
               courseType: element.type,
               daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
               startTime: element.start_time,
@@ -438,9 +445,6 @@ scheduleSectionForm.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        return;
-      }
       $("#external-events #lectureList").empty();
       $("#external-events #labList").empty();
 
@@ -453,14 +457,18 @@ scheduleSectionForm.on("change", () => {
         item.attr({
           id: element._id,
           hour: element.hour,
-          course: element.course.course_code,
-          program: element.program.program_code,
+          course: element.course.courseCode,
+          program: element.program.programCode,
           section: element.section_name,
           // room: element.room.room_name,
           courseType: element.type,
-          level: element.level.level,
+          level: element.level.yearLevel,
         });
-        item.html(element.course.course_description);
+        item.html(
+          element.course.courseCode.toUpperCase() +
+            " - " +
+            element.course.courseDescription.toUpperCase()
+        );
         card.append(item);
         if (element.type == "lab" && element.day == null) {
           item.addClass("lab-event");
@@ -474,17 +482,18 @@ scheduleSectionForm.on("change", () => {
           const days = ["m", "t", "w", "th", "f", "s"];
           calendar.addEvent({
             id: element._id,
-            course: element.course.course_code,
-            program: element.program.program_code,
-            section: element.section_name,
-            room: element.room.room_name,
-            courseType: element.type,
-            level: element.level.level,
+            hourDuration: element.hour,
             daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
             startTime: element.start_time,
             endTime: element.end_time,
             overlap: false,
-            editable: true,
+            editabe: false,
+            course: element.course.courseCode,
+            program: element.program.programCode,
+            section: element.section_name,
+            room: element.room.roomName,
+            level: element.level.display,
+            faculty: element.faculty,
             current: true,
           });
         }
@@ -504,7 +513,7 @@ fetch("/api/rooms")
       return;
     }
     result.data.forEach((element) => {
-      const roomName = element.room_name;
+      const roomName = element.roomName.toUpperCase();
       $("#roomForm").select2({
         placeholder: "Select a Room",
         width: "100%", // need to override the changed default
@@ -537,9 +546,7 @@ $("#roomForm").on("change", () => {
       return response.json();
     })
     .then((result) => {
-      if (!result.ok) {
-        return;
-      }
+      console.log(result);
       const events = calendar.getEvents();
       events.forEach((element) => {
         if (!element.extendedProps.current) {
@@ -551,18 +558,19 @@ $("#roomForm").on("change", () => {
         if (element.section != scheduleSectionForm.val()) {
           calendar.addEvent({
             id: element._id,
-            course: element.course.course_code,
-            program: element.program.program_code,
-            section: element.section_name,
-            room: element.room.room_name,
-            level: element.level.level,
-            courseType: element.type,
+            hourDuration: element.hour,
             daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
             startTime: element.start_time,
             endTime: element.end_time,
             overlap: false,
             editabe: false,
-            color: "#800000",
+            color: "#880000",
+            course: element.course.courseCode,
+            program: element.program.programCode,
+            section: element.section_name,
+            room: element.room.roomName,
+            level: element.level.display,
+            faculty: element.faculty,
           });
         }
       });
