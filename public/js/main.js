@@ -22,6 +22,7 @@ $("#logout").on("click", (event) => {
   logoutForm.submit();
 });
 
+
 const displayToast = (result) => {
   let icon, message;
   switch (result.status) {

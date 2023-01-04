@@ -80,8 +80,33 @@ app.use((req, res, next) => {
     res.redirect("/authentication/login?landing=" + req.path);
   }
 });
-app.use("/admin", adminRoutes);
-app.use("/user", userRoutes);
+app.use(
+  "/admin",
+  (req, res, next) => {
+    if (req.session.user.role === "admin") {
+      return next();
+    }
+    if (req.session.user.role === "superadmin") {
+      return next();
+    }
+    return res.render("error/404", {
+      title: "ALCS | 404 Page Not Found",
+    });
+  },
+  adminRoutes
+);
+app.use(
+  "/user",
+  (req, res, next) => {
+    if (req.session.user.role !== "user") {
+      return res.render("error/404", {
+        title: "ALCS | 404 Page Not Found",
+      });
+    }
+    next();
+  },
+  userRoutes
+);
 app.use("/api", apiRoutes);
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);

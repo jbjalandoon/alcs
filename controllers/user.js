@@ -9,3 +9,9 @@ exports.getProfile = (req,res,next) => {
     title: "My Profile",
   });
 }
+
+exports.getSchedulePreference = (req,res,next) => {
+  res.render("user/schedule-preference", {
+    title: "Schedule Preference",
+  });
+}

@@ -8,9 +8,9 @@ const table = $("#courseTable").DataTable({
 const csrf = $("#csrf").val();
 
 const degrees = [
-  "Associate's Degree",
-  "Bachelors's Degree",
-  "Masters's Degree",
+  "Associate Degree",
+  "Bachelors Degree",
+  "Masters Degree",
   "Doctoral",
 ];
 
@@ -21,8 +21,6 @@ const tableData = (operation, data) => {
     data.lecture ? data.lecture : "N/A",
     data.lab ? data.lab : "N/A",
     data.units,
-    degrees[data.qualification.degree - 1].toUpperCase(),
-    data.qualification.experience,
     data.qualification.academicQualification.length !== 0
       ? data.qualification.academicQualification
           .map((element) => {
@@ -30,6 +28,8 @@ const tableData = (operation, data) => {
           })
           .join(", ")
       : "N/A",
+    data.qualification.experience,
+    degrees[data.qualification.degree - 1].toUpperCase(),
     data.qualification.licenseIndustry.length === 0
       ? "N/A"
       : data.qualification.licenseIndustry

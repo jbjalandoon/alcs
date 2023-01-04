@@ -329,6 +329,7 @@ function downloadSpreadsheetTable(filename, table) {
 
   // This function is used to convert the workbook data to a binary string
 }
+
 function s2ab(s) {
   const buf = new ArrayBuffer(s.length);
   const view = new Uint8Array(buf);

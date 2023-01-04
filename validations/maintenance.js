@@ -25,7 +25,7 @@ exports.program = [
       } else {
         query = {
           programCode: value,
-          id: { $ne: req.params.id },
+          _id: { $ne: req.params.id },
         };
       }
       return Program.findOne(query).then((data) => {
@@ -207,6 +207,8 @@ exports.course = [
     .withMessage("No Special Characters Allowed")
     .trim()
     .custom((value, { req }) => {
+      console.log(req.method)
+      console.log(req.params.id);
       let query;
       if (req.method === "POST") {
         query = {
@@ -366,7 +368,6 @@ exports.faculty = [
     .isAlpha("en-US", { ignore: " -" })
     .withMessage("Numbers and Special characters are not allowed")
     .trim(),
-  check("schedulePreference").notEmpty().withMessage("This field is required."),
   check("academicQualifications").notEmpty(),
 ];
 

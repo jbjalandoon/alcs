@@ -9000,13 +9000,13 @@ body {
 
 a {
   transition: 0.3s all ease;
-  color: #8d448b;
+  color: #0800ee;
 }
 a:hover, a:focus {
   text-decoration: none !important;
   outline: none !important;
   box-shadow: none;
-  color: #8d448b;
+  color: #0800ee;
 }
 
 h1,
@@ -9026,7 +9026,7 @@ h5,
 }
 
 .bg-primary {
-  background: #8d448b !important;
+  background: #0800ee !important;
 }
 
 .ftco-section {
@@ -9061,12 +9061,12 @@ h5,
 .login-wrap h3 {
   font-weight: 700;
   font-size: 20px;
-  color: #8d448b;
+  color: #0800ee;
 }
 .login-wrap .icon {
   width: 80px;
   height: 80px;
-  background: #8d448b;
+  background: #0800ee;
   border-radius: 50%;
   font-size: 30px;
   margin: 0 auto;
@@ -9171,10 +9171,10 @@ h5,
 
 /* Style the checkmark/indicator */
 .checkbox-primary {
-  color: #8d448b;
+  color: #0800ee;
 }
 .checkbox-primary input:checked ~ .checkmark:after {
-  color: #8d448b;
+  color: #0800ee;
 }
 
 .btn {
@@ -9187,23 +9187,23 @@ h5,
   outline: none;
 }
 .btn.btn-primary {
-  background: #8d448b !important;
-  border: 1px solid #8d448b !important;
+  background: #0800ee !important;
+  border: 1px solid #0800ee !important;
   color: #fff !important;
 }
 .btn.btn-primary:hover {
-  border: 1px solid #8d448b;
+  border: 1px solid #0800ee;
   background: transparent;
-  color: #8d448b;
+  color: #0800ee;
 }
 .btn.btn-primary.btn-outline-primary {
-  border: 1px solid #8d448b;
+  border: 1px solid #0800ee;
   background: transparent;
-  color: #8d448b;
+  color: #0800ee;
 }
 .btn.btn-primary.btn-outline-primary:hover {
   border: 1px solid transparent;
-  background: #8d448b;
+  background: #0800ee;
   color: #fff;
 }
 

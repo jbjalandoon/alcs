@@ -28,10 +28,13 @@ exports.login = (req, res, next) => {
           if (req.body.landing) {
             return res.redirect(req.body.landing);
           }
-          if(req.session.user.role === 'admin') {
-            return res.redirect("/admin/schedules");
-          } 
-          if(req.session.user.role === 'user') {
+          if (req.session.user.role === "admin") {
+            return res.redirect("/admin/dashboard");
+          }
+          if (req.session.user.role === "superadmin") {
+            return res.redirect("/admin/dashboard");
+          }
+          if (req.session.user.role === "user") {
             return res.redirect("/user/schedule");
           }
         });

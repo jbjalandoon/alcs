@@ -37,8 +37,15 @@ const UserSChema = new Schema({
     },
     schedulePreference: [
       {
-        type: String,
-        default: ["m", "t", "w", "th", "f", "s"],
+        day: {
+          type: Number,
+        },
+        startTime: {
+          type: String
+        },
+        endTime: {
+          type: String
+        }
       },
     ],
     academicQualifications: [

@@ -1,0 +1,58 @@
+<%- include('../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <div class="col-md-6 col-sm-12">
+        <div class="card">
+          <div class="card-header" id="cardTitle">
+            <strong>MY PROFILE</strong>
+          </div>
+          <div class="card-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-md-6 col-sm-12">
+                  Profile
+                </div>
+                <div class="col-md-6 col-sm-12">
+                  Academic Qualifications
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-sm-12">
+        <div class="card">
+          <div class="card-header" id="cardTitle">
+            <strong>SUBJECT QUALIFICATIONS</strong>
+          </div>
+          <div class="card-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-md-6 col-sm-12">
+                  Profile
+                </div>
+                <div class="col-md-6 col-sm-12">
+                  Academic Qualifications
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <%- include('../includes/footer.ejs') %>
+  <script>
+    const userId = '<%= userId %>'
+  </script>
+  <script src="/js/user/profile.js"></script>
+
+</body>
+
+</html>

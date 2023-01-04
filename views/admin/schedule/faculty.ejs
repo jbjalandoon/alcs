@@ -27,59 +27,45 @@
               </div>
             </div>
           </div>
-          <div class="row">
+          <div class="row d-none" id="contentRow">
             <div class="col-4 mt-4">
-              <div class="d-flex d-none justify-content-center m-4" id="loadingCourse">
-                <div class="spinner-border" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-              <div class="d-none" id="courses">
+              <div id="courses">
                 <div class="mb-3">
                   <select type="text" class="form-select form-lg mb-3" id="courseSearch">
-                    <option value="" selected disabled>--Select Course--</option>
+                    <option value=""></option>
                   </select>
                 </div>
-                <div class="d-flex d-none justify-content-center m-5" id="loadingList">
-                  <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                </div>
                 <div id="list">
-                  <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link active" id="lecture-tab" data-bs-toggle="tab" data-bs-target="#lecture-tab-pane" type="button" role="tab" aria-controls="lecture-tab-pane" aria-selected="true">Lectures</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab-tab-pane" type="button" role="tab" aria-controls="lab-tab-pane" aria-selected="false">Laboratory</button>
-                    </li>
-                  </ul>
-                  <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="lecture-tab-pane" role="tabpanel" aria-labelledby="lecture-tab" tabindex="0">
-                      <ol class="list-group list-group-numbered mt-3 schedules" id="lectureList">
-                      </ol>
-                    </div>
-                    <div class="tab-pane fade" id="lab-tab-pane" role="tabpanel" aria-labelledby="lab-tab" tabindex="0">
-                      <ol class="list-group list-group-numbered mt-3 schedules" id="labList">
-                      </ol>
-                    </div>
-                  </div>
+                  <ol class="list-group list-group-numbered mt-3 schedules" id="courseList">
+                  </ol>
                 </div>
               </div>
             </div>
             <div class="col-8">
-              <div id='calendar-container' class="mt-3">
-                <div class="d-flex d-none justify-content-center m-5" id="loadingCalendar">
-                  <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
+              <div class="container-fluid mt-3">
+                <div class="row">
+                  <div class="col-12">
+                    <strong>Faculty Type: <span id="spanFacultyType">REGULAR</span></strong>
                   </div>
                 </div>
-                <div class="d-flex mt-4">
-                  <!-- Total Units: <span id="totalUnits" class="d-none">0</span> -->
+                <div class="row">
+                  <div class="col-12">
+                    <strong>Units: </strong><span id="spanUnits">25</span> / <span id="spanMaxUnits">40</span>
+                  </div>
                 </div>
-                <div id="calendar" class="d-none">
+                <div class="row">
+                  <div class="col-12">
+                    <strong>Hours: </strong><span id="spanHours">25</span> / <span id="spanMaxHours">40</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <div id='calendarContainer'>
+                    </div>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>

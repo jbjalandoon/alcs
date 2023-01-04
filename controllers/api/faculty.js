@@ -25,6 +25,7 @@ exports.getOne = (req, res, next) => {
   Faculty.findOne({ role: "user", _id: req.params.id })
     .populate("userInformation.academicQualifications.academicQualification")
     .populate("userInformation.academicQualifications.licenseIndustry")
+    .populate("userInformation.facultyType")
     .populate("userInformation.courseTaken")
     .then((faculty) => {
       if (!faculty) {
@@ -63,7 +64,6 @@ exports.post = (req, res, next) => {
           middleName: req.body.middleName,
           lastName: req.body.lastName,
           facultyType: req.body.facultyType,
-          schedulePreference: req.body.schedulePreference,
           academicQualifications: req.body.academicQualifications,
         };
         return result.save();
@@ -124,7 +124,6 @@ exports.put = (req, res, next) => {
         middleName: req.body.middleName,
         lastName: req.body.lastName,
         facultyType: req.body.facultyType,
-        schedulePreference: req.body.schedulePreference,
         academicQualifications: req.body.academicQualifications,
       },
     },
@@ -438,6 +437,72 @@ exports.postSpreadsheet = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ status: 500, data: error });
+    });
+};
+
+exports.postSchedulePreference = (req, res, next) => {
+  console.log(req.body);
+  Faculty.findOneAndUpdate(
+    { _id: req.params.id },
+    {
+      $push: {
+        "userInformation.schedulePreference": {
+          day: req.body.day,
+          startTime: req.body.startTime,
+          endTime: req.body.endTime,
+        },
+      },
+    },
+    { new: true }
+  )
+    .then((result) => {
+      res.status(201).json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      res.status(500).json({ status: 500, data: error });
+    });
+};
+
+exports.putSchedulePreference = (req, res, next) => {
+  console.log(req.body);
+  Faculty.updateOne(
+    { _id: req.params.id },
+    {
+      "userInformation.schedulePreference.$[schedule].day": req.body.day,
+      "userInformation.schedulePreference.$[schedule].startTime":
+        req.body.startTime,
+      "userInformation.schedulePreference.$[schedule].endTime":
+        req.body.endTime,
+    },
+    { arrayFilters: [{ "schedule._id": req.params.preference }] }
+  )
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      res.status(500).json({ status: 500, data: error });
+    });
+};
+
+exports.deleteSchedulePreference = (req, res, next) => {
+  console.log(req.body);
+  Faculty.updateOne(
+    { _id: req.params.id },
+    {
+      $pull: {
+        "userInformation.schedulePreference": { _id: req.params.preference },
+      },
+    }
+    // { arrayFilters: [{ "schedule._id": req.params.preference }] }
+  )
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ status: 500, data: error });
     });
 };
 

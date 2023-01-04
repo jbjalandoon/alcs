@@ -28,7 +28,6 @@ fetch("/api/years", { method: "GET" })
           element.year,
           `
             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <a class="btn btn-sm btn-secondary" href="/admin/curriculums/${element._id}">View</a>
             <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
           `,
         ])
@@ -71,7 +70,7 @@ $("#add-button").on("click", () => {
           result.data.year,
           `
             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${result.data._id}">Edit</button>
-            <a class="btn btn-sm btn-secondary" href="/admin/curriculums/${result.data._id}">View</a>
+            
             <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
           `,
         ])
@@ -136,7 +135,6 @@ $("#edit-button").on("click", () => {
         <td>${year.val()}</td>
         <td>
           <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${id}">Edit</button>
-          <a class="btn btn-sm btn-secondary" href="/admin/curriculums/${id}">View</a>
           <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${id}', this)">Delete</button>
         </td>
       `;

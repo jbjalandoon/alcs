@@ -57,7 +57,7 @@ exports.post = (req, res, next) => {
 };
 
 exports.put = (req, res, next) => {
-  console.log(req.body.facultyType);
+  console.log(req.body);
   errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -70,7 +70,7 @@ exports.put = (req, res, next) => {
     },
     {
       facultyType: req.body.facultyType,
-      unitsCaps: req.body.unitsCaps,
+      unitsCap: req.body.unitsCap,
       hoursCap: req.body.hoursCap,
     },
     { new: true }

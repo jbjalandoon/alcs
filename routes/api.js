@@ -72,7 +72,10 @@ router.get("/faculty", faculty.get);
 router.get("/faculty/:id", faculty.getOne);
 router.post("/faculty", validation.faculty, faculty.post);
 router.put("/faculty/:id", validation.faculty, faculty.put);
-router.put("/faculty/:id", validation.faculty, faculty.put);
+router.post("/faculty/course/:id", faculty.postCourse);
+router.post('/faculty/schedule-preference/:id', faculty.postSchedulePreference)
+router.put('/faculty/schedule-preference/:id/:preference', faculty.putSchedulePreference)
+router.delete('/faculty/schedule-preference/:id/:preference', faculty.deleteSchedulePreference)
 router.post("/faculty/upload", faculty.postSpreadsheet);
 router.delete("/faculty/:id", faculty.delete);
 
@@ -107,6 +110,9 @@ router.get("/curriculums/sections/:year_level", curriculum.getSections);
 router.post("/curriculums/sections/:year", curriculum.postSections);
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
+router.get("/curriculums/faculty/:sem", curriculum.getActiveFaculty);
+router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
+
 router.delete("/curriculums/course/:year/:course", curriculum.deleteCourse);
 router.post(
   "/curriculums/course/:year",
@@ -140,8 +146,26 @@ router.get(
   schedule.getFacultySchedule
 );
 router.get(
-  "/schedules/faculty/grouped/:semester/:faculty/",
+  "/schedules/section/:semester/:section/",
+  schedule.getSectionSchedule
+);
+
+router.get(
+  "/schedules/section/:semester/",
+  schedule.getGroupedSectionSchedule
+);
+
+router.get(
+  "/schedules/faculty/:semester/",
   schedule.getGroupedFacultySchedule
+);
+router.get(
+  "/schedules/room/:semester/",
+  schedule.getGroupedRoomSchedule
+);
+router.get(
+  "/schedules/faculty/grouped/:semester/:faculty/",
+  schedule.getGroupedScheduleFaculty
 );
 router.delete("/schedules/:schedule", schedule.deleteSchedule);
 router.get(

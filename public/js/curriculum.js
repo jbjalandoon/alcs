@@ -75,19 +75,21 @@ $(addModal._element).on("show.bs.modal", () => {
       return response.json();
     })
     .then((result) => {
+      console.log(programs);
       const filteredData = result.data.filter((element) => {
-        return !programs.includes(element.programCode);
+        return !programs.includes(element.programCode.toUpperCase());
       });
+      console.log(filteredData);
       addProgram.val("");
       addProgram.empty();
       filteredData.forEach((element) => {
         addProgram.append(
           new Option(element.programName.toUpperCase(), element._id)
         );
-        addProgram.select2({
-          multitple: true,
-          width: "100%",
-        });
+      });
+      addProgram.select2({
+        multitple: true,
+        width: "100%",
       });
       ok = true;
       if (!ok) {
@@ -216,7 +218,9 @@ $("#addCourseButton").on("click", (event) => {
             <td>${element.lecture}</td>
             <td>${element.units}</td>
             <td>  
-             <button class="btn btn-sm btn-danger" onClick="deleteData('${element._id}', '${programYear}' , this)">Delete</button>
+             <button class="btn btn-sm btn-danger" onClick="deleteData('${
+               element._id
+             }', '${programYear}' , this)">Delete</button>
             </td>
           </tr>`);
       });
@@ -496,13 +500,16 @@ viewProgram.on("change", () => {
           return;
         }
         element.course.forEach((course) => {
-          $(`#${element._id} tbody`).append(`<tr><td>${course.courseCode.toUpperCase()}</td>
+          $(`#${element._id} tbody`)
+            .append(`<tr><td>${course.courseCode.toUpperCase()}</td>
           <td>${course.courseDescription.toUpperCase()}</td>
           <td>${course.lab}</td>
           <td>${course.lecture}</td>
           <td>${course.units}</td>
           <td>  
-            <button class="btn btn-sm btn-danger" onClick="deleteData('${course._id}', '${element._id}' , this)">Delete</button>
+            <button class="btn btn-sm btn-danger" onClick="deleteData('${
+              course._id
+            }', '${element._id}' , this)">Delete</button>
           </td></tr>`);
         });
       });
@@ -665,7 +672,6 @@ $("#copySubmit").on("click", () => {
       return response.json();
     })
     .then((result) => {
-      alert("test");
       if (!result) {
         return;
       }

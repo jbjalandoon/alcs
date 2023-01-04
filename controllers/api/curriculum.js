@@ -96,12 +96,13 @@ exports.copySemester = (req, res, next) => {
           "semesters._id": mongoose.Types.ObjectId(req.params.active),
         },
         {
-          'semesters.$[semester].programs': programs
+          "semesters.$[semester].programs": programs,
         },
         { arrayFilters: [{ "semester._id": req.params.active }] }
       );
-    }).then(result => {
-      console.log(result)
+    })
+    .then((result) => {
+      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -810,5 +811,107 @@ exports.deleteCourse = (req, res, next) => {
     .catch((error) => {
       res.json({ ok: false });
       console.log(error);
+    });
+};
+
+exports.getActiveFaculty = (req, res, next) => {
+  Curriculum.aggregate([
+    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
+
+    {
+      $project: {
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $unwind: "$faculty",
+    },
+    { $group: { _id: "$faculty" } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $unwind: "$faculty",
+    },
+  ])
+    .then((result) => {
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.getActiveRoom = (req, res, next) => {
+  Curriculum.aggregate([
+    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
+
+    {
+      $project: {
+        room: "$semesters.programs.year.sections.schedules.room",
+      },
+    },
+    {
+      $unwind: "$room",
+    },
+    { $group: { _id: "$room" } },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "_id",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    {
+      $unwind: "$room",
+    },
+    { $sort: { "room.laboratory": 1 } },
+  ])
+    .then((result) => {
+      console.log(result);
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
     });
 };
