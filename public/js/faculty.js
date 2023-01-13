@@ -7,9 +7,9 @@ const table = $("#facultyTable").DataTable({
 });
 
 const degreeEquivalent = [
-  "Associate's Degree",
-  "Bachelors's Degree",
-  "Masters's Degree",
+  "Associate Degree",
+  "Bachelor Degree",
+  "Master Degree",
   "Doctoral",
 ];
 
@@ -51,9 +51,7 @@ const dataTable = (operation, data) => {
           .join(", ")
       : "N/A",
     ` 
-      <a class="btn btn-secondary btn-sm mb-1" href="/admin/faculty/${
-        data._id
-      }" target="_blank">View</a>
+      
       <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
         data._id
       }">Course Taken</button>

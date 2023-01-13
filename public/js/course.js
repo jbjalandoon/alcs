@@ -37,6 +37,7 @@ const tableData = (operation, data) => {
             return element.tag.toUpperCase();
           })
           .join(", "),
+    data.examination.toString().toUpperCase(),
     actionButton(data._id),
   ]).draw();
 };
@@ -308,6 +309,8 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
           return displayToast(result);
         }
         uploadModal.hide();
+        table.rows().remove().draw();
+
         result.data.forEach((element) => {
           tableData(table.row.add, element);
         });

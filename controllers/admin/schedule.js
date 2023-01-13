@@ -6,11 +6,9 @@ const { query, response } = require("express");
 
 exports.getSchedule = (req, res, next) => {
   Curriculum.find()
-    .populate("school_year")
     .then((curriculums) => {
       res.render("admin/schedule/index", {
         title: "ALCS | Schedule",
-        curriculums: curriculums,
       });
     })
     .catch((error) => {
@@ -927,11 +925,9 @@ exports.getRoomSectionSchedule = (req, res, next) => {
 
 exports.getFacultySchedule = (req, res, next) => {
   Curriculum.find({}, "school_year")
-    .populate("school_year")
     .then((school_years) => {
       res.render("admin/schedule/faculty", {
         title: "ALCS | Assign Faculty",
-        school_years: school_years,
       });
     })
     .catch((error) => {

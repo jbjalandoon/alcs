@@ -1,4 +1,4 @@
-const yearTable = $("#yearTable").DataTable({
+const table = $("#yearTable").DataTable({
   oLanguage: {
     sEmptyTable: `<div class="spinner-border" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -7,137 +7,110 @@ const yearTable = $("#yearTable").DataTable({
 });
 const csrf = $("#csrf").val();
 
+const tableData = (operation, data) => {
+  operation([
+    data.year,
+    `
+      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${data._id}">Edit</button>
+      <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${data._id}', this)">Delete</button>
+     `,
+  ]).draw();
+};
+
 // const formModal = new bootstrap.Modal($("#editModal"));
 const addModal = new bootstrap.Modal($("#addModal"));
 const editModal = new bootstrap.Modal($("#editModal"));
-let modalElement = $(editModal._element);
-let year;
-let id;
 
 fetch("/api/years", { method: "GET" })
   .then((response) => {
     return response.json();
   })
-  .then((years) => {
-    if (!years.ok) {
-      return;
-    }
-    years.data.forEach((element) => {
-      yearTable.row
-        .add([
-          element.year,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
-          `,
-        ])
-        .draw();
+  .then((result) => {
+    result.data.forEach((element) => {
+      tableData(table.row.add, element);
     });
-    Toast.fire({ icon: "success", title: "Data successfuly loaded" });
+    displayToast(result);
   })
   .catch((error) => {
-    console.log(error);
-    Toast.fire({ icon: "warning", title: "Something Went Wrong!" });
+    displayToast(error);
   });
 
-$("#add-button").on("click", () => {
-  year = $("#addForm #year");
-  console.log(year.val())
-  year.removeClass("is-invalid");
-  fetch("/api/years", {
-    method: "POST",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ year: year.val() }),
-  })
-    .then((response) => {
-      return response.json();
+$(addModal._element).on("show.bs.modal", (event) => {
+  const year = $(event.currentTarget).find("#year");
+  const button = $(event.currentTarget).find("#addButton");
+  year.val("");
+  button.off("click");
+  button.on("click", () => {
+    removeValidationError([year]);
+    fetch("/api/years", {
+      method: "POST",
+      headers: {
+        "csrf-token": csrf,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        year: year.val(),
+      }),
     })
-    .then((result) => {
-      if (!result.ok) {
-        year
-          .addClass(result.errors.year ? "is-invalid" : "")
-          .siblings(".invalid-feedback")
-          .html(result.errors.year.msg);
-        return Toast.fire({ icon: "warning", title: "Something went wrong" });
-      }
-      addModal.hide();
-      year.removeClass("is-invalid").val("");
-      yearTable.row
-        .add([
-          result.data.year,
-          `
-            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${result.data._id}">Edit</button>
-            
-            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
-          `,
-        ])
-        .draw();
-      Toast.fire({ icon: "success", title: "Successfuly added school year" });
-    })
-    .catch((error) => {
-      console.log(error);
-      Toast.fire({ icon: "warning", title: "Something went wrong" });
-    });
-});
-
-modalElement.on("show.bs.modal", (event) => {
-  button = event.relatedTarget;
-  id = button.getAttribute("data-bs-id");
-  year = modalElement.find(".modal-body #year");
-  year.removeClass("is-invalid").val("");
-  fetch("/api/years/" + id, {
-    method: "GET",
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((program) => {
-      if (!program.ok) {
-        Toast.fire({ icon: "warning", title: "Failed to Fetch Data" });
-      }
-      year.val(program.data.year);
-    });
-});
-
-$("#edit-button").on("click", () => {
-  fetch("/api/years/" + id, {
-    method: "PUT",
-    headers: {
-      "csrf-token": csrf,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `year=${year.val()}`,
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result.ok) {
-        year
-          .addClass(result.errors.year ? "is-invalid" : "")
-          .siblings("div .invalid-feedback")
-          .html(result.errors.year.msg);
-        Toast.fire({
-          icon: "warning",
-          title: "Something went wrong",
-        });
-        return;
-      }
-      editModal.hide();
-      Toast.fire({
-        icon: "success",
-        title: "Successfuly Edited",
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        addModal.hide();
+        tableData(table.row.add, result.data);
+        displayToast(result);
       });
-      button.closest("tr").innerHTML = `
-        <td>${year.val()}</td>
-        <td>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${id}">Edit</button>
-          <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${id}', this)">Delete</button>
-        </td>
-      `;
+  });
+});
+
+$(editModal._element).on("show.bs.modal", (event) => {
+  const year = $(event.currentTarget).find("#year");
+  const id = $(event.relatedTarget).attr("data-bs-id");
+  const button = $(event.relatedTarget).find("#editButton");
+  button.off("click");
+  fetch("/api/levels/" + id)
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      removeValidationError([year]);
+      year.val(result.data.year.toLowerCase());
+      button.on("click", () => {
+        fetch("/api/years/" + id, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            year: year.val(),
+          }),
+        })
+          .then((response) => {
+            return response
+              .json()
+              .then((result) => {
+                if (result.errors) {
+                  displayValidationError(result.errors, result);
+                  return displayToast(result);
+                }
+                editModal.hide();
+                tableData(
+                  table.row($(event.relatedTarget).closest("tr")),
+                  result.data
+                );
+                displayToast(result);
+              })
+              .catch((error) => {
+                console.log(error);
+                displayToast(error);
+              });
+          })
+          .catch((error) => {
+            res.json({ status: 500, data: error });
+          });
+      });
     });
 });
 
@@ -166,12 +139,6 @@ const deleteData = (id, element) => {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      if (!result.value.ok) {
-        return Toast.fire({
-          icon: "warning",
-          title: "Something Went Wrong!",
-        });
-      }
       yearTable.row(element.closest("tr")).remove().draw();
       Toast.fire({
         icon: "success",

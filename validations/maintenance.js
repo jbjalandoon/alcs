@@ -74,18 +74,29 @@ exports.academicQualification = [
     }),
 ];
 
-exports.postYear = [
+exports.year = [
   check("year")
     .notEmpty()
     .withMessage("School Year is Empty")
-    .isAlphanumeric("en-US", { ignore: "-" })
+    .isAlphanumeric("en-US", { ignore: "- " })
     .withMessage("Wrong Format")
     .trim()
-    .custom((value) => {
-      return Year.findOne({
-        year: value,
-      }).then((data) => {
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          year: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          year: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return Year.findOne(query).then((data) => {
         if (data) {
+          if (data.deleted) Promise.reject("Year is in recycle bin");
           return Promise.reject("School Year already exists.");
         }
       });
@@ -175,7 +186,6 @@ exports.room = [
     .withMessage("Wrong Format")
     .trim()
     .custom((value, { req }) => {
-      console.log("current id: ", req.params.id);
       let query;
       if (req.method === "POST") {
         query = {
@@ -188,9 +198,7 @@ exports.room = [
           _id: { $ne: req.params.id },
         };
       }
-      console.log(query);
       return Room.findOne(query).then((data) => {
-        console.log("data: ", data);
         if (data) {
           if (data.deleted) return Promise.reject("Room is in Recycle Bin");
           return Promise.reject("Room name already exists.");
@@ -207,8 +215,6 @@ exports.course = [
     .withMessage("No Special Characters Allowed")
     .trim()
     .custom((value, { req }) => {
-      console.log(req.method)
-      console.log(req.params.id);
       let query;
       if (req.method === "POST") {
         query = {
@@ -388,10 +394,6 @@ exports.spreadsheet = [
       return Promise.reject("Only xls, xlsx, and csv are allowed");
     }
   }),
-];
-
-exports.postCurriculumCourse = [
-  check("course").notEmpty().withMessage("Please select some course"),
 ];
 
 exports.postCurriculumProgram = [

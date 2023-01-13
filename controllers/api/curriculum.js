@@ -4,18 +4,93 @@ const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
 const Level = require("../../models/level");
 const year = require("../../models/year");
+const { response } = require("express");
 
 exports.getSchoolYears = (req, res, next) => {
-  Curriculum.find({}, "_id school_year")
-    .populate("school_year")
+  Curriculum.aggregate([
+    {
+      $lookup: {
+        from: "years",
+        localField: "schoolYear",
+        foreignField: "_id",
+        as: "schoolYear",
+      },
+    },
+    {
+      $match: {
+        "schoolYear.deleted": { $ne: true },
+      },
+    },
+    {
+      $project: {
+        schoolYear: "$schoolYear.year",
+        _id: "$schoolYear._id",
+      },
+    },
+    { $unwind: "$schoolYear" },
+    { $unwind: "$_id" },
+  ])
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.getSemesters = (req, res, next) => {
+  if (!req.params.schoolYear.match(/^[0-9a-fA-F]{24}$/))
+    return res.status(400).json({ ok: false, msg: "Invalid Query" });
+  Curriculum.aggregate([
+    {
+      $match: {
+        schoolYear: mongoose.Types.ObjectId(req.params.schoolYear),
+      },
+    },
+    { $unwind: "$semesters" },
+    {
+      $project: {
+        _id: "$semesters._id",
+        sem: "$semesters.sem",
+      },
+    },
+  ])
+    .then((result) => {
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      res.status(500).json({ status: 500, errors: error });
+    });
+};
+
+exports.getActiveSemester = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters.isActive": true,
+      },
+    },
+    { $unwind: "$semesters" },
+    {
+      $match: {
+        "semesters.isActive": true,
+      },
+    },
+    {
+      $lookup: {
+        from: "years",
+        localField: "schoolYear",
+        foreignField: "_id",
+        as: "schoolYear",
+      },
+    },
+  ])
+    .then((response) => {
+      res.json({ status: 200, data: response });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ status: 500, errors: error });
     });
 };
 
@@ -38,13 +113,10 @@ exports.putActiveSemester = (req, res, next) => {
       );
     })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false, data: error });
+      res.status(500).json({ status: 500, data: error });
     });
 };
 
@@ -102,7 +174,6 @@ exports.copySemester = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -111,7 +182,6 @@ exports.copySemester = (req, res, next) => {
 };
 
 exports.deleteOneProgram = (req, res, next) => {
-  console.log("hello");
   Curriculum.updateOne(
     {
       "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
@@ -124,7 +194,6 @@ exports.deleteOneProgram = (req, res, next) => {
     { arrayFilters: [{ "program._id": req.params.program }] }
   )
     .then((result) => {
-      console.log(result);
       if (!result) {
         return res.json({ ok: false });
       }
@@ -136,74 +205,9 @@ exports.deleteOneProgram = (req, res, next) => {
     });
 };
 
-exports.getSemesters = (req, res, next) => {
-  if (!req.params.school_year.match(/^[0-9a-fA-F]{24}$/))
-    return res.json({ ok: false, msg: "Invalid Query" });
-  Curriculum.aggregate([
-    {
-      $match: {
-        school_year: mongoose.Types.ObjectId(req.params.school_year),
-      },
-    },
-    { $unwind: "$semesters" },
-    {
-      $project: {
-        _id: "$semesters._id",
-        sem: "$semesters.sem",
-      },
-    },
-  ])
-    .then((response) => {
-      res.json({ ok: true, data: response });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false, errors: error });
-    });
-};
-
-exports.getActiveSemester = (req, res, next) => {
-  Curriculum.aggregate([
-    {
-      $match: {
-        "semesters.isActive": true,
-      },
-    },
-    { $unwind: "$semesters" },
-    {
-      $match: {
-        "semesters.isActive": true,
-      },
-    },
-    // {
-    //   $project: {
-    //     _id: "$semesters._id",
-    //     school_year: "$school_year",
-    //     sem: "$semesters.sem",
-    //   },
-    // },
-    {
-      $lookup: {
-        from: "years",
-        localField: "school_year",
-        foreignField: "_id",
-        as: "school_year",
-      },
-    },
-  ])
-    .then((response) => {
-      console.log(response);
-      res.json({ ok: true, data: response });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false, errors: error });
-    });
-};
-
 exports.getPrograms = (req, res, next) => {
   if (!req.params.semester.match(/^[0-9a-fA-F]{24}$/))
-    return res.json({ ok: false, msg: "Invalid Query" });
+    return res.json({ status: 400, msg: "Invalid Query" });
   Curriculum.aggregate([
     { $unwind: "$semesters" },
     { $unwind: "$semesters.programs" },
@@ -229,10 +233,10 @@ exports.getPrograms = (req, res, next) => {
     { $unwind: "$program" },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false, errors: error });
+      res.json({ status: 500, errors: error });
     });
 };
 
@@ -265,19 +269,19 @@ exports.getOneProgram = (req, res, next) => {
     {
       $lookup: {
         from: "levels",
-        localField: "semesters.programs.year.year_level",
+        localField: "semesters.programs.year.yearLevel",
         foreignField: "_id",
-        as: "semesters.programs.year.year_level",
+        as: "semesters.programs.year.yearLevel",
       },
     },
-    { $unwind: "$semesters.programs.year.year_level" },
+    { $unwind: "$semesters.programs.year.yearLevel" },
     {
       $project: {
         _id: "$semesters.programs.year._id",
         school_year: "$school_year",
         sem: "$semesters.sem",
         program: "$semesters.programs.program",
-        year: "$semesters.programs.year.year_level",
+        year: "$semesters.programs.year.yearLevel",
         courses: "$semesters.programs.year.courses",
         sections: {
           _id: "$semesters.programs.year.sections._id",
@@ -295,13 +299,10 @@ exports.getOneProgram = (req, res, next) => {
     },
   ])
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false, error: error });
+      res.json({ status: 500, error: error });
     });
 };
 
@@ -313,19 +314,18 @@ exports.postPrograms = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
   }
-  Level.find({ deleted_at: null })
+  Level.find({ deleted: false })
     .then((result) => {
       fetchedLevel = result.map((element) => {
-        return { year_level: element._id };
+        return { yearLevel: element._id };
       });
-      console.log(fetchedLevel);
       return Curriculum.updateOne(
         {
           "semesters._id": req.params.semester,
         },
         {
           $push: {
-            "semesters.$[semester].programs": req.body.program.map(
+            "semesters.$[semester].programs": req.body.programs.map(
               (element) => {
                 return {
                   program: element,
@@ -339,20 +339,16 @@ exports.postPrograms = (req, res, next) => {
       );
     })
     .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: result });
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.getYearLevels = (req, res, next) => {
   if (!req.params.program.match(/^[0-9a-fA-F]{24}$/))
-    return res.json({ ok: false, msg: "Invalid Query" });
+    return res.json({ status: 400, msg: "Invalid Query" });
   Curriculum.aggregate([
     { $unwind: "$semesters" },
     { $unwind: "$semesters.programs" },
@@ -365,7 +361,7 @@ exports.getYearLevels = (req, res, next) => {
     {
       $project: {
         _id: "$semesters.programs.year._id",
-        level: "$semesters.programs.year.year_level",
+        level: "$semesters.programs.year.yearLevel",
         courses: "$semesters.programs.year.courses",
       },
     },
@@ -388,17 +384,17 @@ exports.getYearLevels = (req, res, next) => {
     { $unwind: "$level" },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false, errors: error });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.getSections = (req, res, next) => {
   if (!req.params.year_level.match(/^[0-9a-fA-F]{24}$/))
-    return res.json({ ok: false, msg: "Invalid Query" });
+    return res.status(400).json({ status: 400, msg: "Invalid Query" });
   Curriculum.aggregate([
     {
       $match: {
@@ -426,16 +422,15 @@ exports.getSections = (req, res, next) => {
     },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false, errors: error });
+      res.status(500).json({ status: 500, data: error });
     });
 };
 
 exports.postSections = (req, res, next) => {
-  const schedules = [];
   let filteredSection;
   Curriculum.aggregate([
     {
@@ -466,40 +461,10 @@ exports.postSections = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result);
       filteredSection = req.body.sections.filter((element) => {
         return !result.some((section) => {
           return section.section === element;
         });
-      });
-      return Course.find({ _id: { $in: result[0].courses } });
-    })
-    .then((result) => {
-      result.forEach((element) => {
-        if (element.lecture != 0) {
-          schedules.push({
-            course: element._id,
-            hour: element.lecture,
-            type: "lecture",
-            day: null,
-            start_time: null,
-            end_time: null,
-            room: null,
-            faculty: null,
-          });
-        }
-        if (element.lab != 0) {
-          schedules.push({
-            course: element._id,
-            hour: element.lab,
-            type: "lab",
-            day: null,
-            start_time: null,
-            end_time: null,
-            room: null,
-            faculty: null,
-          });
-        }
       });
       return Curriculum.updateOne(
         {
@@ -511,7 +476,10 @@ exports.postSections = (req, res, next) => {
               filteredSection.map((element) => {
                 return {
                   section: element,
-                  schedules: schedules,
+                  schedules: {
+                    labSchedules: [],
+                    lectureSchedules: [],
+                  },
                 };
               }),
           },
@@ -522,12 +490,11 @@ exports.postSections = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
-      res.json({ ok: true, data: result, sections: filteredSection });
+      res.json({ status: 201, data: result, sections: filteredSection });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false, data: error });
+      res.status(500).json({ status: 500, data: error });
     });
 };
 
@@ -684,7 +651,6 @@ exports.getSectionSchedules = (req, res, next) => {
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -718,77 +684,56 @@ exports.getCourse = (req, res, next) => {
         from: "courses",
         localField: "course",
         foreignField: "_id",
-        as: "course_info",
+        as: "course",
       },
     },
+    { $unwind: "$course" },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result[0] });
+      res.json({ status: 200, data: result });
     })
     .catch((error) => {
       console.log(error);
-      res.json({ ok: false, data: error });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.postCourse = (req, res, next) => {
-  let fetchedCourses;
-  const schedules = [];
+  console.log(req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
   }
-  Course.find({ _id: { $in: req.body.course } })
+  Curriculum.updateOne(
+    {
+      "semesters.programs.year._id": req.params.year,
+    },
+    {
+      $push: {
+        "semesters.$[].programs.$[].year.$[year].courses": req.body.courses,
+      },
+    },
+    {
+      arrayFilters: [
+        {
+          "year._id": req.params.year,
+        },
+      ],
+    }
+  )
     .then((result) => {
-      fetchedCourses = result;
-      result.forEach((element) => {
-        if (element.lecture != 0) {
-          schedules.push({
-            course: element._id,
-            hour: element.lecture,
-            type: "lecture",
-          });
-        }
-        if (element.lab != 0) {
-          schedules.push({
-            course: element._id,
-            hour: element.lab,
-            type: "lab",
-          });
-        }
-      });
-      return Curriculum.updateOne(
-        {
-          "semesters.programs.year._id": req.params.year,
-        },
-        {
-          $push: {
-            "semesters.$[].programs.$[].year.$[year].courses": req.body.course,
-            "semesters.$[].programs.$[].year.$[year].sections.$[].schedules":
-              schedules,
-          },
-        },
-        {
-          arrayFilters: [
-            {
-              "year._id": req.params.year,
-            },
-          ],
-        }
-      );
+      return Course.find({ _id: { $in: req.body.courses } });
     })
     .then((result) => {
-      res.json({ ok: true, data: result, courses: fetchedCourses });
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
-
-  return;
 };
 
 exports.deleteCourse = (req, res, next) => {
+  console.log(req.params);
   Curriculum.updateOne(
     {
       "semesters.programs.year._id": req.params.year,
@@ -796,9 +741,14 @@ exports.deleteCourse = (req, res, next) => {
     {
       $pull: {
         "semesters.$[].programs.$[].year.$[year].courses": req.params.course,
-        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules": {
-          course: req.params.course,
-        },
+        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules.$[].labSchedules":
+          {
+            course: req.params.course,
+          },
+        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules.$[].lectureSchedules":
+          {
+            course: req.params.course,
+          },
       },
     },
     {
@@ -806,10 +756,11 @@ exports.deleteCourse = (req, res, next) => {
     }
   )
     .then((result) => {
-      res.json({ ok: true, data: result });
+      console.log(result);
+      res.json({ status: 202, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
       console.log(error);
     });
 };
@@ -907,7 +858,6 @@ exports.getActiveRoom = (req, res, next) => {
     { $sort: { "room.laboratory": 1 } },
   ])
     .then((result) => {
-      console.log(result);
       res.json({ status: 200, data: result });
     })
     .catch((error) => {

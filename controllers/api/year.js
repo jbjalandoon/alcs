@@ -3,10 +3,9 @@ const Curriculum = require("../../models/curriculum");
 const { validationResult } = require("express-validator");
 
 exports.get = (req, res, next) => {
-  Year.find({ deleted_at: null })
+  Year.find({ deleted: false })
     .then((year) => {
-      // console.log(year);
-      res.json({ ok: true, data: year });
+      res.json({ status: 200, data: year });
     })
     .catch((error) => {
       return res.json({ ok: false });
@@ -16,28 +15,28 @@ exports.get = (req, res, next) => {
 exports.getOne = (req, res, next) => {
   Year.findOne({ _id: req.params.id })
     .then((year) => {
-      res.json({ ok: true, data: year });
+      res.json({ status: 201, data: year });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.post = (req, res, next) => {
+  console.log(req.body);
   let year;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors.mapped());
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
   new Year({
     year: req.body.year,
   })
     .save()
     .then((result) => {
-      year = result
+      year = result;
       return new Curriculum({
-        school_year: result._id,
+        schoolYear: result._id,
         semesters: [
           { sem: "first", isActive: false },
           { sem: "second", isActive: false },
@@ -46,38 +45,33 @@ exports.post = (req, res, next) => {
       }).save();
     })
     .then((result) => {
-      if (!result) {
-        res.json({ ok: false });
-      }
-      res.json({ ok: true, data: year });
+      res.json({ status: 201, data: year });
     })
     .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };
 
 exports.edit = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
+    return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
   Year.findOneAndUpdate({ _id: req.params.id }, { year: req.body.year })
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.status(201).json({ status: 201, data: result });
     })
     .catch((error) => {
-      res.json({ ok: false });
+      res.status(500).json({ status: 500, data: error });
     });
 };
 
 exports.delete = (req, res, next) => {
-  Year.findOneAndUpdate({ _id: req.params.id }, { deleted_at: new Date() })
+  Year.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({ status: 202, data: result });
     })
     .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
+      res.json({ status: 500, data: error });
     });
 };

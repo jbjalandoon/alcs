@@ -9,6 +9,7 @@ const csrf = $("#csrf").val();
 
 const editModal = new bootstrap.Modal($("#editModal"));
 const addModal = new bootstrap.Modal($("#addModal"));
+let uploadModal = new bootstrap.Modal($("#uploadModal"));
 
 fetch("/api/rooms", {
   method: "GET",
@@ -135,6 +136,53 @@ $(editModal._element).on("show.bs.modal", (event) => {
       console.log(error);
       displayToast(error);
     });
+});
+
+$(uploadModal._element).on("show.bs.modal", (event) => {
+  const button = $(event.currentTarget).find("#uploadButton");
+  const body = new FormData();
+  button.off("click");
+  button.on("click", () => {
+    body.append(
+      "spreadsheet",
+      $(event.currentTarget).find("#spreadsheet")[0].files[0]
+    );
+    fetch("/api/rooms/upload", {
+      method: "POST",
+      headers: { "csrf-token": csrf },
+      body: body,
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        console.log(result);
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        uploadModal.hide();
+        table.rows().remove().draw();
+
+        result.data.forEach((element) => {
+          table.row
+            .add([
+              element.roomName.toUpperCase(),
+              Boolean(element.laboratory) ? "Yes" : "No",
+              `<td>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal" data-bs-id="${element._id}">Edit</button>
+            <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
+           </td>`,
+            ])
+            .draw();
+        });
+        displayToast(result);
+      })
+      .catch((error) => {
+        console.log(error);
+        displayToast(error);
+      });
+  });
 });
 
 const deleteData = (id, element) => {

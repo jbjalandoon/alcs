@@ -7,7 +7,7 @@ let totalUnit,
   tags = [],
   unitsCount = 0,
   hoursCount = 0;
-
+let maxUnits, maxHours;
 let unavailableTime = [];
 
 const courseSearch = $("#courseSearch");
@@ -182,7 +182,11 @@ fetch("/api/curriculums/active")
         title: "There is no current active semester",
       });
     }
-
+    $("#cardTitle").html(
+      `FACULTY LOADING ${
+        result.data[0].school_year[0].year
+      } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
+    );
     sem = result.data[0].semesters._id;
     return fetch("/api/faculty");
   })
@@ -211,10 +215,7 @@ fetch("/api/curriculums/active")
   });
 
 faculty.on("change", () => {
-  $("#lectureList").empty();
-  $("#labList").empty();
-  $("#lecture-tab").html(`Lecture (0)`);
-  $("#lab-tab").html(`Lab (0)`);
+  $("#courseList").empty();
   $("#contentRow").removeClass("d-none");
   totalUnit = 0;
   unavailableTime.length = 0;
@@ -246,6 +247,8 @@ faculty.on("change", () => {
           display: "background",
         });
       });
+      maxUnits = result.data.userInformation.facultyType.unitsCap;
+      maxHours = result.data.userInformation.facultyType.hoursCap;
       $("#spanMaxUnits").html(result.data.userInformation.facultyType.unitsCap);
       $("#spanMaxHours").html(result.data.userInformation.facultyType.hoursCap);
       return fetch(`/api/schedules/faculty/${sem}/${faculty.val()}`);
@@ -292,7 +295,6 @@ faculty.on("change", () => {
       return response.json();
     })
     .then((result) => {
-     
       courseSearch.find("option").not(":first").remove();
       result.data.forEach((element) => {
         courseSearch.append(
@@ -322,6 +324,7 @@ courseSearch.on("change", () => {
       return response.json();
     })
     .then((result) => {
+      console.log(result);
       const days = ["m", "t", "w", "th", "f", "s", null];
       $("#courseList").empty();
       result.data.forEach((element) => {
@@ -411,12 +414,16 @@ courseSearch.on("change", () => {
             new Date(0, 0, 0, e.start.getHours(), e.start.getMinutes()),
             new Date(0, 0, 0, e.end.getHours(), e.end.getMinutes())
           );
-          const bool1 =
+          let bool1, bool2;
+          bool1 =
             currentTimeRange[0].range.overlaps(eventRange) &&
             currentTimeRange[0].day === eventDay;
-          const bool2 =
-            currentTimeRange[1].range.overlaps(eventRange) &&
-            currentTimeRange[1].day === eventDay;
+          if (currentTimeRange[1]) {
+            bool2 =
+              currentTimeRange[1].range.overlaps(eventRange) &&
+              currentTimeRange[1].day === eventDay;
+          }
+
           if (bool1 || bool2) {
             if (e.display === "background") {
               buttonBg = "bg-warning";
@@ -452,6 +459,7 @@ courseSearch.on("change", () => {
 const assignFaculty = (element) => {
   const schedules = [];
   const days = ["m", "t", "w", "th", "f", "s", null];
+  let units = 0;
   const currentButton = $(element.currentTarget);
   const event = calendar.getEvents();
   let isUndesiredSchedule = false;
@@ -489,12 +497,16 @@ const assignFaculty = (element) => {
       new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()),
       new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
     );
-    const bool1 =
+    let bool1, bool2;
+    bool1 =
       currentTimeRange[0].range.overlaps(eventRange) &&
       currentTimeRange[0].day === eventDay;
-    const bool2 =
-      currentTimeRange[1].range.overlaps(eventRange) &&
-      currentTimeRange[1].day === eventDay;
+    if (currentTimeRange[1]) {
+      bool2 =
+        currentTimeRange[1].range.overlaps(eventRange) &&
+        currentTimeRange[1].day === eventDay;
+    }
+
     if (bool1 || bool2) {
       if (element.display === "background") {
         isUndesiredSchedule = true;
@@ -591,8 +603,9 @@ const assignFaculty = (element) => {
                 current: false,
               });
               hoursCount += parseInt(button.attr("hourDuration"));
+              units = parseInt(button.attr("units"));
             });
-            unitsCount += parseInt(currentButton.attr("units"));
+            unitsCount += units;
 
             $("#spanUnits").html(unitsCount);
             $("#spanHours").html(hoursCount);
@@ -642,8 +655,10 @@ const assignFaculty = (element) => {
           current: false,
         });
         hoursCount += parseInt(button.attr("hourDuration"));
+        units = parseInt(button.attr("units"));
       });
-      unitsCount += parseInt(currentButton.attr("units"));
+      console.log(parseInt(currentButton.attr("units")));
+      unitsCount += units;
 
       $("#spanUnits").html(unitsCount);
       $("#spanHours").html(hoursCount);

@@ -30,8 +30,10 @@ const config = {
     const level = info.event.extendedProps.level.toUpperCase();
     const firstName =
       info.event.extendedProps.faculty.userInformation.firstName;
-    const middleName =
-      info.event.extendedProps.faculty.userInformation.middleName;
+    const middleName = info.event.extendedProps.faculty.userInformation
+      .middleName
+      ? info.event.extendedProps.faculty.userInformation.middleName
+      : "";
     const lastName = info.event.extendedProps.faculty.userInformation.lastName;
     const initials = `${firstName.charAt(0)}${middleName.charAt(
       0
@@ -207,7 +209,7 @@ function downloadSpreadsheet(filename, events) {
         const firstName =
           element.extendedProps.faculty.userInformation.firstName;
         const middleName =
-          element.extendedProps.faculty.userInformation.middleName;
+          element.extendedProps.faculty.userInformation.middleName ? element.extendedProps.faculty.userInformation.middleName : '';
         const lastName = element.extendedProps.faculty.userInformation.lastName;
         const initials = `${firstName.charAt(0)}${middleName.charAt(
           0

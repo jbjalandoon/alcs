@@ -1,5 +1,6 @@
 const Room = require("../../models/room");
 const { validationResult } = require("express-validator");
+const readXlsxFile = require("read-excel-file/node");
 
 exports.get = (req, res, next) => {
   Room.find({ deleted: false })
@@ -53,6 +54,52 @@ exports.post = (req, res, next) => {
     })
     .catch((error) => {
       return res.status(500).json({ ok: false, status: 500, data: error });
+    });
+};
+
+exports.postSpreadsheet = (req, res, next) => {
+  let data;
+  readXlsxFile(Buffer.from(req.file.buffer))
+    .then((rows) => {
+      rows.shift();
+      // rows.map((element) => {
+      //   return {
+      //     updateOne: {
+      //       filter: { courseCode: e.courseCode },
+      //       update: e,
+      //       upsert: true,
+      //     },
+      //   };
+      //   return {
+      //     roomName: element[0],
+      //     laborator: element[1] === "TRUE" ? true : false,
+      //   };
+      // });
+      return Room.bulkWrite(
+        rows.map((element) => {
+          console.log(element[1]);
+          return {
+            updateOne: {
+              filter: { roomName: element[0] },
+              update: {
+                roomName: element[0],
+                laboratory: element[1],
+              },
+              upsert: true,
+            },
+          };
+        })
+      );
+    })
+    .then((result) => {
+      return Room.find({ deleted: false });
+    })
+    .then((result) => {
+      res.json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      res.json({ status: 500, data: error });
+      console.log(error);
     });
 };
 

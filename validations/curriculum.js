@@ -1,26 +1,7 @@
 const { check } = require("express-validator");
 
-exports.course = [
-  check("course_code")
-    .not()
-    .isEmpty()
-    .withMessage("The course code is empty.")
-    .trim(),
-  check("course_description")
-    .not()
-    .isEmpty()
-    .withMessage("The course description is empty.")
-    .trim()
-    .isString()
-    .withMessage("Only Alphanumeric is allowed."),
-  check("units")
-    .not()
-    .isEmpty()
-    .withMessage("The units is empty.")
-    .trim()
-    .toFloat()
-    .isFloat()
-    .withMessage("The unit is not a number."),
+exports.courses = [
+  check("courses").notEmpty().withMessage("Please select some course"),
 ];
 
 exports.program = [
@@ -79,15 +60,12 @@ exports.section = [
   check("section").not().isEmpty().withMessage("Section is empty.").trim(),
 ];
 
-exports.postProgram = [
-  check("semester").notEmpty().withMessage("Please select semester"),
-  check("program").notEmpty().withMessage("Please select something"),
+exports.postPrograms = [
+  check("programs").notEmpty().withMessage("Please select something"),
 ];
-
 
 exports.postYearLevel = [
   check("year_level").notEmpty().withMessage("Please select year level"),
   check("section").notEmpty().withMessage("This field is required"),
   check("course").notEmpty().withMessage("Please select course"),
 ];
-

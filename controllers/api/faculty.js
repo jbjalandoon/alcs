@@ -77,7 +77,6 @@ exports.post = (req, res, next) => {
           middleName: req.body.middleName,
           lastName: req.body.lastName,
           facultyType: req.body.facultyType,
-          schedulePreference: req.body.schedulePreference,
           academicQualifications: req.body.academicQualifications,
         },
       }).save();
@@ -407,7 +406,6 @@ exports.postSpreadsheet = (req, res, next) => {
                 email: e.email,
                 password: password,
                 userInformation: {
-                  schedulePreference: ["m", "t", "w", "th", "f", "s"],
                   facultyCode: e.facultyCode,
                   lastName: e.lastName,
                   firstName: e.firstName,

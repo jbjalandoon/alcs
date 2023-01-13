@@ -136,7 +136,6 @@ mongoose
           ]);
         })
         .then((result) => {
-          console.log(result);
           app.listen(3000);
         });
     } else {

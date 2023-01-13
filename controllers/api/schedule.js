@@ -110,6 +110,121 @@ exports.getSchedule = (req, res, next) => {
     });
 };
 
+exports.getAllLoadableSchedules = (req, res, next) => {
+  const day = ["m", "t", "w", "th", "f", "s", null];
+  Curriculum.aggregate([
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) },
+    },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) },
+    },
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections.schedules._id",
+        program: "$semesters.programs.program",
+        section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        course: "$semesters.programs.year.sections.schedules.course",
+        type: "$semesters.programs.year.sections.schedules.type",
+        level: "$semesters.programs.year.year_level",
+        hour: "$semesters.programs.year.sections.schedules.hour",
+        day: "$semesters.programs.year.sections.schedules.day",
+        start_time: "$semesters.programs.year.sections.schedules.start_time",
+        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        room: "$semesters.programs.year.sections.schedules.room",
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $match: {
+        day: { $ne: null },
+        faculty: undefined,
+      },
+    },
+  ])
+    .then((result) => {
+      console.log(result);
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false });
+    });
+};
+
+exports.getAllAssignableSchedules = (req, res, next) => {
+  const day = ["m", "t", "w", "th", "f", "s", null];
+  Curriculum.aggregate([
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) },
+    },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) },
+    },
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections.schedules._id",
+        program: "$semesters.programs.program",
+        section: "$semesters.programs.year.sections._id",
+        section_name: "$semesters.programs.year.sections.section",
+        course: "$semesters.programs.year.sections.schedules.course",
+        type: "$semesters.programs.year.sections.schedules.type",
+        level: "$semesters.programs.year.year_level",
+        hour: "$semesters.programs.year.sections.schedules.hour",
+        day: "$semesters.programs.year.sections.schedules.day",
+        start_time: "$semesters.programs.year.sections.schedules.start_time",
+        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        room: "$semesters.programs.year.sections.schedules.room",
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $match: {
+        day: null,
+      },
+    },
+  ])
+    .then((result) => {
+      console.log(result);
+      res.json({ ok: true, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ ok: false });
+    });
+};
+
 exports.getAssignableCourse = (req, res, next) => {
   let academicQualification = [],
     courseTaken;
@@ -434,7 +549,6 @@ exports.getOneSchedule = (req, res, next) => {
 };
 
 exports.getRoomSchedule = (req, res, next) => {
-  console.log(req.params.semester);
   Curriculum.aggregate([
     {
       $unwind: "$semesters",
@@ -454,7 +568,7 @@ exports.getRoomSchedule = (req, res, next) => {
     {
       $match: {
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
-        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+        // "semesters.programs.year.sections.schedules.faculty": { $ne: null },
         "semesters.programs.year.sections.schedules.room":
           mongoose.Types.ObjectId(req.params.room),
       },
@@ -621,6 +735,103 @@ exports.getRoomsSchedule = (req, res, next) => {
     });
 };
 
+exports.getFinishedRoomSchedule = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+        "semesters.programs.year.sections.schedules.room":
+          mongoose.Types.ObjectId(req.params.room),
+      },
+    },
+
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections.schedules._id",
+        section: "$semesters.programs.year.sections._id",
+        level: "$semesters.programs.year.year_level",
+        section_name: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
+        course: "$semesters.programs.year.sections.schedules.course",
+        type: "$semesters.programs.year.sections.schedules.type",
+        hour: "$semesters.programs.year.sections.schedules.hour",
+        day: "$semesters.programs.year.sections.schedules.day",
+        start_time: "$semesters.programs.year.sections.schedules.start_time",
+        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        room: "$semesters.programs.year.sections.schedules.room",
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "faculty",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "level",
+        foreignField: "_id",
+        as: "level",
+      },
+    },
+    { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+  ])
+    .then((result) => {
+      res.json({ ok: true, data: result });
+    })
+    .then((error) => {
+      console.log(error);
+    });
+};
+
 exports.getFacultySchedule = (req, res, next) => {
   Curriculum.aggregate([
     {
@@ -722,10 +933,13 @@ exports.getFacultySchedule = (req, res, next) => {
 };
 
 exports.getSectionSchedule = (req, res, next) => {
+  console.log(req.params);
   Curriculum.aggregate([
     {
       $match: {
-        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
+          req.params.section
+        ),
       },
     },
     {
@@ -741,40 +955,19 @@ exports.getSectionSchedule = (req, res, next) => {
       $unwind: "$semesters.programs.year.sections",
     },
     {
-      $unwind: "$semesters.programs.year.sections.schedules",
-    },
-    {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
         "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
           req.params.section
         ),
-        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
     {
       $project: {
-        _id: "$semesters.programs.year.sections.schedules._id",
-        section: "$semesters.programs.year.sections._id",
-        yearLevel: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        _id: "$semesters.programs.year.sections._id",
         program: "$semesters.programs.program",
-        course: "$semesters.programs.year.sections.schedules.course",
-        type: "$semesters.programs.year.sections.schedules.type",
-        hour: "$semesters.programs.year.sections.schedules.hour",
-        day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
-        room: "$semesters.programs.year.sections.schedules.room",
-        faculty: "$semesters.programs.year.sections.schedules.faculty",
-      },
-    },
-    {
-      $lookup: {
-        from: "courses",
-        localField: "course",
-        foreignField: "_id",
-        as: "course",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
+        schedules: "$semesters.programs.year.sections.schedules",
       },
     },
     {
@@ -783,6 +976,43 @@ exports.getSectionSchedule = (req, res, next) => {
         localField: "program",
         foreignField: "_id",
         as: "program",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "levels",
+        localField: "yearLevel",
+        foreignField: "_id",
+        as: "yearLevel",
+      },
+    },
+    { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$schedules", preserveNullAndEmptyArrays: false } },
+    {
+      $project: {
+        _id: "$schedules._id",
+        program: "$program",
+        yearLevel: "$yearLevel",
+        sectionName: "$sectionName",
+        sectionId: "$_id",
+        course: "$schedules.course",
+        type: "$schedules.type",
+        hour: "$schedules.hour",
+        startTime: "$schedules.startTime",
+        endTime: "$schedules.endTime",
+        day: "$schedules.day",
+        room: "$schedules.room",
+        faculty: "$schedules.faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course",
+        foreignField: "_id",
+        as: "course",
       },
     },
     {
@@ -801,19 +1031,29 @@ exports.getSectionSchedule = (req, res, next) => {
         as: "faculty",
       },
     },
-    {
-      $lookup: {
-        from: "levels",
-        localField: "yearLevel",
-        foreignField: "_id",
-        as: "level",
-      },
-    },
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: "$course._id",
+        program: { $first: "$program" },
+        yearLevel: { $first: "$yearLevel" },
+        sectionName: { $first: "$sectionName" },
+        course: { $first: "$course" },
+        faculty: { $first: "$faculty" },
+        schedules: {
+          $push: {
+            type: "$type",
+            hour: "$hour",
+            startTime: "$startTime",
+            endTime: "$endTime",
+            day: "$day",
+            room: "$room",
+          },
+        },
+      },
+    },
   ])
     .then((result) => {
       res.json({ ok: true, data: result });
@@ -1319,12 +1559,6 @@ exports.getFacultiesSchedule = (req, res, next) => {
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
-    {
-      $group: {
-        _id: "$faculty._id",
-        schedules: { $push: "$$ROOT" },
-      },
-    },
   ])
     .then((result) => {
       res.json({ ok: true, data: result });
@@ -1333,38 +1567,43 @@ exports.getFacultiesSchedule = (req, res, next) => {
       res.json({ ok: false, data: error });
     });
 };
-exports.setSchedule = (req, res, next) => {
-  const days = ["m", "t", "w", "th", "f", "s", null];
+
+exports.assignSchedule = (req, res, next) => {
+  console.log(req.params.section);
   Curriculum.updateOne(
     {
-      "semesters.programs.year.sections.schedules._id": req.params.schedule,
+      "semesters.programs.year.sections._id": req.params.section,
     },
     {
-      $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day":
-          days[req.body.day - 1],
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].start_time":
-          req.body.start_time,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].end_time":
-          req.body.end_time,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
-          req.body.room,
+      $push: {
+        "semesters.$[].programs.$[].year.$[].sections.$[section].schedules": {
+          course: req.body.course,
+          type: req.body.courseType,
+          hour: req.body.hour,
+          startTime: req.body.startTime,
+          endTime: req.body.endTime,
+          day: req.body.day,
+          room: req.body.room,
+          faculty: null,
+        },
       },
     },
-    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
+    { arrayFilters: [{ "section._id": req.params.section }] }
   )
     .then((result) => {
+      console.log(result);
       if (!result.modifiedCount) {
-        return res.json({ ok: false });
+        return res.json({ status: 500 });
       }
-      res.json({ ok: true });
+      res.json({ status: 201 });
     })
     .catch((error) => {
-      res.json({ false: true });
+      console.log(error);
+      res.json({ status: 500 });
     });
 };
 
-exports.assignSchedule = (req, res, next) => {
+exports.loadSchedule = (req, res, next) => {
   console.log(req.params.schedule.split(","));
   Curriculum.updateOne(
     {
@@ -1528,6 +1767,12 @@ exports.getUnassignedSchedules = (req, res, next) => {
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: "$course._id",
+        schedules: { $push: "$$ROOT" },
+      },
+    },
   ])
     .then((result) => {
       res.json({ ok: true, data: result });

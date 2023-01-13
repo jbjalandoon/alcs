@@ -7,9 +7,9 @@ const YearSchema = new Schema({
     type: String,
     required: true,
   },
-  deleted_at: {
-    type: Date,
-    default: null,
+  deleted: {
+    type: Boolean,
+    default: false,
   },
 });
 

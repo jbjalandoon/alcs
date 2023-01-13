@@ -19,6 +19,18 @@ exports.get = (req, res, next) => {
     });
 };
 
+exports.getFiltered = (req, res, next) => {
+  console.log(req.params.courses.split(","));
+  Course.find({ _id: { $nin: req.params.courses.split(",") } })
+    .then((result) => {
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ status: 500, data: error });
+    });
+};
+
 exports.getUnits = (req, res, next) => {
   Course.find({
     _id: {
