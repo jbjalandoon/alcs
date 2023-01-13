@@ -34,6 +34,10 @@ const CurriculumSchema = new Schema({
                   section: { type: String, required: true },
                   schedules: [
                     {
+                      _id: {
+                        type: mongoose.Types.ObjectId,
+                        unique: true,
+                      },
                       course: {
                         type: mongoose.Types.ObjectId,
                         ref: "Course",

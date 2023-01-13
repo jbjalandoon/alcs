@@ -117,7 +117,8 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         return response.json();
       })
       .then((result) => {
-        // $(info.draggedEl.parentNode).remove();
+        console.log(result);
+        info.event.setExtendedProp("scheduleID", result.id);
         displayToast(result);
       })
       .catch((error) => {
@@ -177,19 +178,17 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       });
   },
   eventClick: function (info) {
-    Swal.showLoading();
-    fetch("/api/schedules/" + info.event.id)
+    const id = info.event.extendedProps.scheduleID;
+    fetch(`/api/schedules/single/${semester}/${id}`)
       .then((response) => {
         return response.json();
       })
       .then((result) => {
         Swal.fire({
           icon: "info",
-          title: `${result.data.course.courseDescription.toUpperCase()} - ${
-            result.data.type === "lab" ? "Lab" : "Lecture"
-          }`,
-          text: `${result.data.day.toUpperCase()} ${result.data.start_time} - ${
-            result.data.end_time
+          title: `${result.data.course.courseDescription.toUpperCase()} - ${result.data.type.toUpperCase()}`,
+          text: `${days[result.data.day - 1]} ${result.data.startTime} - ${
+            result.data.endTime
           } (${result.data.room.roomName.toUpperCase()})`,
           width: "50%",
           showCancelButton: true,
@@ -208,7 +207,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
               cancelButtonColor: "#d33",
               confirmButtonText: "Yes, delete it!",
               preConfirm: () => {
-                return fetch("/api/schedules/" + info.event.id, {
+                return fetch(`/api/schedules/single/${semester}/${id}`, {
                   method: "DELETE",
                   headers: {
                     "csrf-token": csrf,
@@ -450,10 +449,9 @@ scheduleSectionForm.on("change", () => {
     })
     .then((result) => {
       result.data.forEach((element) => {
-        console.log(element);
         element.schedules.forEach((schedule) => {
           calendar.addEvent({
-            id: schedule._id,
+            scheduleID: schedule._id,
             hourDuration: schedule.hour,
             daysOfWeek: [schedule.day],
             startTime: schedule.startTime,
@@ -476,40 +474,6 @@ scheduleSectionForm.on("change", () => {
     .catch((error) => {
       console.log(error);
     });
-  // fetch("/api/curriculums/schedules/" + scheduleSectionForm.val())
-  //   .then((response) => {
-  //     return response.json();
-  //   })
-  //   .then((result) => {
-  //
-  //
-  //
-  //       if (element.day != null) {
-  //         const days = ["m", "t", "w", "th", "f", "s"];
-  //         calendar.addEvent({
-  //           id: element._id,
-  //           hourDuration: element.hour,
-  //           daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-  //           startTime: element.start_time,
-  //           endTime: element.end_time,
-  //           courseType: element.type,
-  //           overlap: false,
-  //           durationEditable: false,
-  //           startEditable: true,
-  //           // color: "#3788D8",
-  //           course: element.course.courseCode,
-  //           program: element.program.programCode,
-  //           section: element.section_name,
-  //           room: element.room.roomName,
-  //           level: element.level.display,
-  //           faculty: element.faculty,
-  //           current: true,
-  //         });
-  //       }
-  //     });
-  //     $("#scheduleContent").removeClass("d-none");
-  // calendar.render();
-  //   });
   $("#scheduleContent").removeClass("d-none");
   calendar.render();
 });

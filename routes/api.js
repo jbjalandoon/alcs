@@ -148,8 +148,11 @@ router.post(
   curriculum.addYearLevel
 );
 
-router.get("/schedules/:schedule", schedule.getOneSchedule);
+router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
+router.delete("/schedules/single/:semester/:schedule", schedule.deleteSchedule);
+
 router.get("/schedules", schedule.getSchedule);
+
 router.get(
   "/schedules/loadable-schedules/:sem",
   schedule.getAllLoadableSchedules
@@ -161,7 +164,6 @@ router.get(
 
 router.post("/schedules/assign/:section", schedule.assignSchedule);
 router.put("/schedules/load/:schedule", schedule.loadSchedule);
-
 
 router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
@@ -175,10 +177,7 @@ router.get(
   "/schedules/faculty/:semester/:faculty/",
   schedule.getFacultySchedule
 );
-router.get(
-  "/schedules/section/:section/",
-  schedule.getSectionSchedule
-);
+router.get("/schedules/section/:section/", schedule.getSectionSchedule);
 
 // router.get("/schedules/section/:semester/", schedule.getGroupedSectionSchedule);
 
@@ -188,7 +187,6 @@ router.get(
   "/schedules/faculty/grouped/:semester/:faculty/",
   schedule.getGroupedScheduleFaculty
 );
-router.delete("/schedules/:schedule", schedule.deleteSchedule);
 router.get(
   "/schedules/assignable-course/:sem/:faculty",
   schedule.getAssignableCourse

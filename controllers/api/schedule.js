@@ -457,6 +457,11 @@ exports.getYearLevelSchedules = (req, res, next) => {
 exports.getOneSchedule = (req, res, next) => {
   Curriculum.aggregate([
     {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
       $unwind: "$semesters",
     },
     {
@@ -473,6 +478,7 @@ exports.getOneSchedule = (req, res, next) => {
     },
     {
       $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
         "semesters.programs.year.sections.schedules._id":
           mongoose.Types.ObjectId(req.params.schedule),
       },
@@ -484,12 +490,12 @@ exports.getOneSchedule = (req, res, next) => {
         type: "$semesters.programs.year.sections.schedules.type",
         program: "$semesters.programs.program",
         level: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
-        section: "$semesters.programs.year.sections._id",
+        sectionName: "$semesters.programs.year.sections.section",
+        sectionID: "$semesters.programs.year.sections._id",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
       },
@@ -1044,6 +1050,7 @@ exports.getSectionSchedule = (req, res, next) => {
         faculty: { $first: "$faculty" },
         schedules: {
           $push: {
+            _id: "$_id",
             type: "$type",
             hour: "$hour",
             startTime: "$startTime",
@@ -1569,7 +1576,7 @@ exports.getFacultiesSchedule = (req, res, next) => {
 };
 
 exports.assignSchedule = (req, res, next) => {
-  console.log(req.params.section);
+  const id = new mongoose.Types.ObjectId();
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections._id": req.params.section,
@@ -1577,6 +1584,7 @@ exports.assignSchedule = (req, res, next) => {
     {
       $push: {
         "semesters.$[].programs.$[].year.$[].sections.$[section].schedules": {
+          _id: id,
           course: req.body.course,
           type: req.body.courseType,
           hour: req.body.hour,
@@ -1588,14 +1596,14 @@ exports.assignSchedule = (req, res, next) => {
         },
       },
     },
-    { arrayFilters: [{ "section._id": req.params.section }] }
+    { arrayFilters: [{ "section._id": req.params.section }], upsert: true }
   )
     .then((result) => {
-      console.log(result);
+      console.log({ ...result, id: id });
       if (!result.modifiedCount) {
         return res.json({ status: 500 });
       }
-      res.json({ status: 201 });
+      res.json({ status: 201, id: id });
     })
     .catch((error) => {
       console.log(error);
@@ -1604,7 +1612,6 @@ exports.assignSchedule = (req, res, next) => {
 };
 
 exports.loadSchedule = (req, res, next) => {
-  console.log(req.params.schedule.split(","));
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections.schedules._id": {
@@ -1668,32 +1675,26 @@ exports.unassignSchedule = (req, res, next) => {
 exports.deleteSchedule = (req, res, next) => {
   Curriculum.updateOne(
     {
-      "semesters.programs.year.sections.schedules._id": req.params.schedule,
+      "semesters._id": req.params.semester,
     },
     {
-      $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day":
-          null,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].start_time":
-          null,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].end_time":
-          null,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
-          null,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty":
-          null,
+      $pull: {
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules": {
+          _id: req.params.schedule,
+        },
       },
     },
     { arrayFilters: [{ "schedule._id": req.params.schedule }] }
   )
     .then((result) => {
+      console.log(result);
       if (!result.modifiedCount) {
-        return res.json({ ok: false });
+        return res.json({ status: 500 });
       }
-      res.json({ ok: true });
+      res.json({ status: 202 });
     })
     .catch((error) => {
-      res.json({ false: true });
+      res.json({ status: 500 });
     });
 };
 
