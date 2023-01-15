@@ -150,7 +150,7 @@ router.post(
 
 router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
 
-router.put("/schedules/adjust/:semester/:schedule", schedule.adjustSchedule)
+router.put("/schedules/adjust/:semester/:schedule", schedule.adjustSchedule);
 router.delete("/schedules/single/:semester/:schedule", schedule.deleteSchedule);
 
 router.get("/schedules", schedule.getSchedule);
@@ -165,6 +165,7 @@ router.get(
 );
 
 router.post("/schedules/assign/:section", schedule.assignSchedule);
+router.put("/schedules/reassign/:section/:schedule", schedule.reAssignSchedule);
 
 router.put("/schedules/load/:schedule", schedule.loadSchedule);
 

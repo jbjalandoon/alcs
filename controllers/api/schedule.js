@@ -1618,6 +1618,35 @@ exports.assignSchedule = (req, res, next) => {
     });
 };
 
+exports.reAssignSchedule = (req, res, next) => {
+  console.log(req.params);
+  Curriculum.updateOne(
+    {
+      "semesters.programs.year.sections._id": req.params.section,
+    },
+    {
+      $set: {
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].startTime":
+          req.body.startTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
+          req.body.endTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
+          req.body.room,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty":
+          null,
+      },
+    },
+    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
+  )
+    .then((result) => {
+      console.log(result);
+      res.json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      res.json({ status: 500, data: error });
+    });
+};
+
 exports.loadSchedule = (req, res, next) => {
   Curriculum.updateOne(
     {
