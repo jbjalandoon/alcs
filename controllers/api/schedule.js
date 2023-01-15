@@ -557,6 +557,11 @@ exports.getOneSchedule = (req, res, next) => {
 exports.getRoomSchedule = (req, res, next) => {
   Curriculum.aggregate([
     {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
       $unwind: "$semesters",
     },
     {
@@ -584,15 +589,15 @@ exports.getRoomSchedule = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        level: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        level: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
       },
@@ -644,10 +649,12 @@ exports.getRoomSchedule = (req, res, next) => {
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      console.log(result);
+      res.json({ status: 200, data: result });
     })
-    .then((error) => {
+    .catch((error) => {
       console.log(error);
+      res.json({ status: 500, data: error });
     });
 };
 
@@ -1640,6 +1647,35 @@ exports.loadSchedule = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ ok: false, data: error });
+    });
+};
+
+exports.adjustSchedule = (req, res, next) => {
+  Curriculum.updateOne(
+    {
+      "semesters._id": req.params.semester,
+    },
+    {
+      $set: {
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime":
+          req.body.startTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
+          req.body.endTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
+          req.body.room,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour":
+          req.body.hour,
+      },
+    },
+    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
+  )
+    .then((result) => {
+      console.log(result);
+      res.status(202).json({ status: 202, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ status: 500, data: error });
     });
 };
 

@@ -149,6 +149,8 @@ router.post(
 );
 
 router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
+
+router.put("/schedules/adjust/:semester/:schedule", schedule.adjustSchedule)
 router.delete("/schedules/single/:semester/:schedule", schedule.deleteSchedule);
 
 router.get("/schedules", schedule.getSchedule);
@@ -163,10 +165,12 @@ router.get(
 );
 
 router.post("/schedules/assign/:section", schedule.assignSchedule);
+
 router.put("/schedules/load/:schedule", schedule.loadSchedule);
 
-router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
+
+router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get(
   "/schedules/room/finished/:semester/:room",
   schedule.getFinishedRoomSchedule

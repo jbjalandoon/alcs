@@ -1,41 +1,41 @@
 .counter-box {
-	display: block;
-	background: #f6f6f6;
-	padding: 40px 20px 37px;
-	text-align: center;
-	height: 15rem;
+  display: block;
+  background: #f6f6f6;
+  padding: 40px 20px 37px;
+  text-align: center;
+  height: 15rem;
 }
 
 .counter-box p {
-	margin: 5px 0 0;
-	padding: 0;
-	color: #909090;
-	font-size: 18px;
-	font-weight: 500
+  margin: 5px 0 0;
+  padding: 0;
+  color: #909090;
+  font-size: 18px;
+  font-weight: 500;
 }
 
 .counter-box i {
-	font-size: 60px;
-	margin: 0 0 15px;
-	color: #d2d2d2
+  font-size: 60px;
+  margin: 0 0 15px;
+  color: #d2d2d2;
 }
 
-.counter { 
-	display: block;
-	font-size: 32px;
-	font-weight: 700;
-	color: #666;
-	line-height: 28px
+.counter {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #666;
+  line-height: 28px;
 }
 
 .counter-box.colored {
-      background: #3acf87;
+  background: #3acf87;
 }
 
 .counter-box.colored p,
 .counter-box.colored i,
 .counter-box.colored .counter {
-	color: #fff
+  color: #fff;
 }
 
 .box {
@@ -54,8 +54,12 @@
 }
 
 .fc-event-time {
-	display: none;
+  display: none;
 }
+
+// .fc-timegrid-slot {
+//   height: 50px !important;
+// }
 
 #box1 {
   background-color: #000000;

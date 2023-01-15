@@ -11,6 +11,7 @@ let draggable;
 
 // Buttons
 const scheduleSubmitButton = $("#schedule-form #submit");
+const currentCourseHourCount = {};
 let assignSubmitButton;
 let scheduleModal;
 
@@ -81,7 +82,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   eventReceive: function (info) {
-    console.log(scheduleSectionForm.val());
     const end = moment(info.event.endStr);
     const start = moment(info.event.startStr);
     if ($("#roomForm").val() === "") {
@@ -222,89 +222,41 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
               },
             }).then((clicked) => {
               if (clicked.isConfirmed) {
-                info.event.remove();
-                console.log(scheduleSectionForm.val());
-                console.log(result.data.section);
-                if (scheduleSectionForm.val() !== result.data.section)
-                  return Toast.fire({
-                    icon: "success",
-                    title: "Successfully removed",
-                  });
-                const card = $("<div></div>");
-                card.addClass("card mb-1");
-                const item = $("<li></li>");
-                item.addClass("list-group-item fc-event");
-                item.attr({
-                  id: result.data._id,
-                  hour: result.data.hour,
-                  course: result.data.course.courseCode,
-                  program: result.data.program.programCode,
-                  section: result.data.section_name,
-                  courseType: result.data.type,
-                  courseType: result.data.type,
-                  level: result.data.level.display,
-                  overlap: false,
-                  durationEditable: false,
-                  startEditable: true,
-                  current: true,
-                });
-                item.html(
-                  `${result.data.course.courseCode.toUpperCase()} - ${result.data.course.courseDescription.toUpperCase()}`
+                const course = info.event.extendedProps.course;
+                const end = moment(info.event.endStr);
+                const start = moment(info.event.startStr);
+                const durationHours = moment
+                  .duration(end.diff(start))
+                  .asHours();
+                let currentHour, maxHours;
+                if (info.event.extendedProps.courseType === "lecture") {
+                  currentCourseHourCount[course].currentLecture -=
+                    durationHours;
+                  maxHours = currentCourseHourCount[course].maxLecture;
+                  currentHour = currentCourseHourCount[course].currentLecture;
+                } else {
+                  currentCourseHourCount[course].currentLab -= durationHours;
+                  maxHours = currentCourseHourCount[course].maxLab;
+                  currentHour = currentCourseHourCount[course].currentLab;
+                }
+             
+                console.log(
+                  $("#external-events").find(
+                    `[course='${course}'][courseType='${info.event.extendedProps.courseType}']`
+                  )
                 );
-                card.append(item);
-                if (result.data.type == "lab" && result.data.day == null) {
-                  item.addClass("lab-event");
-                  $("#external-events #labList").append(card);
-                }
-                if (result.data.type == "lab") {
-                  item.addClass("lab-event");
-
-                  $("#external-events #labList").append(card);
-                }
-                if (result.data.type == "lecture") {
-                  item.addClass("lecture-event");
-
-                  $("#external-events #lectureList").append(card);
-                }
-                if ($("#roomForm").val() !== "") {
-                  if (draggable) {
-                    draggable.destroy();
-                  }
-                  let Draggable = FullCalendar.Draggable;
-                  $(".fc-event").removeClass("bg-primary text-light");
-                  $(".fc-event").css("cursor", "default");
-                  if (isLaboratorySelect) {
-                    selector = ".lab-event";
-                    $(".lab-event").addClass("bg-primary text-light");
-                    $(".lab-event").css("cursor", "move");
-                  } else {
-                    selector = ".lecture-event";
-                    $(".lecture-event").addClass("bg-primary text-light");
-                    $(".lecture-event").css("cursor", "move");
-                  }
-                  draggable = new Draggable(
-                    document.getElementById("external-events"),
-                    {
-                      itemSelector: selector,
-                      eventData: function (info) {
-                        return {
-                          duration: "0" + info.getAttribute("hour") + ":00",
-                          durationEditable: false,
-                          startEditable: true,
-                          current: true,
-                          overlap: false,
-                          course: info.getAttribute("course"),
-                          program: info.getAttribute("program"),
-                          section: info.getAttribute("section"),
-                          room: $("#roomForm").find(":selected").text(),
-                          level: info.getAttribute("level"),
-                          courseType: info.getAttribute("courseType"),
-                          id: info.getAttribute("id"),
-                        };
-                      },
-                    }
+                $("#external-events")
+                  .find(
+                    `[course='${course}'][courseType='${info.event.extendedProps.courseType}']`
+                  )
+                  .attr(
+                    "hour",
+                    `${Math.trunc(maxHours - currentHour)}:${
+                      (maxHours - currentHour) % 1 === 0 ? "00" : "30"
+                    }`
                   );
-                }
+
+                info.event.remove();
                 Toast.fire({ icon: "success", title: "Successfully removed" });
               }
             });
@@ -314,6 +266,88 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       .catch((error) => {
         Toast.fire({ icon: "error", title: "Something went wrong" });
         console.log(error);
+      });
+  },
+  eventResize: function (info) {
+    if ($("#roomForm").val() === "") {
+      Toast.fire({ icon: "warning", title: "Please select room first" });
+      return info.revert();
+    }
+
+    const id = info.event.extendedProps.scheduleID;
+    const end = moment(info.event.endStr);
+    const start = moment(info.event.startStr);
+    const course = info.event.extendedProps.course;
+    const durationHours = moment.duration(end.diff(start)).asHours();
+    const type = info.event.extendedProps.courseType;
+    const maxHours =
+      type === "lecture"
+        ? currentCourseHourCount[course].maxLecture
+        : currentCourseHourCount[course].maxLab;
+
+    const currentHour =
+      type === "lecture"
+        ? Math.abs(
+            currentCourseHourCount[course].currentLecture -
+              info.event.extendedProps.hourDuration +
+              durationHours
+          )
+        : Math.abs(
+            currentCourseHourCount[course].currentLab -
+              info.event.extendedProps.hourDuration +
+              durationHours
+          );
+
+    const startMinutes =
+      info.event.start.getMinutes() == 0
+        ? "00"
+        : info.event.start.getMinutes().toString();
+    const endMinutes =
+      info.event.end.getMinutes() == 0
+        ? "00"
+        : info.event.end.getMinutes().toString();
+    if (currentHour > maxHours) {
+      Toast.fire({ icon: "warning", title: "Sobra na be" });
+      return info.revert();
+    }
+    fetch(`/api/schedules/adjust/${semester}/${id}`, {
+      method: "PUT",
+      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        startTime:
+          ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+        endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+        room: $("#roomForm").val(),
+        hour: moment.duration(end.diff(start)).asHours(),
+      }),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        if (type === "lecture") {
+          currentCourseHourCount[course].currentLecture = currentHour;
+        } else {
+          currentCourseHourCount[course].currentLab = currentHour;
+        }
+        info.event.setExtendedProp("hourDuration", durationHours);
+        $("#external-events")
+          .find(`[course='${course}'][courseType='${type}']`)
+          .attr(
+            "hour",
+            `${Math.trunc(maxHours - currentHour)}:${
+              (maxHours - currentHour) % 1 === 0 ? "00" : "30"
+            }`
+          );
+        Toast.fire({
+          title: "Successfully Edited",
+          icon: "success",
+        });
+      })
+      .catch((error) => {
+        info.revert();
+        console.log(error);
+        displayToast(error);
       });
   },
   eventDidMount: function (info) {
@@ -375,6 +409,9 @@ scheduleYearLevelForm.on("change", () => {
 });
 
 scheduleSectionForm.on("change", () => {
+  for (const prop of Object.getOwnPropertyNames(currentCourseHourCount)) {
+    delete currentCourseHourCount[prop];
+  }
   const events = calendar.getEvents();
   events.forEach((element) => {
     element.remove();
@@ -390,25 +427,26 @@ scheduleSectionForm.on("change", () => {
       lectureList.empty();
       labList.empty();
       result.data.forEach((element) => {
+        currentCourseHourCount[element.course.courseCode] = {
+          currentLecture: null,
+          maxLecture: null,
+          currentLab: null,
+          maxLab: null,
+        };
         for (let i = 0; i < 2; i++) {
           const card = $("<div></div>");
           card.addClass("card mb-1");
           const item = $("<li></li>");
           item.addClass("list-group-item fc-event");
           item.attr({
-            // id: element._id,
-            // hour: element.hour,
             course: element.course.courseCode,
             program: "BSIT",
-            // program: element.program.programCode,
             section: "1",
-            // courseType: element.type,
-            // level: element.level.display,
             level: "1",
             overlap: false,
             durationEditable: true,
             startEditable: true,
-            // current: true,
+            "course-id": element.course._id,
           });
 
           card.append(item);
@@ -423,9 +461,13 @@ scheduleSectionForm.on("change", () => {
             );
             item.attr("courseType", "lecture");
             item.attr("hour", element.course.lecture);
-            item.attr("course-id", element.course._id);
             item.addClass("lecture-event");
             lectureList.append(card);
+            currentCourseHourCount[element.course.courseCode].maxLecture =
+              element.course.lecture;
+            currentCourseHourCount[
+              element.course.courseCode
+            ].currentLecture = 0;
           }
           if (element.course.lab !== 0 && i === 1) {
             item.html(
@@ -440,16 +482,37 @@ scheduleSectionForm.on("change", () => {
             item.attr("hour", element.course.lab);
             item.addClass("lab-event");
             labList.append(card);
+            currentCourseHourCount[element.course.courseCode].maxLab =
+              element.course.lab;
+            currentCourseHourCount[element.course.courseCode].currentLab = 0;
           }
         }
       });
-      return fetch("/api/schedules/section/" + scheduleSectionForm.val()).then(
-        (response) => response.json()
-      );
+      return fetch("/api/schedules/section/" + scheduleSectionForm.val());
+    })
+    .then((response) => {
+      return response.json();
     })
     .then((result) => {
       result.data.forEach((element) => {
         element.schedules.forEach((schedule) => {
+          let hour;
+          if (schedule.type === "lecture") {
+            currentCourseHourCount[element.course.courseCode].currentLecture +=
+              schedule.hour;
+            hour = Math.abs(
+              currentCourseHourCount[element.course.courseCode].currentLecture -
+                currentCourseHourCount[element.course.courseCode].maxLecture
+            );
+          } else {
+            currentCourseHourCount[element.course.courseCode].currentLab +=
+              schedule.hour;
+            hour = Math.abs(
+              currentCourseHourCount[element.course.courseCode].currentLab -
+                currentCourseHourCount[element.course.courseCode].maxLab
+            );
+          }
+          const hourStr = `${Math.trunc(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
           calendar.addEvent({
             scheduleID: schedule._id,
             hourDuration: schedule.hour,
@@ -465,17 +528,21 @@ scheduleSectionForm.on("change", () => {
             section: element.sectionName,
             room: schedule.room.roomName,
             level: element.yearLevel.display,
-            // faculty: element.faculty,
             current: true,
           });
+          $("#external-events")
+            .find(
+              `[course='${element.course.courseCode}'][coursetype='${schedule.type}']`
+            )
+            .attr("hour", hourStr);
         });
       });
+      calendar.render();
     })
     .catch((error) => {
       console.log(error);
     });
   $("#scheduleContent").removeClass("d-none");
-  calendar.render();
 });
 
 fetch("/api/rooms")
@@ -508,9 +575,7 @@ $("#roomForm").on("change", () => {
     })
     .then((result) => {
       isLaboratorySelect = result.data.laboratory;
-      return fetch(
-        "/api/schedules/room/" + semester + "/" + $("#roomForm").val()
-      );
+      return fetch(`/api/schedules/room/${semester}/${$("#roomForm").val()}`);
     })
     .then((response) => {
       return response.json();
@@ -523,21 +588,20 @@ $("#roomForm").on("change", () => {
         }
       });
       result.data.forEach((element) => {
-        const days = ["m", "t", "w", "th", "f", "s"];
         if (element.section != scheduleSectionForm.val()) {
           calendar.addEvent({
-            id: element._id,
+            scheduleID: element._id,
             hourDuration: element.hour,
-            daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-            startTime: element.start_time,
-            endTime: element.end_time,
+            daysOfWeek: [element.day],
+            startTime: element.startTime,
+            endTime: element.endTime,
             courseType: element.type,
             overlap: false,
             durationEditable: false,
             startEditable: true,
             course: element.course.courseCode,
             program: element.program.programCode,
-            section: element.section_name,
+            section: element.sectionName,
             room: element.room.roomName,
             level: element.level.display,
             faculty: element.faculty,
@@ -593,7 +657,6 @@ function renderSchedule() {
 }
 
 function renderEvent(info) {
-  console.log(info.event);
   const titleEl = info.el.querySelector(".fc-event-title");
   const timeEl = info.el.querySelector(".fc-event-time");
   info.el.style.textAlign = "center";
