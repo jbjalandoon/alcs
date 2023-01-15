@@ -82,8 +82,12 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   eventReceive: function (info) {
+    console.log(info.event.extendedProps);
     const end = moment(info.event.endStr);
     const start = moment(info.event.startStr);
+    const hour = moment.duration(end.diff(start)).asHours();
+    info.event.setExtendedProp("hourDuration", hour);
+
     if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
       return info.revert();
@@ -110,14 +114,27 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
           ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
         room: $("#roomForm").val(),
-        hour: moment.duration(end.diff(start)).asHours(),
+        hour: hour,
       }),
     })
       .then((response) => {
         return response.json();
       })
       .then((result) => {
-        console.log(result);
+        if (info.event.extendedProps.courseType === "lecture") {
+          currentCourseHourCount[
+            info.event.extendedProps.course
+          ].currentLecture =
+            currentCourseHourCount[info.event.extendedProps.course].maxLecture;
+        } else {
+          currentCourseHourCount[info.event.extendedProps.course].currentLab =
+            currentCourseHourCount[info.event.extendedProps.course].maxLab;
+        }
+        $("#external-events")
+          .find(
+            `[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`
+          )
+          .attr("hour", "0:00");
         info.event.setExtendedProp("scheduleID", result.id);
         displayToast(result);
       })
@@ -239,7 +256,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
                   maxHours = currentCourseHourCount[course].maxLab;
                   currentHour = currentCourseHourCount[course].currentLab;
                 }
-             
+
                 console.log(
                   $("#external-events").find(
                     `[course='${course}'][courseType='${info.event.extendedProps.courseType}']`
@@ -331,6 +348,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
           currentCourseHourCount[course].currentLab = currentHour;
         }
         info.event.setExtendedProp("hourDuration", durationHours);
+        console.log(maxHours + "----" + currentHour);
         $("#external-events")
           .find(`[course='${course}'][courseType='${type}']`)
           .attr(
@@ -629,10 +647,9 @@ $("#roomForm").on("change", () => {
         itemSelector: selector,
         eventData: function (info) {
           return {
-            duration: "0" + info.getAttribute("hour") + ":00",
+            duration: info.getAttribute("hour"),
             durationEditable: true,
             startEditable: true,
-            hourDuration: info.getAttribute("hour"),
             current: true,
             overlap: false,
             course: info.getAttribute("course"),
