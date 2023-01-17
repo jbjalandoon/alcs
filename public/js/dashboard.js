@@ -2,8 +2,6 @@ const csrf = $("#csrf").val();
 
 let sem, activeYear, activeSemester;
 let activeFaculty, activeRoom, scheduleWithoutFaculty, scheduleWithoutTimeslot;
-const days = ["m", "t", "w", "th", "f", "s", null];
-
 const config = {
   allDaySlot: false,
   hiddenDays: [0],

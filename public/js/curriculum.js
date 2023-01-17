@@ -47,6 +47,9 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
+    if (result.data.length !== 0) {
+      viewProgram.attr("disabled", false);
+    }
     result.data.forEach((element) => {
       viewProgram.append(
         new Option(element.program.programCode.toUpperCase(), element._id)
@@ -265,6 +268,7 @@ $(addProgramModal._element).on("show.bs.modal", (event) => {
                   element._id
                 )
               );
+              viewProgram.attr("disabled", false);
               programs.push(element.program.programCode.toUpperCase());
             });
             return displayToast(result);
@@ -286,7 +290,7 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
     width: "100%",
     multiple: true,
   });
-  courses.val("").trigger("change");
+  courses.empty();
   const button = $(event.currentTarget).find("#addCourseButton");
   button.off("click");
   const year = $(event.relatedTarget).attr("level");

@@ -1,3 +1,4 @@
+console.log(days);
 let sem;
 const csrf = $("#csrf").val();
 const faculty = $("#faculty");
@@ -34,9 +35,8 @@ const config = {
     }
     Swal.showLoading();
     const deleteEvents = [];
-    const days = ["m", "t", "w", "th", "f", "s", null];
     const eventInfo = info.event.extendedProps;
-    fetch("/api/schedules/" + info.event.id)
+    fetch(`/api/schedules/single/${sem}/${info.event.id}`)
       .then((response) => {
         return response.json();
       })
@@ -63,8 +63,8 @@ const config = {
           title: `${result.data.course.courseDescription.toUpperCase()} - ${
             result.data.type === "lab" ? "LAB" : "LECTURE"
           }`,
-          text: `${result.data.day.toUpperCase()} ${result.data.start_time} - ${
-            result.data.end_time
+          text: `${days[result.data.day]} ${result.data.startTime} - ${
+            result.data.endTime
           } (${result.data.room.roomName.toUpperCase()})`,
           width: "50%",
           showCancelButton: true,
@@ -184,7 +184,7 @@ fetch("/api/curriculums/active")
     }
     $("#cardTitle").html(
       `FACULTY LOADING ${
-        result.data[0].school_year[0].year
+        result.data[0].schoolYear[0].year
       } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
     sem = result.data[0].semesters._id;
@@ -225,7 +225,6 @@ faculty.on("change", () => {
     })
     .then((result) => {
       tags = [];
-      preferredSchedule = result.data.userInformation.schedulePreference;
       $("#spanFacultyType").html(
         result.data.userInformation.facultyType.facultyType
       );
@@ -257,10 +256,8 @@ faculty.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      const days = ["m", "t", "w", "th", "f", "s", null];
-
       result.data.forEach((element) => {
-        console.log(element.course);
+        console.log(element);
         if (element.type !== "lab") {
           unitsCount += parseInt(element.course.units);
         }
@@ -268,16 +265,16 @@ faculty.on("change", () => {
         calendar.addEvent({
           id: element._id,
           hourDuration: element.hour,
-          daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-          startTime: element.start_time,
-          endTime: element.end_time,
+          daysOfWeek: [element.day],
+          startTime: element.startTime,
+          endTime: element.endTime,
           overlap: false,
           editabe: false,
           units: element.course.units,
           course: element.course.courseCode,
           type: element.type,
           program: element.program.programCode,
-          section: element.section_name,
+          section: element.sectionName,
           room: element.room.roomName,
           level: element.level.display,
           faculty: element.faculty,
@@ -325,7 +322,6 @@ courseSearch.on("change", () => {
     })
     .then((result) => {
       console.log(result);
-      const days = ["m", "t", "w", "th", "f", "s", null];
       $("#courseList").empty();
       result.data.forEach((element) => {
         const currentTimeRange = [];
@@ -342,7 +338,7 @@ courseSearch.on("change", () => {
                 .addClass("col-12 fw-bold")
                 .html(
                   `${element.schedules[0].course.courseCode.toUpperCase()} ${element.schedules[0].program.programCode.toUpperCase()} ${
-                    element.schedules[0].section_name
+                    element.schedules[0].sectionName
                   }-${element.schedules[0].level.display}`
                 )
             )
@@ -356,7 +352,7 @@ courseSearch.on("change", () => {
           "list-style": "none",
           "padding-left": 0,
         });
-
+        console.log(days);
         scheduleCol.append(scheduleUl);
         scheduleRow.append(scheduleCol);
         element.schedules.forEach((element) => {
@@ -364,9 +360,9 @@ courseSearch.on("change", () => {
           scheduleListItem.attr({
             id: element._id,
             hourDuration: element.hour,
-            daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-            startTime: element.start_time,
-            endTime: element.end_time,
+            daysOfWeek: [element.day],
+            startTime: element.startTime,
+            endTime: element.endTime,
             type: element.type,
             overlap: false,
             durationEditable: false,
@@ -374,47 +370,47 @@ courseSearch.on("change", () => {
             startEditable: true,
             course: element.course.courseCode,
             program: element.program.programCode,
-            section: element.section_name,
+            section: element.sectionName,
             room: element.room.roomName,
             level: element.level.display,
             faculty: element.faculty,
             current: false,
           });
           scheduleListItem.html(
-            `${days[days.indexOf(element.day)].toUpperCase()} - [${
-              element.start_time
-            } - ${
-              element.end_time
+            `${days[element.day]} - [${element.startTime} - ${
+              element.endTime
             } ${element.room.roomName.toUpperCase()}]  (${element.type.toUpperCase()})`
           );
           scheduleUl.append(scheduleListItem);
           currentTimeRange.push({
-            day: days.indexOf(element.day) + 1,
+            day: element.day,
             range: moment.range(
               new Date(
                 0,
                 0,
                 0,
-                element.start_time.split(":")[0],
-                element.start_time.split(":")[1]
+                element.startTime.split(":")[0],
+                element.startTime.split(":")[1]
               ),
               new Date(
                 0,
                 0,
                 0,
-                element.end_time.split(":")[0],
-                element.end_time.split(":")[1]
+                element.endTime.split(":")[0],
+                element.endTime.split(":")[1]
               )
             ),
           });
         });
+        console.log(currentTimeRange);
         calendar.getEvents().forEach((e) => {
           const eventDay = e.start.getDay();
           const eventRange = moment.range(
             new Date(0, 0, 0, e.start.getHours(), e.start.getMinutes()),
             new Date(0, 0, 0, e.end.getHours(), e.end.getMinutes())
           );
-          let bool1, bool2;
+          let bool1 = false,
+            bool2 = false;
           bool1 =
             currentTimeRange[0].range.overlaps(eventRange) &&
             currentTimeRange[0].day === eventDay;
@@ -423,8 +419,10 @@ courseSearch.on("change", () => {
               currentTimeRange[1].range.overlaps(eventRange) &&
               currentTimeRange[1].day === eventDay;
           }
-
+          // console.log(bool1);
+          // console.log(bool2);
           if (bool1 || bool2) {
+            console.log(e.display);
             if (e.display === "background") {
               buttonBg = "bg-warning";
             } else {
@@ -458,7 +456,6 @@ courseSearch.on("change", () => {
 
 const assignFaculty = (element) => {
   const schedules = [];
-  const days = ["m", "t", "w", "th", "f", "s", null];
   let units = 0;
   const currentButton = $(element.currentTarget);
   const event = calendar.getEvents();
@@ -489,7 +486,6 @@ const assignFaculty = (element) => {
         )
       ),
     });
-    console.log(parseInt(button.attr("hourDuration")));
   });
   event.forEach((element) => {
     const eventDay = element.start.getDay();
@@ -548,7 +544,7 @@ const assignFaculty = (element) => {
           header.html(
             element.extendedProps.course.toUpperCase() +
               ` ${days[
-                element.start.getDay() - 1
+                element.start.getDay()
               ].toUpperCase()} [${startTime.format(
                 "hh:mm A"
               )} - ${endTime.format("hh:mm A")}]`
@@ -570,7 +566,7 @@ const assignFaculty = (element) => {
       showCancelButton: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        return fetch(`/api/schedules/assign/${schedules}`, {
+        return fetch(`/api/schedules/load/${schedules}`, {
           method: "PUT",
           headers: {
             "csrf-token": csrf,
@@ -622,7 +618,7 @@ const assignFaculty = (element) => {
       }
     });
   }
-  return fetch(`/api/schedules/assign/${schedules}`, {
+  return fetch(`/api/schedules/load/${schedules}`, {
     method: "PUT",
     headers: {
       "csrf-token": csrf,
@@ -657,7 +653,6 @@ const assignFaculty = (element) => {
         hoursCount += parseInt(button.attr("hourDuration"));
         units = parseInt(button.attr("units"));
       });
-      console.log(parseInt(currentButton.attr("units")));
       unitsCount += units;
 
       $("#spanUnits").html(unitsCount);

@@ -476,10 +476,7 @@ exports.postSections = (req, res, next) => {
               filteredSection.map((element) => {
                 return {
                   section: element,
-                  schedules: {
-                    labSchedules: [],
-                    lectureSchedules: [],
-                  },
+                  schedules: [],
                 };
               }),
           },
@@ -741,14 +738,9 @@ exports.deleteCourse = (req, res, next) => {
     {
       $pull: {
         "semesters.$[].programs.$[].year.$[year].courses": req.params.course,
-        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules.$[].labSchedules":
-          {
-            course: req.params.course,
-          },
-        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules.$[].lectureSchedules":
-          {
-            course: req.params.course,
-          },
+        "semesters.$[].programs.$[].year.$[year].sections.$[].schedules": {
+          course: req.params.course,
+        },
       },
     },
     {
