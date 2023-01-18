@@ -75,7 +75,8 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
-    console.log(result)
+    // Acive Curriculum
+    console.log(result);
     if (result.data.length === 0) {
       Toast.fire({
         icon: "warning",
@@ -107,6 +108,7 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
+    // Faculty
     const downloadCurrentFaculty = $("#downloadCurrentFaculty");
     const downloadAllFaculty = $("#downloadAllFaculty");
     result.data.forEach((element) => {
@@ -135,16 +137,17 @@ fetch("/api/curriculums/active")
               facultyCalendar.addEvent({
                 id: element._id,
                 hourDuration: element.hour,
-                daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-                startTime: element.start_time,
-                endTime: element.end_time,
+                daysOfWeek: [element.day],
+                startTime: element.startTime,
+                endTime: element.endTime,
                 overlap: false,
-                editabe: false,
+                durationEditable: false,
+                startEditable: false,
                 units: element.course.units,
                 course: element.course.courseCode,
                 type: element.type,
                 program: element.program.programCode,
-                section: element.section_name,
+                section: element.sectionName,
                 room: element.room.roomName,
                 level: element.level.display,
                 faculty: element.faculty,
@@ -184,227 +187,227 @@ fetch("/api/curriculums/active")
     activeFaculty = result.data.length;
     $("#activeFaculty").html(activeFaculty);
     facultyCalendar.render();
-    return fetch(`/api/curriculums/room/${sem}`);
+    // return fetch(`/api/curriculums/room/${sem}`);
   })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    const downloadCurrentRoom = $("#downloadCurrentRoom");
-    const downloadAllRoom = $("#downloadAllRoom");
-    result.data.forEach((element) => {
-      roomView.append(
-        new Option(element.room.roomName.toUpperCase(), element._id)
-      );
-    });
-    if (result.data.length !== 0) {
-      roomView.on("change", () => {
-        fetch(`/api/schedules/room/finished/${sem}/${roomView.val()}`)
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            downloadCurrentRoom.off("click");
-            downloadAllRoom.off("click");
-            roomCalendar.getEvents().forEach((element) => {
-              element.remove();
-            });
-            result.data.forEach((element) => {
-              roomCalendar.addEvent({
-                id: element._id,
-                hourDuration: element.hour,
-                daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-                startTime: element.start_time,
-                endTime: element.end_time,
-                overlap: false,
-                editabe: false,
-                units: element.course.units,
-                course: element.course.courseCode,
-                type: element.type,
-                program: element.program.programCode,
-                section: element.section_name,
-                room: element.room.roomName,
-                level: element.level.display,
-                faculty: element.faculty,
-              });
-            });
-            downloadCurrentRoom.on("click", () => {
-              downloadSpreadsheet(
-                roomView.find("option").filter(":selected").text() + ".xlsx",
-                [result.data],
-                "room"
-              );
-            });
-            downloadAllRoom.on("click", () => {
-              fetch(`/api/schedules/room/${sem}`)
-                .then((response) => {
-                  return response.json();
-                })
-                .then((result) => {
-                  downloadSpreadsheet(
-                    "room.xlsx",
-                    result.data.map((e) => e.data),
-                    "room"
-                  );
-                })
-                .catch((error) => {
-                  console.log(error);
-                });
-            });
-            roomCalendar.render();
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-      roomView.trigger("change");
-    }
-    activeRoom = result.data.length;
-    $("#activeRoom").html(activeRoom);
-    roomCalendar.render();
+  // .then((response) => {
+  //   return response.json();
+  // })
+  // .then((result) => { // Rooms
+  //   const downloadCurrentRoom = $("#downloadCurrentRoom");
+  //   const downloadAllRoom = $("#downloadAllRoom");
+  //   result.data.forEach((element) => {
+  //     roomView.append(
+  //       new Option(element.room.roomName.toUpperCase(), element._id)
+  //     );
+  //   });
+  //   if (result.data.length !== 0) {
+  //     roomView.on("change", () => {
+  //       fetch(`/api/schedules/room/finished/${sem}/${roomView.val()}`)
+  //         .then((response) => {
+  //           return response.json();
+  //         })
+  //         .then((result) => {
+  //           downloadCurrentRoom.off("click");
+  //           downloadAllRoom.off("click");
+  //           roomCalendar.getEvents().forEach((element) => {
+  //             element.remove();
+  //           });
+  //           result.data.forEach((element) => {
+  //             roomCalendar.addEvent({
+  //               id: element._id,
+  //               hourDuration: element.hour,
+  //               daysOfWeek: [(element.day).toString()],
+  //               startTime: element.start_time,
+  //               endTime: element.end_time,
+  //               overlap: false,
+  //               editabe: false,
+  //               units: element.course.units,
+  //               course: element.course.courseCode,
+  //               type: element.type,
+  //               program: element.program.programCode,
+  //               section: element.section_name,
+  //               room: element.room.roomName,
+  //               level: element.level.display,
+  //               faculty: element.faculty,
+  //             });
+  //           });
+  //           downloadCurrentRoom.on("click", () => {
+  //             downloadSpreadsheet(
+  //               roomView.find("option").filter(":selected").text() + ".xlsx",
+  //               [result.data],
+  //               "room"
+  //             );
+  //           });
+  //           downloadAllRoom.on("click", () => {
+  //             fetch(`/api/schedules/room/${sem}`)
+  //               .then((response) => {
+  //                 return response.json();
+  //               })
+  //               .then((result) => {
+  //                 downloadSpreadsheet(
+  //                   "room.xlsx",
+  //                   result.data.map((e) => e.data),
+  //                   "room"
+  //                 );
+  //               })
+  //               .catch((error) => {
+  //                 console.log(error);
+  //               });
+  //           });
+  //           roomCalendar.render();
+  //         })
+  //         .catch((error) => {
+  //           console.log(error);
+  //         });
+  //     });
+  //     roomView.trigger("change");
+  //   }
+  //   activeRoom = result.data.length;
+  //   $("#activeRoom").html(activeRoom);
+  //   roomCalendar.render();
 
-    return fetch("/api/curriculums/programs/" + sem);
-  })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    result.data.forEach((element) => {
-      programView.append(
-        new Option(element.program.programName.toUpperCase(), element._id)
-      );
-    });
-    if (result.data.length !== 0) {
-      programView.on("change", () => {
-        fetch("/api/curriculums/year-levels/" + programView.val())
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            yearView.empty();
-            result.data.forEach((element) => {
-              yearView.append(
-                new Option(element.level.yearLevel.toUpperCase(), element._id)
-              );
-            });
-            yearView.on("change", () => {
-              fetch("/api/curriculums/sections/" + yearView.val())
-                .then((response) => {
-                  return response.json();
-                })
-                .then((result) => {
-                  sectionView.empty();
-                  if (result.data.length === 0) {
-                    sectionCalendar.getEvents().forEach((element) => {
-                      element.remove();
-                    });
-                    return Toast.fire({
-                      icon: "warning",
-                      title: "No Section Found",
-                    });
-                  }
-                  result.data.forEach((element) => {
-                    sectionView.append(
-                      new Option(element.section.toUpperCase(), element._id)
-                    );
-                  });
-                  sectionView.on("change", () => {
-                    fetch(`/api/schedules/section/${sem}/${sectionView.val()}`)
-                      .then((response) => {
-                        return response.json();
-                      })
-                      .then((result) => {
-                        sectionCalendar.getEvents().forEach((element) => {
-                          element.remove();
-                        });
-                        result.data.forEach((element) => {
-                          const downloadCurrentSection = $(
-                            "#downloadCurrentSection"
-                          );
+  //   return fetch("/api/curriculums/programs/" + sem);
+  // })
+  // .then((response) => {
+  //   return response.json();
+  // })
+  // .then((result) => { // Sections
+  //   result.data.forEach((element) => {
+  //     programView.append(
+  //       new Option(element.program.programName.toUpperCase(), element._id)
+  //     );
+  //   });
+  //   if (result.data.length !== 0) {
+  //     programView.on("change", () => {
+  //       fetch("/api/curriculums/year-levels/" + programView.val())
+  //         .then((response) => {
+  //           return response.json();
+  //         })
+  //         .then((result) => {
+  //           yearView.empty();
+  //           result.data.forEach((element) => {
+  //             yearView.append(
+  //               new Option(element.level.yearLevel.toUpperCase(), element._id)
+  //             );
+  //           });
+  //           yearView.on("change", () => {
+  //             fetch("/api/curriculums/sections/" + yearView.val())
+  //               .then((response) => {
+  //                 return response.json();
+  //               })
+  //               .then((result) => {
+  //                 sectionView.empty();
+  //                 if (result.data.length === 0) {
+  //                   sectionCalendar.getEvents().forEach((element) => {
+  //                     element.remove();
+  //                   });
+  //                   return Toast.fire({
+  //                     icon: "warning",
+  //                     title: "No Section Found",
+  //                   });
+  //                 }
+  //                 result.data.forEach((element) => {
+  //                   sectionView.append(
+  //                     new Option(element.section.toUpperCase(), element._id)
+  //                   );
+  //                 });
+  //                 sectionView.on("change", () => {
+  //                   fetch(`/api/schedules/section/${sem}/${sectionView.val()}`)
+  //                     .then((response) => {
+  //                       return response.json();
+  //                     })
+  //                     .then((result) => {
+  //                       sectionCalendar.getEvents().forEach((element) => {
+  //                         element.remove();
+  //                       });
+  //                       result.data.forEach((element) => {
+  //                         const downloadCurrentSection = $(
+  //                           "#downloadCurrentSection"
+  //                         );
 
-                          const downloadAllSection = $("#downloadAllSection");
-                          downloadCurrentSection.off("click");
-                          downloadAllSection.off("click");
-                          sectionCalendar.addEvent({
-                            id: element._id,
-                            hourDuration: element.hour,
-                            daysOfWeek: [
-                              (days.indexOf(element.day) + 1).toString(),
-                            ],
-                            startTime: element.start_time,
-                            endTime: element.end_time,
-                            overlap: false,
-                            editabe: false,
-                            units: element.course.units,
-                            course: element.course.courseCode,
-                            type: element.type,
-                            program: element.program.programCode,
-                            section: element.section_name,
-                            room: element.room.roomName,
-                            level: element.level.display,
-                            faculty: element.faculty,
-                          });
-                          downloadCurrentSection.on("click", () => {
-                            downloadSpreadsheet(
-                              sectionView
-                                .find("option")
-                                .filter(":selected")
-                                .text() + ".xlsx",
-                              [result.data],
-                              "section"
-                            );
-                          });
-                          downloadAllSection.on("click", () => {
-                            fetch(`/api/schedules/section/${sem}`)
-                              .then((response) => {
-                                return response.json();
-                              })
-                              .then((result) => {
-                                downloadSpreadsheet(
-                                  "section.xlsx",
-                                  result.data.map((e) => e.data),
-                                  "section"
-                                );
-                              })
-                              .catch((error) => {
-                                console.log(error);
-                              });
-                          });
-                        });
-                      });
-                  });
-                  sectionView.trigger("change");
-                })
-                .catch((error) => {
-                  console.log(error);
-                });
-            });
-            yearView.trigger("change");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-    }
-    programView.trigger("change");
-    sectionCalendar.render();
-    return fetch("/api/schedules/loadable-schedules/" + sem);
-  })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    scheduleWithoutFaculty = result.data.length;
-    $("#scheduleWithoutFaculty").html(scheduleWithoutFaculty);
-    return fetch("/api/schedules/assignable-schedules/" + sem);
-  })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    scheduleWithoutTimeslot = result.data.length;
-    $("#scheduleWithoutTimeslot").html(scheduleWithoutTimeslot);
-  })
+  //                         const downloadAllSection = $("#downloadAllSection");
+  //                         downloadCurrentSection.off("click");
+  //                         downloadAllSection.off("click");
+  //                         sectionCalendar.addEvent({
+  //                           id: element._id,
+  //                           hourDuration: element.hour,
+  //                           daysOfWeek: [
+  //                             (element.day).toString(),
+  //                           ],
+  //                           startTime: element.start_time,
+  //                           endTime: element.end_time,
+  //                           overlap: false,
+  //                           editabe: false,
+  //                           units: element.course.units,
+  //                           course: element.course.courseCode,
+  //                           type: element.type,
+  //                           program: element.program.programCode,
+  //                           section: element.section_name,
+  //                           room: element.room.roomName,
+  //                           level: element.level.display,
+  //                           faculty: element.faculty,
+  //                         });
+  //                         downloadCurrentSection.on("click", () => {
+  //                           downloadSpreadsheet(
+  //                             sectionView
+  //                               .find("option")
+  //                               .filter(":selected")
+  //                               .text() + ".xlsx",
+  //                             [result.data],
+  //                             "section"
+  //                           );
+  //                         });
+  //                         downloadAllSection.on("click", () => {
+  //                           fetch(`/api/schedules/section/${sem}`)
+  //                             .then((response) => {
+  //                               return response.json();
+  //                             })
+  //                             .then((result) => {
+  //                               downloadSpreadsheet(
+  //                                 "section.xlsx",
+  //                                 result.data.map((e) => e.data),
+  //                                 "section"
+  //                               );
+  //                             })
+  //                             .catch((error) => {
+  //                               console.log(error);
+  //                             });
+  //                         });
+  //                       });
+  //                     });
+  //                 });
+  //                 sectionView.trigger("change");
+  //               })
+  //               .catch((error) => {
+  //                 console.log(error);
+  //               });
+  //           });
+  //           yearView.trigger("change");
+  //         })
+  //         .catch((error) => {
+  //           console.log(error);
+  //         });
+  //     });
+  //   }
+  //   programView.trigger("change");
+  //   sectionCalendar.render();
+  //   return fetch("/api/schedules/loadable-schedules/" + sem);
+  // })
+  // .then((response) => {
+  //   return response.json();
+  // })
+  // .then((result) => {
+  //   scheduleWithoutFaculty = result.data.length;
+  //   $("#scheduleWithoutFaculty").html(scheduleWithoutFaculty);
+  //   return fetch("/api/schedules/assignable-schedules/" + sem);
+  // })
+  // .then((response) => {
+  //   return response.json();
+  // })
+  // .then((result) => {
+  //   scheduleWithoutTimeslot = result.data.length;
+  //   $("#scheduleWithoutTimeslot").html(scheduleWithoutTimeslot);
+  // })
   .catch((error) => {
     // Toast.fire({ icon: "error", title: "Something went wrong" });
     console.log(error);
@@ -558,7 +561,6 @@ function downloadSpreadsheet(filename, events, type) {
         cellData(""),
       ];
       element.forEach((element) => {
-        console.log(element);
         if (type === "faculty")
           sheet = element.faculty.userInformation.facultyCode.toUpperCase();
         if (type === "room") sheet = element.room.roomName.toUpperCase();
@@ -568,12 +570,12 @@ function downloadSpreadsheet(filename, events, type) {
             "" +
             element.level.display.toUpperCase() +
             " - " +
-            element.section_name.toUpperCase();
-        const eventTime = element.start_time;
+            element.sectionName.toUpperCase();
+        const eventTime = element.startTime;
         if (times[i].split("-")[0] === eventTime) {
           const course = element.course.courseCode.toUpperCase();
           const program = element.program.programCode.toUpperCase();
-          const section = element.section_name.toUpperCase();
+          const section = element.sectionName.toUpperCase();
           const room = element.room.roomName.toUpperCase();
           const level = element.level.display.toUpperCase();
           const firstName = element.faculty.userInformation.firstName;
@@ -584,7 +586,7 @@ function downloadSpreadsheet(filename, events, type) {
           const initials = `${firstName.charAt(0)}${middleName.charAt(
             0
           )}${lastName.charAt(0)}`.toUpperCase();
-          rowData[(days.indexOf(element.day) + 1) * 2] = {
+          rowData[(element.day) * 2] = {
             v: `${course}\n${program}${level}-${section}\n${room}\n${initials}`,
             t: "s",
             s: {
@@ -602,15 +604,15 @@ function downloadSpreadsheet(filename, events, type) {
             },
           };
           merges.push({
-            s: { r: i + 1, c: (days.indexOf(element.day) + 1) * 2 },
+            s: { r: i + 1, c: (element.day) * 2 },
             e: {
               r: i + element.hour * 2,
-              c: (days.indexOf(element.day) + 1) * 2,
+              c: (element.day) * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[(days.indexOf(element.day) + 1) * 2]}${j}`;
+            let singleCell = `${cols[(element.day) * 2]}${j}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
