@@ -945,6 +945,66 @@ exports.getFacultySchedule = (req, res, next) => {
     });
 };
 
+exports.getFacultyScheduleUnitHour = (req, res, next) => {
+  console.log(req.params);
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters.programs.year.sections.schedules.faculty":
+          mongoose.Types.ObjectId(req.params.faculty),
+        // "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $group: {
+        _id: "$semesters.programs.year.sections.schedules.faculty",
+        hours: { $sum: "$semesters.programs.year.sections.schedules.hour" },
+      },
+    },
+    // {
+    //   $match: {
+    //     "semesters.programs.year.sections.schedules.faculty":
+    //       mongoose.Types.ObjectId(req.params.faculty),
+    //     // "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+    //   },
+    // },
+    // },
+    // {
+    //   $project: {
+    //     hour: "$semesters.programs.year.sections.schedules.hour",
+    //     faculty: "$semesters.programs.year.sections.schedules.faculty",
+    //   },
+    // },
+  ])
+    .then((result) => {
+      console.log("test", result);
+      res.json({ ok: true, data: result });
+    })
+    .then((error) => {
+      console.log(error);
+    });
+};
+
 exports.getSectionSchedule = (req, res, next) => {
   console.log(req.params);
   Curriculum.aggregate([

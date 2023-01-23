@@ -60,6 +60,7 @@ const calendarEl = document.getElementById("calendar");
 
 const csrf = $("#csrf").val();
 
+
 const calendar = new FullCalendar.Calendar(calendarEl, {
   allDaySlot: false,
   hiddenDays: [0],
@@ -78,6 +79,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   eventReceive: function (info) {
+    console.log(info);
     const end = moment(info.event.endStr);
     const start = moment(info.event.startStr);
     const hour = moment.duration(end.diff(start)).asHours();
@@ -584,6 +586,8 @@ scheduleSectionForm.on("change", () => {
     });
   $("#scheduleContent").removeClass("d-none");
 });
+
+
 
 fetch("/api/rooms")
   .then((response) => {

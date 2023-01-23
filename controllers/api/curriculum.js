@@ -4,6 +4,7 @@ const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
 const Faculty = require("../../models/user");
 const Level = require("../../models/level");
+const FacultyType = require("../../models/faculty-type");
 const year = require("../../models/year");
 const { response } = require("express");
 const { faculty } = require("../../validations/curriculum");
@@ -822,7 +823,7 @@ exports.getActiveFacultyCounts = (req, res, next) => {
     {
       $group: {
         _id: "$faculty.userInformation.facultyType",
-        count: {$count: { }} ,
+        count: { $count: {} },
       },
     },
     {
@@ -837,6 +838,61 @@ exports.getActiveFacultyCounts = (req, res, next) => {
       $unwind: "$facultyType",
     },
   ])
+    .then((result) => {
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.getActiveFacultyType = (req, res, next) => {
+  FacultyType.findOne({ facultyType: req.params.type })
+    .then((result) => {
+      return Curriculum.aggregate([
+        {
+          $match: {
+            "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+          },
+        },
+        {
+          $unwind: "$semesters",
+        },
+        {
+          $unwind: "$semesters.activeFaculties",
+        },
+        {
+          $project: {
+            faculty: "$semesters.activeFaculties",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "faculty",
+            foreignField: "_id",
+            as: "faculty",
+          },
+        },
+        {
+          $unwind: "$faculty",
+        },
+        {
+          $match: {
+            "faculty.userInformation.facultyType": mongoose.Types.ObjectId(
+              result._id
+            ),
+          },
+        },
+        {
+          $project: {
+            _id: "$faculty._id",
+            facultyInformation: "$faculty.userInformation",
+          },
+        },
+      ]);
+    })
     .then((result) => {
       res.json({ status: 200, data: result });
     })

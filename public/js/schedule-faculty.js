@@ -170,6 +170,10 @@ const config = {
   },
 };
 
+const facultyModal = new bootstrap.Modal($("#facultyModal"));
+
+console.log($("#facultyModal"));
+
 const calendar = new FullCalendar.Calendar(calendarContainer, config);
 fetch("/api/curriculums/active")
   .then((response) => {
@@ -235,6 +239,63 @@ fetch("/api/curriculums/active")
     // Toast.fire({ icon: "error", title: "Something went wrong" });
     console.log(error);
   });
+
+$(facultyModal._element).on("show.bs.modal", (event) => {
+  $(event.currentTarget)
+    .find("#modalLabel")
+    .html(
+      $(event.relatedTarget).attr("data-bs-type").toUpperCase() +
+        " FACULTY MEMBERS"
+    );
+  const tbody = $(event.currentTarget).find("tbody");
+
+  fetch(
+    `/api/curriculums/faculty/type/${$(event.relatedTarget).attr(
+      "data-bs-type"
+    )}/${sem}`
+  )
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      tbody.empty();
+      result.data.forEach((element) => {
+        const tr = $("<tr></tr>");
+        tbody.append(
+          tr
+            .append(
+              $("<td></td>")
+                .attr("id", element._id)
+                .html(element.facultyInformation.facultyCode.toUpperCase())
+            )
+            .append(
+              $("<td></td>")
+                .attr("id", element._id)
+                .html(element.facultyInformation.lastName.toUpperCase())
+            )
+          // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
+          // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
+        );
+        fetch(`/api/schedules/faculty/unit-hour/${element._id}/${sem}`)
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (result.data.length !== 0) {
+              return tr.append($("<td></td>").html(result.data[0].hours));
+            }
+            return tr.append($("<td></td>").html(0));
+          });
+        tr.on("click", () => {
+          faculty.val(element._id).trigger("change");
+          facultyModal.hide();
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
 
 faculty.on("change", () => {
   $("#courseList").empty();

@@ -132,7 +132,14 @@ router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
 router.get("/curriculums/faculty/:semester", curriculum.getActiveFaculty);
-router.get("/curriculums/faculty/counts/:semester", curriculum.getActiveFacultyCounts);
+router.get(
+  "/curriculums/faculty/counts/:semester",
+  curriculum.getActiveFacultyCounts
+);
+router.get(
+  "/curriculums/faculty/type/:type/:semester",
+  curriculum.getActiveFacultyType
+);
 router.post("/curriculums/faculty/:semester", curriculum.postActiveFaculty);
 router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
@@ -183,6 +190,10 @@ router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
 router.get(
   "/schedules/faculty/:semester/:faculty/",
   schedule.getFacultySchedule
+);
+router.get(
+  "/schedules/faculty/unit-hour/:faculty/:semester",
+  schedule.getFacultyScheduleUnitHour
 );
 router.get("/schedules/section/:section/", schedule.getSectionSchedule);
 
