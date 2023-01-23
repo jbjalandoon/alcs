@@ -2,9 +2,11 @@ const { default: mongoose } = require("mongoose");
 const { validationResult } = require("express-validator");
 const Curriculum = require("../../models/curriculum");
 const Course = require("../../models/course");
+const Faculty = require("../../models/user");
 const Level = require("../../models/level");
 const year = require("../../models/year");
 const { response } = require("express");
+const { faculty } = require("../../validations/curriculum");
 
 exports.getSchoolYears = (req, res, next) => {
   Curriculum.aggregate([
@@ -696,7 +698,6 @@ exports.getCourse = (req, res, next) => {
 };
 
 exports.postCourse = (req, res, next) => {
-  console.log(req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
@@ -759,39 +760,16 @@ exports.deleteCourse = (req, res, next) => {
 
 exports.getActiveFaculty = (req, res, next) => {
   Curriculum.aggregate([
-    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
     {
-      $unwind: "$semesters",
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
     },
+    { $unwind: "$semesters" },
     {
-      $unwind: "$semesters.programs",
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
     },
-    {
-      $unwind: "$semesters.programs.year",
-    },
-    {
-      $unwind: "$semesters.programs.year.sections",
-    },
-    {
-      $unwind: "$semesters.programs.year.sections.schedules",
-    },
-    { $match: { "semesters._id": mongoose.Types.ObjectId(req.params.sem) } },
-
     {
       $project: {
-        faculty: "$semesters.programs.year.sections.schedules.faculty",
-      },
-    },
-    {
-      $unwind: "$faculty",
-    },
-    { $group: { _id: "$faculty" } },
-    {
-      $lookup: {
-        from: "users",
-        localField: "_id",
-        foreignField: "_id",
-        as: "faculty",
+        faculty: "$semesters.activeFaculties",
       },
     },
     {
@@ -799,7 +777,90 @@ exports.getActiveFaculty = (req, res, next) => {
     },
   ])
     .then((result) => {
+      return Faculty.find({ _id: { $in: result.map((e) => e.faculty) } })
+        .populate(
+          "userInformation.academicQualifications.academicQualification"
+        )
+        .populate("userInformation.academicQualifications.licenseIndustry")
+        .populate("userInformation.courseTaken")
+        .populate("userInformation.facultyType");
+    })
+    .then((result) => {
       res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.getActiveFacultyCounts = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+    },
+    { $unwind: "$semesters" },
+    {
+      $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+    },
+    {
+      $project: {
+        faculty: "$semesters.activeFaculties",
+      },
+    },
+    {
+      $unwind: "$faculty",
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "faculty",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+    {
+      $group: {
+        _id: "$faculty.userInformation.facultyType",
+        count: {$count: { }} ,
+      },
+    },
+    {
+      $lookup: {
+        from: "facultytypes",
+        localField: "_id",
+        foreignField: "_id",
+        as: "facultyType",
+      },
+    },
+    {
+      $unwind: "$facultyType",
+    },
+  ])
+    .then((result) => {
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.postActiveFaculty = (req, res, next) => {
+  Curriculum.updateOne(
+    { "semesters._id": req.params.semester },
+    {
+      $addToSet: {
+        "semesters.$[semester].activeFaculties": req.body.faculty,
+      },
+    },
+    { arrayFilters: [{ "semester._id": req.params.semester }] }
+  )
+    .then((result) => {
+      return Faculty.find({ _id: { $in: req.body.faculty } });
+    })
+    .then((result) => {
+      res.json({ status: 201, data: result });
     })
     .catch((error) => {
       console.log(error);

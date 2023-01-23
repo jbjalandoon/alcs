@@ -36,7 +36,7 @@ fetch("/api/curriculums/active")
       });
     }
     semester = result.data[0].semesters._id;
-    document.querySelector("#card-title").innerHTML = `CURRICULUM ${
+    document.querySelector("#card-title").innerHTML = `S.Y. ${
       result.data[0].schoolYear[0].year
     } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`;
     $("#content-loading").remove();
@@ -341,7 +341,7 @@ $(addNewCourseModal._element).on("show.bs.modal", (event) => {
             if (table.children("tbody").find(".empty").length !== 0) {
               table.children("tbody").find(".empty").remove();
             }
-            console.log(table.children("tbody"));
+
             result.data.forEach((element) => {
               const tr = $("<tr></tr>");
               tr.append($("<td></td>").html(element.courseCode.toUpperCase()))

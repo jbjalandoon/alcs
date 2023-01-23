@@ -1,0 +1,130 @@
+const table = $("#facultyTable").DataTable({
+  oLanguage: {
+    sEmptyTable: `<div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>`,
+  },
+});
+
+const dataTable = (operation, data) => {
+  console.log(data)
+  const firstName = data.userInformation.firstName.toUpperCase();
+  const middleName = data.userInformation.middleName
+    ? data.userInformation.middleName.toUpperCase()
+    : "";
+  const lastName = data.userInformation.lastName.toUpperCase();
+  operation([
+    data.userInformation.facultyCode.toUpperCase(),
+    firstName + " " + middleName + " " + lastName,
+    data.userInformation.facultyType.facultyType.toUpperCase(),
+    data.email,
+    data.userInformation.academicQualifications.length !== 0
+      ? data.userInformation.academicQualifications
+          .map((element) => {
+            return `
+              <div>
+                <h6>${element.academicQualification.academicQualification}</h6>
+                <ul>
+                  <li>${element.experience} year/s of experience.</li>
+                  <li>${degreeEquivalent[element.degree - 1]}</li>
+                  ${element.licenseIndustry
+                    .map((element) => {
+                      return "<li>" + element.tag.toUpperCase() + "</li>";
+                    })
+                    .join("")}
+                </ul>
+              </div>`;
+          })
+          .join("")
+      : "N/A",
+    data.userInformation.courseTaken.length !== 0
+      ? data.userInformation.courseTaken
+          .map((element) => {
+            return element.courseCode.toUpperCase();
+          })
+          .join(", ")
+      : "N/A",
+    ` 
+      <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
+        data._id
+      }">Course Taken</button>
+      ${actionButton(data._id)}
+    `,
+  ]).draw();
+};
+
+const csrf = $("#csrf").val();
+
+let semester;
+
+const degreeEquivalent = [
+  "Associate Degree",
+  "Bachelor Degree",
+  "Master Degree",
+  "Doctoral",
+];
+
+const addModal = new bootstrap.Modal($("#addModal"));
+fetch(`/api/curriculums/active`)
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    semester = result.data[0].semesters._id;
+    return fetch(`/api/curriculums/faculty/${semester}`);
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    console.log(result);
+    result.data.forEach((element) => {
+      dataTable(table.row.add, element);
+    });
+    return fetch(`/api/faculty`);
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    $(addModal._element).on("show.bs.modal", (event) => {
+      const button = $(event.currentTarget).find("#addButton");
+      const faculty = $(event.currentTarget).find("#faculty").select2({
+        multiple: true,
+        width: "100%",
+      });
+      result.data.forEach((element) => {
+        const firstName = element.userInformation.firstName.toUpperCase();
+        const middleName = element.userInformation.middleName
+          ? element.userInformation.middleName.toUpperCase()
+          : "";
+        const lastName = element.userInformation.lastName.toUpperCase();
+        const name = `${firstName} ${middleName} ${lastName}`;
+        faculty.append(new Option(name, element._id));
+      });
+      button.off("click");
+      console.log(semester);
+      button.on("click", () => {
+        fetch(`/api/curriculums/faculty/${semester}`, {
+          method: "POST",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            faculty: faculty.val(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            addModal.hide();
+            console.log(result);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
+    });
+  })
+  .catch((error) => {
+    console.log(error);
+  });

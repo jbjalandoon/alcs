@@ -131,7 +131,9 @@ router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
 
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
-router.get("/curriculums/faculty/:sem", curriculum.getActiveFaculty);
+router.get("/curriculums/faculty/:semester", curriculum.getActiveFaculty);
+router.get("/curriculums/faculty/counts/:semester", curriculum.getActiveFacultyCounts);
+router.post("/curriculums/faculty/:semester", curriculum.postActiveFaculty);
 router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 router.delete("/curriculums/course/:year/:course", curriculum.deleteCourse);

@@ -13,6 +13,12 @@ exports.getCurriculum = (req, res, next) => {
   });
 };
 
+exports.getCurriculumFaculty = (ree,res,next) => {
+  res.render('admin/curriculum/faculty', {
+    title: 'Active Curriculum Faculty'
+  })
+}
+
 exports.addCurriculum = (req, res, next) => {
   const dropdown = {};
   if (req.method === "GET") {
@@ -184,12 +190,6 @@ exports.addCurriculum = (req, res, next) => {
         throw new Error(error);
       });
   }
-};
-
-exports.getBySchoolYear = (req, res, next) => {
-  res.render("admin/curriculum/index", {
-    title: "ALCS | Curriculum",
-  });
 };
 
 exports.getSectionsAndCourses = (req, res, next) => {

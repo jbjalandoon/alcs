@@ -183,12 +183,31 @@ fetch("/api/curriculums/active")
       });
     }
     $("#cardTitle").html(
-      `FACULTY LOADING ${
+      `S.Y. ${
         result.data[0].schoolYear[0].year
       } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
     sem = result.data[0].semesters._id;
-    return fetch("/api/faculty");
+    return fetch(`/api/curriculums/faculty/counts/${sem}`);
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    let regular, fullTime, partTime;
+    result.data.forEach((element) => {
+      if (element.facultyType.facultyType === "regular") {
+        regular = element.count;
+      } else if (element.facultyType.facultyType === "full-time") {
+        fullTime = element.count;
+      } else {
+        partTime = element.count;
+      }
+    });
+    $("#regular").html(regular);
+    $("#fullTime").html(fullTime);
+    $("#partTime").html(partTime);
+    return fetch(`/api/curriculums/faculty/${sem}`);
   })
   .then((response) => {
     return response.json();
@@ -205,6 +224,9 @@ fetch("/api/curriculums/active")
     });
     faculty.select2({
       width: "100%",
+    });
+    $(document).on("select2:open", () => {
+      document.querySelector(".select2-search__field").focus();
     });
     $("#firstLoading").addClass("d-none");
     $("#facultySelect").removeClass("d-none");

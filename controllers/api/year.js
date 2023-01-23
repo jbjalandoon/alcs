@@ -38,9 +38,9 @@ exports.post = (req, res, next) => {
       return new Curriculum({
         schoolYear: result._id,
         semesters: [
-          { sem: "first", isActive: false },
-          { sem: "second", isActive: false },
-          { sem: "summer", isActive: false },
+          { sem: "first", isActive: false, activeFaculties: [] },
+          { sem: "second", isActive: false, activeFaculties: [] },
+          { sem: "summer", isActive: false, activeFaculties: [] },
         ],
       }).save();
     })

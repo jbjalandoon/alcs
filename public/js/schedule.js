@@ -31,9 +31,9 @@ fetch("/api/curriculums/active")
       return Promise.reject();
     }
     semester = result.data[0].semesters._id;
-    document.querySelector("#card-title").innerHTML = `${
+    document.querySelector("#card-title").innerHTML = `S.Y. ${
       result.data[0].schoolYear[0].year
-    } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER )`;
+    } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`;
     return fetch("/api/curriculums/programs/" + semester);
   })
   .then((response) => {
@@ -50,11 +50,7 @@ fetch("/api/curriculums/active")
         new Option(element.program.programName.toUpperCase(), element._id)
       );
     });
-    scheduleYearLevelForm.val("");
-    scheduleYearLevelForm.attr("disabled", true);
-    scheduleProgramForm.val("");
-    scheduleProgramForm.attr("disabled", false);
-    scheduleSubmitButton.addClass("d-none");
+    scheduleProgramForm.trigger("change");
   })
   .catch((error) => {
     console.log(error);
@@ -399,22 +395,18 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
 });
 
 scheduleProgramForm.on("change", () => {
-  scheduleYearLevelForm.attr("disabled", true).val("");
-  scheduleSectionForm.attr("disabled", true).val("");
-  scheduleYearLevelForm.find("option").not(":first").remove();
-  scheduleSectionForm.find("option").not(":first").remove();
   fetch("/api/curriculums/year-levels/" + scheduleProgramForm.val())
     .then((response) => {
       return response.json();
     })
     .then((result) => {
-      $("#scheduleContent").addClass("d-none");
+      scheduleYearLevelForm.empty();
       result.data.forEach((element) => {
         scheduleYearLevelForm.append(
           new Option(element.level.yearLevel.toUpperCase(), element._id)
         );
       });
-      scheduleYearLevelForm.attr("disabled", false);
+      scheduleYearLevelForm.trigger("change");
     })
     .catch((error) => {
       console.log(error);
@@ -422,23 +414,20 @@ scheduleProgramForm.on("change", () => {
 });
 
 scheduleYearLevelForm.on("change", () => {
-  scheduleSubmitButton.addClass("d-none");
-  scheduleSectionForm.val("");
-  scheduleSectionForm.attr("disabled", true);
-  scheduleSectionForm.find("option").not(":first").remove();
   fetch("/api/curriculums/sections/" + scheduleYearLevelForm.val())
     .then((response) => {
       return response.json();
     })
     .then((result) => {
       $("#scheduleContent").addClass("d-none");
+      scheduleSectionForm.empty();
       if (result.data.length !== 0) {
         result.data.forEach((element) => {
           scheduleSectionForm.append(
             new Option(element.section.toUpperCase(), element._id)
           );
         });
-        return scheduleSectionForm.attr("disabled", false);
+        return scheduleSectionForm.trigger("change");
       }
       Toast.fire({
         title: "No Section Found!",

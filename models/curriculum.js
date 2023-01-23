@@ -13,6 +13,12 @@ const CurriculumSchema = new Schema({
       sem: {
         type: String,
       },
+      activeFaculties: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "Faculty",
+        },
+      ],
       isActive: {
         type: Boolean,
         default: true,

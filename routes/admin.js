@@ -36,14 +36,13 @@ router.get("/faculty", maintenance.getFaculties);
 
 // Curriculum Start
 router.get("/curriculum", curriculum.getCurriculum);
+router.get("/curriculum/faculty", curriculum.getCurriculumFaculty);
 // Curriculum End
 
 // ------------------------------------------------------------------------------------
 
 //Curriculum Routes
 router.get("/curriculums/sections-courses", curriculum.getSectionsAndCourses);
-
-router.get("/curriculums/:id", curriculum.getBySchoolYear);
 
 // router.post(
 //   "/curriculum/year/:school_year",

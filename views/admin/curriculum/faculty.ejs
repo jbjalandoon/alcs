@@ -1,0 +1,70 @@
+<%- include('../../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../../includes/navbar.ejs') %>
+  <div class="container-fluid mt-3">
+    <div class="card">
+      <div class="card-header">
+        <strong>LIST OF AVAILABLE FACULTY/S</strong>
+        <!-- <a href="/admin/faculty/add" class="float-end"><button class="btn btn-primary">ADD NEW faculty</button></a> -->
+        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+          Add Faculty
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table id="facultyTable" class="table table-striped datatables" style="width:100%">
+            <thead>
+              <tr>
+                <th width="5% ">Faculty Code</th>
+                <th width="15%">Name</th>
+                <th width="10%">Faculty Type</th>
+                <th width="15%">Email</th>
+                <th width="20%">Academic Qualifications</th>
+                <th width="10%">Course Taken</th>
+                <th width="20%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Adding new faculty</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-12">
+                <label for="faculty" class="form-label">Select Faculty Members: </label>
+                <select name="" id="faculty" multiple="true" class="form-select"></select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/curriculum-faculty.js"></script>
+</body>
+
+</html>

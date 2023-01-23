@@ -98,7 +98,7 @@ fetch("/api/curriculums/active")
     });
     sem = result.data[0].semesters._id;
     $("#cardTitle").html(
-      `DASHBOARD ${
+      `S.Y. ${
         result.data[0].schoolYear[0].year
       } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
@@ -187,87 +187,87 @@ fetch("/api/curriculums/active")
     activeFaculty = result.data.length;
     $("#activeFaculty").html(activeFaculty);
     facultyCalendar.render();
-    // return fetch(`/api/curriculums/room/${sem}`);
+    return fetch(`/api/curriculums/room/${sem}`);
   })
-  // .then((response) => {
-  //   return response.json();
-  // })
-  // .then((result) => { // Rooms
-  //   const downloadCurrentRoom = $("#downloadCurrentRoom");
-  //   const downloadAllRoom = $("#downloadAllRoom");
-  //   result.data.forEach((element) => {
-  //     roomView.append(
-  //       new Option(element.room.roomName.toUpperCase(), element._id)
-  //     );
-  //   });
-  //   if (result.data.length !== 0) {
-  //     roomView.on("change", () => {
-  //       fetch(`/api/schedules/room/finished/${sem}/${roomView.val()}`)
-  //         .then((response) => {
-  //           return response.json();
-  //         })
-  //         .then((result) => {
-  //           downloadCurrentRoom.off("click");
-  //           downloadAllRoom.off("click");
-  //           roomCalendar.getEvents().forEach((element) => {
-  //             element.remove();
-  //           });
-  //           result.data.forEach((element) => {
-  //             roomCalendar.addEvent({
-  //               id: element._id,
-  //               hourDuration: element.hour,
-  //               daysOfWeek: [(element.day).toString()],
-  //               startTime: element.start_time,
-  //               endTime: element.end_time,
-  //               overlap: false,
-  //               editabe: false,
-  //               units: element.course.units,
-  //               course: element.course.courseCode,
-  //               type: element.type,
-  //               program: element.program.programCode,
-  //               section: element.section_name,
-  //               room: element.room.roomName,
-  //               level: element.level.display,
-  //               faculty: element.faculty,
-  //             });
-  //           });
-  //           downloadCurrentRoom.on("click", () => {
-  //             downloadSpreadsheet(
-  //               roomView.find("option").filter(":selected").text() + ".xlsx",
-  //               [result.data],
-  //               "room"
-  //             );
-  //           });
-  //           downloadAllRoom.on("click", () => {
-  //             fetch(`/api/schedules/room/${sem}`)
-  //               .then((response) => {
-  //                 return response.json();
-  //               })
-  //               .then((result) => {
-  //                 downloadSpreadsheet(
-  //                   "room.xlsx",
-  //                   result.data.map((e) => e.data),
-  //                   "room"
-  //                 );
-  //               })
-  //               .catch((error) => {
-  //                 console.log(error);
-  //               });
-  //           });
-  //           roomCalendar.render();
-  //         })
-  //         .catch((error) => {
-  //           console.log(error);
-  //         });
-  //     });
-  //     roomView.trigger("change");
-  //   }
-  //   activeRoom = result.data.length;
-  //   $("#activeRoom").html(activeRoom);
-  //   roomCalendar.render();
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => { // Rooms
+    const downloadCurrentRoom = $("#downloadCurrentRoom");
+    const downloadAllRoom = $("#downloadAllRoom");
+    result.data.forEach((element) => {
+      roomView.append(
+        new Option(element.room.roomName.toUpperCase(), element._id)
+      );
+    });
+    if (result.data.length !== 0) {
+      roomView.on("change", () => {
+        fetch(`/api/schedules/room/finished/${sem}/${roomView.val()}`)
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            downloadCurrentRoom.off("click");
+            downloadAllRoom.off("click");
+            roomCalendar.getEvents().forEach((element) => {
+              element.remove();
+            });
+            result.data.forEach((element) => {
+              roomCalendar.addEvent({
+                id: element._id,
+                hourDuration: element.hour,
+                daysOfWeek: [(element.day).toString()],
+                startTime: element.start_time,
+                endTime: element.end_time,
+                overlap: false,
+                editabe: false,
+                units: element.course.units,
+                course: element.course.courseCode,
+                type: element.type,
+                program: element.program.programCode,
+                section: element.section_name,
+                room: element.room.roomName,
+                level: element.level.display,
+                faculty: element.faculty,
+              });
+            });
+            downloadCurrentRoom.on("click", () => {
+              downloadSpreadsheet(
+                roomView.find("option").filter(":selected").text() + ".xlsx",
+                [result.data],
+                "room"
+              );
+            });
+            downloadAllRoom.on("click", () => {
+              fetch(`/api/schedules/room/${sem}`)
+                .then((response) => {
+                  return response.json();
+                })
+                .then((result) => {
+                  downloadSpreadsheet(
+                    "room.xlsx",
+                    result.data.map((e) => e.data),
+                    "room"
+                  );
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            });
+            roomCalendar.render();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
+      roomView.trigger("change");
+    }
+    activeRoom = result.data.length;
+    $("#activeRoom").html(activeRoom);
+    roomCalendar.render();
 
-  //   return fetch("/api/curriculums/programs/" + sem);
-  // })
+    return fetch("/api/curriculums/programs/" + sem);
+  })
   // .then((response) => {
   //   return response.json();
   // })
