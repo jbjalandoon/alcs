@@ -11,6 +11,7 @@ const app = express();
 const multer = require("multer");
 
 const User = require("./models/user");
+const FacultyType = require("./models/faculty-type");
 
 const error = require("./controllers/error");
 const db_uri = "mongodb://localhost:27017/alcs";
@@ -138,9 +139,41 @@ mongoose
         .then((result) => {
           app.listen(3000);
         });
-    } else {
-      app.listen(3000);
     }
+    return FacultyType.bulkWrite([
+      {
+        updateOne: {
+          filter: { facultyType: "regular" },
+          update: {
+            facultyType: "regular",
+            unitsCap: 15,
+            hoursCap: 35,
+          },
+          upsert: true,
+        },
+        updateOne: {
+          filter: { facultyType: "full-time " },
+          update: {
+            facultyType: "full-time",
+            unitsCap: 15,
+            hoursCap: 35,
+          },
+          upsert: true,
+        },
+        updateOne: {
+          filter: { facultyType: "part-time" },
+          update: {
+            facultyType: "part-time",
+            unitsCap: 15,
+            hoursCap: 35,
+          },
+          upsert: true,
+        },
+      },
+    ]).then(result => {
+      console.log(result);
+      app.listen(3000);
+    });
   })
   .catch((error) => {
     throw new Error(error);
