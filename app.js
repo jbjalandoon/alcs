@@ -151,8 +151,10 @@ mongoose
           },
           upsert: true,
         },
+      },
+      {
         updateOne: {
-          filter: { facultyType: "full-time " },
+          filter: { facultyType: "full-time" },
           update: {
             facultyType: "full-time",
             unitsCap: 15,
@@ -160,6 +162,8 @@ mongoose
           },
           upsert: true,
         },
+      },
+      {
         updateOne: {
           filter: { facultyType: "part-time" },
           update: {
@@ -170,7 +174,7 @@ mongoose
           upsert: true,
         },
       },
-    ]).then(result => {
+    ]).then((result) => {
       console.log(result);
       app.listen(3000);
     });
