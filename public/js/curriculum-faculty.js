@@ -7,7 +7,7 @@ const table = $("#facultyTable").DataTable({
 });
 
 const dataTable = (operation, data) => {
-  console.log(data)
+  console.log(data);
   const firstName = data.userInformation.firstName.toUpperCase();
   const middleName = data.userInformation.middleName
     ? data.userInformation.middleName.toUpperCase()
@@ -70,7 +70,13 @@ fetch(`/api/curriculums/active`)
     return response.json();
   })
   .then((result) => {
+    console.log(result.data[0]);
     semester = result.data[0].semesters._id;
+    $("#cardLabel").html(
+      `LIST OF ACTIVE FACULTY MEMBERS - S.Y ${
+        result.data[0].schoolYear[0].year
+      } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
+    );
     return fetch(`/api/curriculums/faculty/${semester}`);
   })
   .then((response) => {

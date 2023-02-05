@@ -63,8 +63,8 @@ const csrf = $("#csrf").val();
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
   allDaySlot: false,
-  hiddenDays: [0],
   height: "auto",
+  firstDay: 1,
   dayHeaderFormat: { weekday: "long" },
   initialView: "timeGridWeek",
   headerToolbar: {
