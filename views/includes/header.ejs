@@ -1,94 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
-    
-    <link rel="manifest" href="/assets/favicon/manifest.json" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta
-      name="msapplication-TileImage"
-      content="assets/favicon/ms-icon-144x144.png"
-    />
-    <meta name="theme-color" content="#ffffff" />
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
-      crossorigin="anonymous"
-    />
-    <!-- Vendors styles-->
-    <link rel="stylesheet" href="/vendors/simplebar/css/simplebar.css" />
-    <link rel="stylesheet" href="/css/vendors/simplebar.css" />
-    <link
-      rel="stylesheet"
-      href="/@selectize/selectize/dist/css/selectize.bootstrap5.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-      rel="stylesheet"
-    />
-    <!-- Main styles for this application-->
-    <link href="/css/style.css" rel="stylesheet" />
-    <link href="/scss/style.css" rel="stylesheet" />
-    <script
-      async=""
-      src="https://www.googletagmanager.com/gtag/js?id=UA-118965717-3"
-    ></script>
-    <script
-      src="https://kit.fontawesome.com/3519cfdcb0.js"
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
 
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      // Shared ID
-      gtag("config", "UA-118965717-3");
-      // Bootstrap ID
-      gtag("config", "UA-118965717-5");
-    </script>
-    <style>
-      .select2-container--open {
-        z-index: 99999999999999;
-      }
+  <link rel="manifest" href="/assets/favicon/manifest.json" />
+  <meta name="msapplication-TileColor" content="#ffffff" />
+  <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png" />
+  <meta name="theme-color" content="#ffffff" />
 
-      .fc-day {
-        background-color: inherit !important;
-      }
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous" />
+  <!-- Vendors styles-->
+  <link rel="stylesheet" href="/vendors/simplebar/css/simplebar.css" />
+  <link rel="stylesheet" href="/css/vendors/simplebar.css" />
+  <link rel="stylesheet" href="/@selectize/selectize/dist/css/selectize.bootstrap5.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <!-- Main styles for this application-->
+  <link href="/css/style.css" rel="stylesheet" />
+  <link href="/scss/style.css" rel="stylesheet" />
+  <script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-118965717-3"></script>
+  <script src="https://kit.fontawesome.com/3519cfdcb0.js" crossorigin="anonymous"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
 
-      /* .fc-day {
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    // Shared ID
+    gtag("config", "UA-118965717-3");
+    // Bootstrap ID
+    gtag("config", "UA-118965717-5");
+  </script>
+  <style>
+    .select2-container--open {
+      z-index: 99999999999999;
+    }
+
+    .fc-day {
+      background-color: inherit !important;
+    }
+
+    /* .fc-day {
         background-color: #ffc107 !important;
       } */
 
-      .fc-col-header-cell-cushion {
-        text-decoration: none;
-        color: black;
-      }
+    .fc-col-header-cell-cushion {
+      text-decoration: none;
+      color: black;
+    }
 
-      .fc-event {
-        font-size: .8rem !important;
-        align-items: center !important;
-      }
-    </style>
-    <link
-      href="vendors/@coreui/chartjs/css/coreui-chartjs.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/r-2.3.0/datatables.min.css"
-    />
-  </head>
+    .fc-event {
+      font-size: .8rem !important;
+      align-items: center !important;
+    }
+  </style>
+  <link href="vendors/@coreui/chartjs/css/coreui-chartjs.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/r-2.3.0/datatables.min.css" />
+</head>
+
 </html>
