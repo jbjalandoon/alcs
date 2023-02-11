@@ -8,10 +8,9 @@ const CourseSchema = new Schema({
     required: true,
     unique: true,
   },
-  courseKey: {
+  customTitle: {
     type: String,
-    required: true,
-    unique: true,
+    default: null,
   },
   courseDescription: {
     type: String,

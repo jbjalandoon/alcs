@@ -17,6 +17,7 @@ const degrees = [
 const tableData = (operation, data) => {
   operation([
     data.courseCode.toUpperCase(),
+    data.customTitle ? data.customTitle.toUpperCase() : "N/A",
     data.courseDescription.toUpperCase(),
     data.lecture ? data.lecture : "N/A",
     data.lab ? data.lab : "N/A",
@@ -62,6 +63,7 @@ let uploadModal = new bootstrap.Modal($("#uploadModal"));
 $(addModal._element).on("show.bs.modal", (event) => {
   $(event.currentTarget).find("#academicQualification").off("change");
   const courseCode = $(event.currentTarget).find("#courseCode");
+  const customTitle = $(event.currentTarget).find("#customTitle");
   const courseDescription = $(event.currentTarget).find("#courseDescription");
   const lecture = $(event.currentTarget).find("#lecture");
   const lab = $(event.currentTarget).find("#lab");
@@ -84,13 +86,14 @@ $(addModal._element).on("show.bs.modal", (event) => {
   const button = $(event.currentTarget).find("#addButton");
   button.off("click");
   courseCode.val("");
+  customTitle.val("");
   courseDescription.val("");
   lecture.val("");
   lab.val("");
   units.val("");
   academicQualification.empty();
-  experience.val("");
-  degree.val("");
+  experience.val("0");
+  degree.val("2");
   licenseIndustry.empty();
   examination.prop("checked", false);
   fetch("/api/academic-qualifications")
@@ -98,7 +101,6 @@ $(addModal._element).on("show.bs.modal", (event) => {
       return response.json();
     })
     .then((result) => {
-      // academicQualification.off("change");
       result.data.forEach((e) => {
         academicQualification
           .append(new Option(e.academicQualification.toUpperCase(), e._id))
@@ -136,6 +138,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
           body: JSON.stringify({
             courseCode: courseCode.val().toLowerCase(),
             courseDescription: courseDescription.val().toLowerCase(),
+            customTitle: customTitle.val().toLowerCase(),
             units: units.val(),
             lab: lab.val(),
             lecture: lecture.val(),
@@ -173,6 +176,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
   $(event.currentTarget).find("#academicQualification").off("change");
   const id = $(event.relatedTarget).attr("data-bs-id");
   const courseCode = $(event.currentTarget).find("#courseCode");
+  const customTitle = $(event.currentTarget).find("#customTitle");
   const courseDescription = $(event.currentTarget).find("#courseDescription");
   const lecture = $(event.currentTarget).find("#lecture");
   const lab = $(event.currentTarget).find("#lab");
@@ -238,6 +242,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
       courseDescription.val(result.data.courseDescription);
       lecture.val(result.data.lecture);
       lab.val(result.data.lab);
+      customTitle.val(result.data.customTitle);
       units.val(result.data.units);
       academicQualification
         .val(result.data.qualification.academicQualification.map((e) => e._id))
@@ -257,6 +262,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
             lecture: lecture.val(),
             academicQualification: academicQualification.val(),
             experience: experience.val(),
+            customTitle: customTitle.val().toLowerCase(),
             degree: degree.val(),
             examination: examination.is(":checked"),
             licenseIndustry: licenseIndustry.val(),

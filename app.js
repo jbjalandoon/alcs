@@ -121,26 +121,24 @@ mongoose
   })
   .then((result) => {
     if (result == null) {
-      return bcrypt
-        .hash("adminpassword", 12)
-        .then((password) => {
-          return User.insertMany([
-            {
-              email: "superadmin",
-              password: password,
-              role: "superadmin",
-            },
-            {
-              email: "jerome.jalandoon@gmail.com",
-              password: password,
-              role: "admin",
-            },
-          ]);
-        })
-        .then((result) => {
-          app.listen(3000);
-        });
+      return bcrypt.hash("adminpassword", 12).then((password) => {
+        return User.insertMany([
+          {
+            email: "superadmin",
+            password: password,
+            role: "superadmin",
+          },
+          {
+            email: "jerome.jalandoon@gmail.com",
+            password: password,
+            role: "admin",
+          },
+        ]);
+      });
     }
+    return Promise.resolve();
+  })
+  .then((result) => {
     return FacultyType.bulkWrite([
       {
         updateOne: {

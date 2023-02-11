@@ -72,6 +72,7 @@ exports.post = (req, res, next) => {
         result.courseCode = req.body.courseCode;
         result.courseDescription = req.body.courseDescription;
         result.lecture = req.body.lecture;
+        result.customTitle = req.body.customTitle;
         result.lab = req.body.lab;
         result.units = req.body.units;
         result.examination = req.body.examination;
@@ -87,6 +88,7 @@ exports.post = (req, res, next) => {
         courseCode: req.body.courseCode,
         courseDescription: req.body.courseDescription,
         lecture: req.body.lecture,
+        customTitle: req.body.customTitle,
         lab: req.body.lab,
         units: req.body.units,
         examination: req.body.examination,
@@ -126,6 +128,7 @@ exports.edit = (req, res, next) => {
       courseCode: req.body.courseCode,
       courseDescription: req.body.courseDescription,
       lecture: req.body.lecture,
+      customTitle: req.body.customTitle,
       lab: req.body.lab,
       units: req.body.units,
       examination: req.body.examination,
@@ -181,7 +184,7 @@ exports.postSpreadsheet = (req, res, next) => {
       rows.shift();
       data = rows.map((element) => {
         let licenseIndustry = [];
-        const academicQualification = element[2]
+        const academicQualification = element[3]
           .replace(/\s/g, "")
           .toLowerCase()
           .split(",");
@@ -204,16 +207,17 @@ exports.postSpreadsheet = (req, res, next) => {
 
         return {
           courseCode: element[0].toLowerCase(),
-          courseDescription: element[1].toLowerCase(),
+          customTitle: element[1] ? element[1].toLowerCase() : null,
+          courseDescription: element[2].toLowerCase(),
           academicQualification: academicQualification.map(
             (e) => e.split("-")[0]
           ),
           licenseIndustry: licenseIndustry,
-          units: element[3],
-          lecture: element[4],
-          lab: element[5],
-          experience: element[6],
-          degree: element[7],
+          units: element[4],
+          lecture: element[5],
+          lab: element[6],
+          experience: element[7],
+          degree: element[8],
         };
       });
       academicQualificationUnique = academicQualificationUnique
@@ -312,6 +316,7 @@ exports.postSpreadsheet = (req, res, next) => {
         return {
           courseCode: e.courseCode,
           courseDescription: e.courseDescription,
+          customTitle: e.customTitle,
           qualification: {
             academicQualification: e.academicQualification.map((e) => {
               let id;
@@ -362,6 +367,7 @@ exports.postSpreadsheet = (req, res, next) => {
       res.json({ status: 201, data: result });
     })
     .catch((error) => {
+      console.log(error);
       res.json({ status: 500, data: error });
     });
 };
