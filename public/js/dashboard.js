@@ -112,11 +112,12 @@ fetch("/api/curriculums/active")
     const downloadCurrentFaculty = $("#downloadCurrentFaculty");
     const downloadAllFaculty = $("#downloadAllFaculty");
     result.data.forEach((element) => {
+      console.log(result.data)
       facultyView.append(
-        new Option(
-          element.faculty.userInformation.firstName.toUpperCase() +
+        new Option( 
+          element.userInformation.firstName.toUpperCase() +
             " " +
-            element.faculty.userInformation.lastName.toUpperCase(),
+            element.userInformation.lastName.toUpperCase(),
           element._id
         )
       );

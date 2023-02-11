@@ -12,6 +12,7 @@ const multer = require("multer");
 
 const User = require("./models/user");
 const FacultyType = require("./models/faculty-type");
+const Level = require("./models/level");
 
 const error = require("./controllers/error");
 const db_uri = "mongodb://localhost:27017/alcs";
@@ -174,10 +175,54 @@ mongoose
           upsert: true,
         },
       },
-    ]).then((result) => {
-      console.log(result);
-      app.listen(3000);
-    });
+    ]);
+  })
+  .then((result) => {
+    return Level.bulkWrite([
+      {
+        updateOne: {
+          filter: { yearLevel: "first year", display: 1 },
+          update: {
+            yearLevel: "first year",
+            display: 1,
+          },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
+          filter: { yearLevel: "second year", display: 2 },
+          update: {
+            yearLevel: "second year",
+            display: 2,
+          },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
+          filter: { yearLevel: "third year", display: 3 },
+          update: {
+            yearLevel: "third year",
+            display: 3,
+          },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
+          filter: { yearLevel: "fourth year", display: 4 },
+          update: {
+            yearLevel: "fourth year",
+            display: 4,
+          },
+          upsert: true,
+        },
+      },
+    ]);
+  })
+  .then((result) => {
+    app.listen(3000);
   })
   .catch((error) => {
     throw new Error(error);

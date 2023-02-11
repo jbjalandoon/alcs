@@ -8,6 +8,11 @@ const CourseSchema = new Schema({
     required: true,
     unique: true,
   },
+  courseKey: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   courseDescription: {
     type: String,
     required: true,
