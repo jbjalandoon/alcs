@@ -357,6 +357,8 @@ faculty.on("change", () => {
           units: element.course.units,
           course: element.course.courseCode,
           type: element.type,
+          color: element.type === "lecture" ? "#007BFF" : "#3399FF",
+          textColor: element.type === "lecture" ? "white" : "black",
           program: element.program.programCode,
           section: element.sectionName,
           room: element.room.roomName,
@@ -485,7 +487,6 @@ courseSearch.on("change", () => {
             ),
           });
         });
-        console.log(currentTimeRange);
         calendar.getEvents().forEach((e) => {
           const eventDay = e.start.getDay();
           const eventRange = moment.range(
@@ -671,6 +672,8 @@ const assignFaculty = (eventArgs) => {
                 startTime: button.attr("startTime"),
                 endTime: button.attr("endTime"),
                 type: button.attr("type"),
+                color:
+                  button.attr("type") === "lecture" ? "#007BFF" : "#3399FF",
                 overlap: false,
                 durationEditable: false,
                 startEditable: false,
@@ -723,6 +726,7 @@ const assignFaculty = (eventArgs) => {
           startTime: button.attr("startTime"),
           endTime: button.attr("endTime"),
           type: button.attr("type"),
+          color: button.attr("type") === "lecture" ? "#007BFF" : "#3399FF",
           overlap: false,
           durationEditable: false,
           startEditable: false,
@@ -766,7 +770,7 @@ const previewSchedule = (event) => {
       type: button.attr("type"),
       overlap: false,
       preview: true,
-      color: '#FFC107',
+      color: "#FFC107",
       durationEditable: false,
       startEditable: false,
       course: button.attr("course"),
