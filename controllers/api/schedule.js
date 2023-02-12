@@ -1770,7 +1770,6 @@ exports.adjustSchedule = (req, res, next) => {
 };
 
 exports.unassignSchedule = (req, res, next) => {
-  console.log(req.params.schedule);
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections.schedules._id": {

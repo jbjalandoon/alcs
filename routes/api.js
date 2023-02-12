@@ -141,6 +141,9 @@ router.get(
   curriculum.getActiveFacultyType
 );
 router.post("/curriculums/faculty/:semester", curriculum.postActiveFaculty);
+router.delete('/curriculums/faculty/:semester/:id', curriculum.deleteActiveFaculty)
+
+
 router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 router.delete("/curriculums/course/:year/:course", curriculum.deleteCourse);

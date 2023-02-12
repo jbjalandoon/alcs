@@ -9,9 +9,10 @@ const table = $("#facultyTable").DataTable({
 const dataTable = (operation, data) => {
   console.log(data);
   const firstName = data.userInformation.firstName.toUpperCase();
-  const middleName = data.userInformation.middleName
-    ? data.userInformation.middleName.toUpperCase()
-    : "";
+  const middleName =
+    data.userInformation.middleName != null
+      ? data.userInformation.middleName.toUpperCase()
+      : "";
   const lastName = data.userInformation.lastName.toUpperCase();
   operation([
     data.userInformation.facultyCode.toUpperCase(),
@@ -45,10 +46,7 @@ const dataTable = (operation, data) => {
           .join(", ")
       : "N/A",
     ` 
-      <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
-        data._id
-      }">Course Taken</button>
-      ${actionButton(data._id)}
+    <button class="btn text-light btn-sm btn-danger mb-1" onClick="deleteData('${data._id}', this)">Delete</button>
     `,
   ]).draw();
 };
@@ -123,6 +121,9 @@ fetch(`/api/curriculums/active`)
           })
           .then((result) => {
             addModal.hide();
+            result.data.forEach((element) => {
+              dataTable(table.row.add, element);
+            });
             console.log(result);
           })
           .catch((error) => {
@@ -134,3 +135,34 @@ fetch(`/api/curriculums/active`)
   .catch((error) => {
     console.log(error);
   });
+
+const deleteData = (id, element) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "The existing schedule of the faculty will also remove, You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    preConfirm: () => {
+      return fetch(`/api/curriculums/faculty/${semester}/${id}`, {
+        method: "DELETE",
+        headers: {
+          "csrf-token": csrf,
+        },
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      table.row(element.closest("tr")).remove().draw();
+      displayToast(result.value);
+    }
+  });
+};

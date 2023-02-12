@@ -913,10 +913,44 @@ exports.postActiveFaculty = (req, res, next) => {
     { arrayFilters: [{ "semester._id": req.params.semester }] }
   )
     .then((result) => {
-      return Faculty.find({ _id: { $in: req.body.faculty } });
+      return Faculty.find({ _id: { $in: req.body.faculty } })
+        .populate(
+          "userInformation.academicQualifications.academicQualification"
+        )
+        .populate("userInformation.academicQualifications.licenseIndustry")
+        .populate("userInformation.courseTaken")
+        .populate("userInformation.facultyType")
     })
     .then((result) => {
       res.json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
+    });
+};
+
+exports.deleteActiveFaculty = (req, res, next) => {
+  Curriculum.updateOne(
+    { "semesters._id": req.params.semester },
+    {
+      $pull: {
+        "semesters.$[semester].activeFaculties": req.params.id,
+      },
+      $set: {
+        "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[faculty].faculty":
+          null,
+      },
+    },
+    {
+      arrayFilters: [
+        { "semester._id": req.params.semester },
+        { "faculty.faculty": req.params.id },
+      ],
+    }
+  )
+    .then((result) => {
+      res.json({ status: 202, data: result });
     })
     .catch((error) => {
       console.log(error);
