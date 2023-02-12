@@ -9,65 +9,97 @@
         <strong id="card-title">Scheduling</strong>
       </div>
       <div class="card-body" id="scheduleCard">
-        <form id="schedule-form">
-          <div class="row mb-3">
-            <div class="col-4">
-              <label class="form-label" for="program">Select Porgram:</label>
-              <select class="form-select" name="program" id="program">
-              </select>
+        <div class="container-fluid">
+          <form id="schedule-form">
+            <div class="row mb-3">
+              <div class="col-4">
+                <label class="form-label" for="program">Select Porgram:</label>
+                <select class="form-select" name="program" id="program">
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label" for="year_level">Select Year Level:</label>
+                <select class="form-select" name="year_level" id="year_level">
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label" for="section">Select Sections:</label>
+                <select class="form-select" name="section" id="section">
+                </select>
+              </div>
             </div>
-            <div class="col-4">
-              <label class="form-label" for="year_level">Select Year Level:</label>
-              <select class="form-select" name="year_level" id="year_level">
-              </select>
+            <div class="row">
+              <div class="col-1 offset-9">
+                <button class="btn btn-primary d-none" id="submit" type="button">Submit</button>
+              </div>
             </div>
-            <div class="col-4">
-              <label class="form-label" for="section">Select Sections:</label>
-              <select class="form-select" name="section" id="section">
-              </select>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-1 offset-9">
-              <button class="btn btn-primary d-none" id="submit" type="button">Submit</button>
-            </div>
-          </div>
-        </form>
-
-
+          </form>
+        </div>
         <div class="row d-none" id="scheduleContent">
           <div class="col-3">
-            <label for="roomForm">
-              Select Room:
-            </label>
-              <select class="form-control" id="roomForm">
-                <option value=""></option>
-                <optgroup label="Lecture Room" id="optLecture">
-                </optgroup>
-                <optgroup label="Laboratory Room" id="optLab">
-                </optgroup>
-              </select>
-            <div id='external-events' class="mt-3">
-              <div class="mt-3">
-                <p>
-                  <strong>Lecture:</strong>
-                </p>
-                  <ul class="list-group list-group-flush" id="lectureList">
-                  </ul>
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-12">
+                  <span class="badge text-bg-primary">Draggable</span>
+                  <span class="badge text-bg-info">Unassigned</span>
+                  <span class="badge text-bg-warning">Assigned</span>
+                </div>
               </div>
-              <div class="mt-3">
-                <p>
-                  <strong>Laboratory:</strong>
-                </p>
-                  <ul class="list-group list-group-flush" id="labList">
-                  </ul>
+              <div class="row">
+                <div class="col-12">
+                  <label for="roomForm" class="mt-1">
+                    Select Room:
+                  </label>
+                  <select class="form-control" id="roomForm">
+                    <option value=""></option>
+                    <optgroup label="Lecture Room" id="optLecture">
+                    </optgroup>
+                    <optgroup label="Laboratory Room" id="optLab">
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <div id='external-events' class="mt-3">
+                    <div class="mt-3">
+                      <p>
+                        <strong>Lecture:</strong>
+                      </p>
+                      <ul class="list-group list-group-flush" id="lectureList">
+                      </ul>
+                    </div>
+                    <div class="mt-3">
+                      <p>
+                        <strong>Laboratory:</strong>
+                      </p>
+                      <ul class="list-group list-group-flush" id="labList">
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
           <div class="col-9">
-            <div id='calendar-container'>
-              <div id="calendar"></div>
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-12">
+                  <span class="badge text-bg-primary">Lecture Schedule</span>
+                  <span class="badge text-bg-info">Lab Schedule</span>
+                  <span class="badge text-bg-warning">Room Schedule</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <div id='calendar-container'>
+                    <div id="calendar"></div>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </div>

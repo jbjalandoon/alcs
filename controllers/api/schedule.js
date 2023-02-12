@@ -1130,6 +1130,7 @@ exports.getSectionSchedule = (req, res, next) => {
     },
   ])
     .then((result) => {
+      console.log(result)
       res.json({ ok: true, data: result });
     })
     .then((error) => {

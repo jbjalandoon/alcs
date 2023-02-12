@@ -145,7 +145,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       });
   },
   eventDrop: function (info) {
-    console.log(info.event.end.getHours());
     const id = info.event.extendedProps.scheduleID;
     if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
@@ -226,7 +225,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
           if (clicked.isDenied) {
             Swal.fire({
               title: "Are you sure?",
-              text: "You won't be able to revert this!",
+              text: "The assigned faculty will also remove, You won't be able to revert this!",
               icon: "warning",
               showCancelButton: true,
               confirmButtonColor: "#3085d6",
@@ -271,12 +270,16 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
                     .find(
                       `[course='${course}'][courseType='${info.event.extendedProps.courseType}']`
                     )
-                    .addClass(`${info.event.extendedProps.courseType}-event`);
+                    .removeClass("bg-warning text-dark")
+                    .addClass(
+                      `${info.event.extendedProps.courseType}-event bg-success text-light`
+                    );
                 } else {
                   $("#external-events")
                     .find(
                       `[course='${course}'][courseType='${info.event.extendedProps.courseType}']`
                     )
+                    .removeClass("bg-warning text-dark")
                     .addClass(
                       `${info.event.extendedProps.courseType}-event bg-primary text-light`
                     )
@@ -502,6 +505,7 @@ scheduleSectionForm.on("change", () => {
                 " HOURS"
             );
             item.attr("courseType", "lecture");
+            item.attr("color", "#007BFF");
             item.attr("hour", element.course.lecture);
             item.addClass("lecture-event");
             lectureList.append(card);
@@ -521,6 +525,7 @@ scheduleSectionForm.on("change", () => {
                 " HOURS"
             );
             item.attr("courseType", "lab");
+            item.attr("color", "#FFC107");
             item.attr("hour", element.course.lab);
             item.addClass("lab-event");
             labList.append(card);
@@ -564,9 +569,15 @@ scheduleSectionForm.on("change", () => {
             courseType: schedule.type,
             overlap: false,
             durationEditable: true,
+            color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
+            textColor: schedule.type === "lecture" ? "white" : "black",
             startEditable: true,
             course: element.course.courseCode,
             program: element.program.programCode,
+            faculty:
+              element.faculty != null
+                ? element.faculty.userInformation.facultyCode
+                : null,
             section: element.sectionName,
             room: schedule.room.roomName,
             level: element.yearLevel.display,
@@ -632,6 +643,7 @@ $("#roomForm").on("change", () => {
       return response.json();
     })
     .then((result) => {
+      console.log(result);
       const events = calendar.getEvents();
       events.forEach((element) => {
         if (!element.extendedProps.current) {
@@ -655,9 +667,12 @@ $("#roomForm").on("change", () => {
             section: element.sectionName,
             room: element.room.roomName,
             level: element.level.display,
-            faculty: element.faculty,
+            faculty: element.faculty
+              ? element.faculty.userInformation.facultyCode
+              : null,
             current: false,
-            color: "#880000",
+            color: "#FFC107",
+            textColor: "black",
           });
         }
       });
@@ -670,10 +685,12 @@ $("#roomForm").on("change", () => {
       if (isLaboratorySelect) {
         selector = ".lab-event";
         $(".lab-event").addClass("bg-primary text-light");
+        $(".lecture-event").addClass("bg-success text-light");
         $(".lab-event").css("cursor", "move");
       } else {
         selector = ".lecture-event";
         $(".lecture-event").addClass("bg-primary text-light");
+        $(".lab-event").addClass("bg-success text-light");
         $(".lecture-event").css("cursor", "move");
       }
       draggable = new Draggable(document.getElementById("external-events"), {
@@ -686,6 +703,7 @@ $("#roomForm").on("change", () => {
             current: true,
             overlap: false,
             course: info.getAttribute("course"),
+            color: info.getAttribute("color"),
             courseId: info.getAttribute("course-id"),
             program: info.getAttribute("program"),
             section: info.getAttribute("section"),
@@ -710,7 +728,10 @@ function renderEvent(info) {
   const titleEl = info.el.querySelector(".fc-event-title");
   const timeEl = info.el.querySelector(".fc-event-time");
   info.el.style.textAlign = "center";
-
+  console.log(info.event.extendedProps.faculty);
+  const faculty = info.event.extendedProps.faculty
+    ? info.event.extendedProps.faculty.toUpperCase()
+    : "";
   const course = info.event.extendedProps.course.toUpperCase();
   const program = info.event.extendedProps.program.toUpperCase();
   const section = info.event.extendedProps.section.toUpperCase();
@@ -718,6 +739,5 @@ function renderEvent(info) {
   const level = info.event.extendedProps.level.toUpperCase();
   const type = info.event.extendedProps.courseType.toUpperCase();
 
-  timeEl.innerHTML = "";
-  titleEl.innerHTML = `${course} (${type})<br>${program}${level}-${section}<br>${room}<br>`;
+  titleEl.innerHTML = `${course} (${type})<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
 }
