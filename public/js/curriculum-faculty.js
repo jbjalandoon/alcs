@@ -63,6 +63,8 @@ const degreeEquivalent = [
 ];
 
 const addModal = new bootstrap.Modal($("#addModal"));
+const existing = [];
+
 fetch(`/api/curriculums/active`)
   .then((response) => {
     return response.json();
@@ -81,8 +83,8 @@ fetch(`/api/curriculums/active`)
     return response.json();
   })
   .then((result) => {
-    console.log(result);
     result.data.forEach((element) => {
+      existing.push(element._id);
       dataTable(table.row.add, element);
     });
     return fetch(`/api/faculty`);
@@ -97,17 +99,19 @@ fetch(`/api/curriculums/active`)
         multiple: true,
         width: "100%",
       });
+      faculty.empty();
       result.data.forEach((element) => {
-        const firstName = element.userInformation.firstName.toUpperCase();
-        const middleName = element.userInformation.middleName
-          ? element.userInformation.middleName.toUpperCase()
-          : "";
-        const lastName = element.userInformation.lastName.toUpperCase();
-        const name = `${firstName} ${middleName} ${lastName}`;
-        faculty.append(new Option(name, element._id));
+        if (existing.indexOf(element._id) === -1) {
+          const firstName = element.userInformation.firstName.toUpperCase();
+          const middleName = element.userInformation.middleName
+            ? element.userInformation.middleName.toUpperCase()
+            : "";
+          const lastName = element.userInformation.lastName.toUpperCase();
+          const name = `${firstName} ${middleName} ${lastName}`;
+          faculty.append(new Option(name, element._id));
+        }
       });
       button.off("click");
-      console.log(semester);
       button.on("click", () => {
         fetch(`/api/curriculums/faculty/${semester}`, {
           method: "POST",
@@ -122,9 +126,9 @@ fetch(`/api/curriculums/active`)
           .then((result) => {
             addModal.hide();
             result.data.forEach((element) => {
+              existing.push(element._id);
               dataTable(table.row.add, element);
             });
-            console.log(result);
           })
           .catch((error) => {
             console.log(error);
@@ -161,6 +165,7 @@ const deleteData = (id, element) => {
     },
   }).then((result) => {
     if (result.isConfirmed) {
+      existing.splice(existing.indexOf(id), 1);
       table.row(element.closest("tr")).remove().draw();
       displayToast(result.value);
     }
