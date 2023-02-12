@@ -314,87 +314,112 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       Toast.fire({ icon: "warning", title: "Please select room first" });
       return info.revert();
     }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Assigned faculty will be remove, You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm",
+      preConfirm: () => {
+        const id = info.event.extendedProps.scheduleID;
+        const end = moment(info.event.endStr);
+        const start = moment(info.event.startStr);
+        const course = info.event.extendedProps.course;
+        const durationHours = moment.duration(end.diff(start)).asHours();
+        const type = info.event.extendedProps.courseType;
+        const maxHours =
+          type === "lecture"
+            ? currentCourseHourCount[course].maxLecture
+            : currentCourseHourCount[course].maxLab;
+        const currentHour =
+          type === "lecture"
+            ? Math.abs(
+                currentCourseHourCount[course].currentLecture -
+                  info.event.extendedProps.hourDuration +
+                  durationHours
+              )
+            : Math.abs(
+                currentCourseHourCount[course].currentLab -
+                  info.event.extendedProps.hourDuration +
+                  durationHours
+              );
 
-    const id = info.event.extendedProps.scheduleID;
-    const end = moment(info.event.endStr);
-    const start = moment(info.event.startStr);
-    const course = info.event.extendedProps.course;
-    const durationHours = moment.duration(end.diff(start)).asHours();
-    const type = info.event.extendedProps.courseType;
-    const maxHours =
-      type === "lecture"
-        ? currentCourseHourCount[course].maxLecture
-        : currentCourseHourCount[course].maxLab;
-    const currentHour =
-      type === "lecture"
-        ? Math.abs(
-            currentCourseHourCount[course].currentLecture -
-              info.event.extendedProps.hourDuration +
-              durationHours
-          )
-        : Math.abs(
-            currentCourseHourCount[course].currentLab -
-              info.event.extendedProps.hourDuration +
-              durationHours
-          );
-
-    const startMinutes =
-      info.event.start.getMinutes() == 0
-        ? "00"
-        : info.event.start.getMinutes().toString();
-    const endMinutes =
-      info.event.end.getMinutes() == 0
-        ? "00"
-        : info.event.end.getMinutes().toString();
-    console.log(currentHour + "---------" + maxHours);
-    if (currentHour > maxHours) {
-      Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
-      return info.revert();
-    }
-    fetch(`/api/schedules/adjust/${semester}/${id}`, {
-      method: "PUT",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        startTime:
-          ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-        endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-        room: $("#roomForm").val(),
-        hour: moment.duration(end.diff(start)).asHours(),
-      }),
+        const startMinutes =
+          info.event.start.getMinutes() == 0
+            ? "00"
+            : info.event.start.getMinutes().toString();
+        const endMinutes =
+          info.event.end.getMinutes() == 0
+            ? "00"
+            : info.event.end.getMinutes().toString();
+        console.log(currentHour + "---------" + maxHours);
+        if (currentHour > maxHours) {
+          Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
+          return info.revert();
+        }
+        return fetch(`/api/schedules/adjust/${semester}/${id}`, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startTime:
+              ("0" + info.event.start.getHours()).slice(-2) +
+              ":" +
+              startMinutes,
+            endTime:
+              ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+            room: $("#roomForm").val(),
+            hour: moment.duration(end.diff(start)).asHours(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (type === "lecture") {
+              currentCourseHourCount[course].currentLecture = currentHour;
+            } else {
+              currentCourseHourCount[course].currentLab = currentHour;
+            }
+            info.event.setExtendedProp("hourDuration", durationHours);
+            if (maxHours - currentHour === 0) {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .removeClass(`${type}-event bg-primary text-light`)
+                .addClass("bg-warning text-dark")
+                .css("cursor", "");
+            } else {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .addClass(`${type}-event bg-primary text-light`)
+                .removeClass("bg-success bg-warning text-dark")
+                .css("cursor", "move");
+            }
+            $("#external-events")
+              .find(`[course='${course}'][courseType='${type}']`)
+              .attr(
+                "hour",
+                `${Math.trunc(maxHours - currentHour)}:${
+                  (maxHours - currentHour) % 1 === 0 ? "00" : "30"
+                }`
+              );
+            Toast.fire({
+              title: "Successfully Edited",
+              icon: "success",
+            });
+          });
+      },
     })
-      .then((response) => {
-        return response.json();
-      })
       .then((result) => {
-        if (type === "lecture") {
-          currentCourseHourCount[course].currentLecture = currentHour;
+        if (result.isConfirmed) {
+          Toast.fire({
+            icon: "success",
+            title: "Successfully Adjusted",
+          });
         } else {
-          currentCourseHourCount[course].currentLab = currentHour;
+          info.revert();
         }
-        info.event.setExtendedProp("hourDuration", durationHours);
-        if (maxHours - currentHour === 0) {
-          $("#external-events")
-            .find(`[course='${course}'][courseType='${type}']`)
-            .removeClass(`${type}-event bg-primary text-light`)
-            .css("cursor", "");
-        } else {
-          $("#external-events")
-            .find(`[course='${course}'][courseType='${type}']`)
-            .addClass(`${type}-event bg-primary text-light`)
-            .css("cursor", "move");
-        }
-        $("#external-events")
-          .find(`[course='${course}'][courseType='${type}']`)
-          .attr(
-            "hour",
-            `${Math.trunc(maxHours - currentHour)}:${
-              (maxHours - currentHour) % 1 === 0 ? "00" : "30"
-            }`
-          );
-        Toast.fire({
-          title: "Successfully Edited",
-          icon: "success",
-        });
       })
       .catch((error) => {
         info.revert();

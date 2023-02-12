@@ -159,7 +159,6 @@ exports.getAllLoadableSchedules = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -216,7 +215,6 @@ exports.getAllAssignableSchedules = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result);
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
@@ -294,14 +292,8 @@ exports.getAssignableCourse = (req, res, next) => {
     })
     .then((result) => {
       let filteredResult;
-      console.log(result);
       academicQualification.forEach((element) => {
         filteredResult = result.filter((course) => {
-          console.log(
-            `${courseTaken.map((e) =>
-              e._id.toString()
-            )} --- ${course._id.toString()}`
-          );
           if (course.course.examination) {
             if (
               (course.course.qualification.degree <= element.degree ||
@@ -649,7 +641,6 @@ exports.getRoomSchedule = (req, res, next) => {
     { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      console.log(result);
       res.json({ status: 200, data: result });
     })
     .catch((error) => {
@@ -997,7 +988,6 @@ exports.getFacultyScheduleUnitHour = (req, res, next) => {
     // },
   ])
     .then((result) => {
-      console.log("test", result);
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1130,7 +1120,6 @@ exports.getSectionSchedule = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result)
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1345,7 +1334,6 @@ exports.getGroupedFacultySchedule = (req, res, next) => {
     },
   ])
     .then((result) => {
-      console.log(result[0].data);
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1554,9 +1542,7 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      result.forEach((element) => {
-        console.log(element);
-      });
+      result.forEach((element) => {});
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1668,7 +1654,6 @@ exports.assignSchedule = (req, res, next) => {
     { arrayFilters: [{ "section._id": req.params.section }], upsert: true }
   )
     .then((result) => {
-      console.log({ ...result, id: id });
       if (!result.modifiedCount) {
         return res.json({ status: 500 });
       }
@@ -1701,7 +1686,6 @@ exports.reAssignSchedule = (req, res, next) => {
     { arrayFilters: [{ "schedule._id": req.params.schedule }] }
   )
     .then((result) => {
-      console.log(result);
       res.json({ status: 201, data: result });
     })
     .catch((error) => {
@@ -1742,26 +1726,70 @@ exports.loadSchedule = (req, res, next) => {
 };
 
 exports.adjustSchedule = (req, res, next) => {
-  Curriculum.updateOne(
+  let course;
+  Curriculum.aggregate([
     {
-      "semesters._id": req.params.semester,
-    },
-    {
-      $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime":
-          req.body.startTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
-          req.body.endTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
-          req.body.room,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour":
-          req.body.hour,
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
-    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
-  )
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters.programs.year.sections.schedules._id":
+          mongoose.Types.ObjectId(req.params.schedule),
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $project: {
+        course: "$semesters.programs.year.sections.schedules.course",
+      },
+    },
+  ])
     .then((result) => {
-      console.log(result);
+      course = result[0].course;
+      return Curriculum.updateOne(
+        {
+          "semesters._id": req.params.semester,
+        },
+        {
+          $set: {
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime":
+              req.body.startTime,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
+              req.body.endTime,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
+              req.body.room,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour":
+              req.body.hour,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[course].faculty":
+              null,
+          },
+        },
+        {
+          arrayFilters: [
+            { "schedule._id": req.params.schedule },
+            { "course.course": course },
+          ],
+        }
+      );
+    })
+    .then((result) => {
       res.status(202).json({ status: 202, data: result });
     })
     .catch((error) => {
@@ -1799,19 +1827,86 @@ exports.unassignSchedule = (req, res, next) => {
 };
 
 exports.deleteSchedule = (req, res, next) => {
-  Curriculum.updateOne(
+  let course;
+  Curriculum.aggregate([
     {
-      "semesters._id": req.params.semester,
-    },
-    {
-      $pull: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules": {
-          _id: req.params.schedule,
-        },
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
-    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
-  )
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters.programs.year.sections.schedules._id":
+          mongoose.Types.ObjectId(req.params.schedule),
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $project: {
+        course: "$semesters.programs.year.sections.schedules.course",
+      },
+    },
+  ])
+    .then((result) => {
+      course = result[0].course;
+      console.log("hello");
+      return Curriculum.updateOne(
+        {
+          "semesters._id": req.params.semester,
+        },
+        {
+          $pull: {
+            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules":
+              {
+                _id: req.params.schedule,
+              },
+          },
+        },
+        {
+          arrayFilters: [
+            { "schedule._id": req.params.schedule },
+            { "semester._id": req.params.semester },
+            { "course.course": course },
+          ],
+        }
+      );
+    })
+    .then((result) => {
+      console.log("test");
+      return Curriculum.updateOne(
+        {
+          "semesters._id": req.params.semester,
+        },
+        {
+          $set: {
+            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[course].faculty":
+              null,
+          },
+        },
+        {
+          arrayFilters: [
+            { "schedule._id": req.params.schedule },
+            { "semester._id": req.params.semester },
+            { "course.course": course },
+          ],
+        }
+      );
+    })
     .then((result) => {
       console.log(result);
       if (!result.modifiedCount) {
