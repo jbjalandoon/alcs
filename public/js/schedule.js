@@ -60,7 +60,6 @@ const calendarEl = document.getElementById("calendar");
 
 const csrf = $("#csrf").val();
 
-
 const calendar = new FullCalendar.Calendar(calendarEl, {
   allDaySlot: false,
   height: "auto",
@@ -134,6 +133,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
           .removeClass(
             `${info.event.extendedProps.courseType}-event bg-primary text-light`
           )
+          .addClass("bg-warning text-dark")
           .css("cursor", "")
           .attr("hour", "0:00");
         info.event.setExtendedProp("scheduleID", result.id);
@@ -145,6 +145,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       });
   },
   eventDrop: function (info) {
+    console.log(info.event.end.getHours());
     const id = info.event.extendedProps.scheduleID;
     if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
@@ -160,6 +161,13 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         Toast.fire({ icon: "warning", title: "Please select Laboratory Room" });
         return info.revert();
       }
+    }
+    if (info.event.start.getHours() <= 6 || info.event.end.getHours() >= 22) {
+      Toast.fire({
+        title: "Time Exceeds",
+        icon: "warning",
+      });
+      return info.revert();
     }
     const startMinutes =
       info.event.start.getMinutes() == 0
@@ -471,7 +479,7 @@ scheduleSectionForm.on("change", () => {
           const card = $("<div></div>");
           card.addClass("card mb-1");
           const item = $("<li></li>");
-          item.addClass("list-group-item fc-event");
+          item.addClass("list-group-item bg-success text-light fc-event");
           item.attr({
             course: element.course.courseCode,
             program: "BSIT",
@@ -569,7 +577,8 @@ scheduleSectionForm.on("change", () => {
               .find(
                 `[course='${element.course.courseCode}'][coursetype='${schedule.type}']`
               )
-              .removeClass(`${schedule.type}-event bg-primary text-light`)
+              .removeClass(`${schedule.type}-event bg-success text-light`)
+              .addClass(`bg-warning text-dark`)
               .css("curses", "");
           }
           $("#external-events")
@@ -586,8 +595,6 @@ scheduleSectionForm.on("change", () => {
     });
   $("#scheduleContent").removeClass("d-none");
 });
-
-
 
 fetch("/api/rooms")
   .then((response) => {
@@ -658,7 +665,7 @@ $("#roomForm").on("change", () => {
         draggable.destroy();
       }
       let Draggable = FullCalendar.Draggable;
-      $(".fc-event").removeClass("bg-primary text-light");
+      $(".fc-event").removeClass("bg-primary bg-success text-light");
       $(".fc-event").css("cursor", "default");
       if (isLaboratorySelect) {
         selector = ".lab-event";

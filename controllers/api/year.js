@@ -45,9 +45,11 @@ exports.post = (req, res, next) => {
       }).save();
     })
     .then((result) => {
+      console.log(result);
       res.json({ status: 201, data: year });
     })
     .catch((error) => {
+      console.log(error);
       res.json({ status: 500, data: error });
     });
 };

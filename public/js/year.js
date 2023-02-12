@@ -56,6 +56,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
         return response.json();
       })
       .then((result) => {
+        console.log(result);
         if (result.errors) {
           displayValidationError(result.errors, event.currentTarget);
           return displayToast(result);
@@ -63,6 +64,9 @@ $(addModal._element).on("show.bs.modal", (event) => {
         addModal.hide();
         tableData(table.row.add, result.data);
         displayToast(result);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   });
 });
