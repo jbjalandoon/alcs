@@ -229,6 +229,7 @@ fetch("/api/curriculums/active")
     faculty.select2({
       width: "100%",
     });
+    faculty.trigger("change");
     $(document).on("select2:open", () => {
       document.querySelector(".select2-search__field").focus();
     });
@@ -388,8 +389,8 @@ faculty.on("change", () => {
       $("#courses").removeClass("d-none");
       courseSearch.select2({
         width: "100%",
-        placeholder: "Select Course",
       });
+      courseSearch.trigger("change");
     })
     .catch((error) => {
       console.log(error);
@@ -404,7 +405,6 @@ courseSearch.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
       $("#courseList").empty();
       result.data.forEach((element) => {
         const currentTimeRange = [];
@@ -519,6 +519,8 @@ courseSearch.on("change", () => {
           $(document.createElement("button"))
             .addClass("btn btn-link btn-sm shadow-none add-button btn-assign")
             .on("click", assignFaculty)
+            .on("mouseenter", previewSchedule)
+            .on("mouseleave", unPreviewSchedule)
             .append(
               $(document.createElement("span"))
                 .addClass("badge rounded-pill " + buttonBg)
@@ -537,10 +539,10 @@ courseSearch.on("change", () => {
     });
 });
 
-const assignFaculty = (element) => {
+const assignFaculty = (eventArgs) => {
   const schedules = [];
   let units = 0;
-  const currentButton = $(element.currentTarget);
+  const currentButton = $(eventArgs.currentTarget);
   const event = calendar.getEvents();
   let isUndesiredSchedule = false;
   const conflictSchedules = [];
@@ -603,7 +605,6 @@ const assignFaculty = (element) => {
         const orderedList = $("<ol></ol>");
         orderedList.addClass("list-group list-group-numbered");
         conflictSchedules.forEach((element) => {
-          console.log(element);
           const startTime = moment(
             new Date(
               0,
@@ -750,4 +751,39 @@ const assignFaculty = (element) => {
       console.log(error);
       Toast.fire({ icon: "error", title: "Something went wrong" });
     });
+};
+
+const previewSchedule = (event) => {
+  const courseList = $(event.currentTarget).parent().find("ul").children();
+  courseList.each(function (i, obj) {
+    const button = $(obj);
+    calendar.addEvent({
+      id: button.attr("id"),
+      hourDuration: button.attr("hourDuration"),
+      daysOfWeek: [button.attr("daysOfWeek")],
+      startTime: button.attr("startTime"),
+      endTime: button.attr("endTime"),
+      type: button.attr("type"),
+      overlap: false,
+      preview: true,
+      color: '#FFC107',
+      durationEditable: false,
+      startEditable: false,
+      course: button.attr("course"),
+      program: button.attr("program"),
+      section: button.attr("section"),
+      room: button.attr("room"),
+      level: button.attr("level"),
+    });
+    // hoursCount += parseInt(button.attr("hourDuration"));
+    // units = parseInt(button.attr("units"));
+  });
+};
+
+const unPreviewSchedule = (event) => {
+  calendar.getEvents().forEach((element) => {
+    if (element.extendedProps.preview) {
+      element.remove();
+    }
+  });
 };
