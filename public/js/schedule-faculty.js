@@ -421,8 +421,8 @@ courseSearch.on("change", () => {
                 .addClass("col-12 fw-bold")
                 .html(
                   `${element.schedules[0].course.courseCode.toUpperCase()} ${element.schedules[0].program.programCode.toUpperCase()} ${
-                    element.schedules[0].sectionName
-                  }-${element.schedules[0].level.display}`
+                    element.schedules[0].level.display
+                  }-${element.schedules[0].sectionName}`
                 )
             )
         );
