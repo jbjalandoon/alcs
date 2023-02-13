@@ -315,7 +315,6 @@ faculty.on("change", () => {
       unitsCount = 0;
       hoursCount = 0;
       calendar.getEvents().forEach((element) => {
-        console.log(element);
         element.remove();
       });
       result.data.userInformation.schedulePreference.forEach((element) => {
@@ -378,7 +377,7 @@ faculty.on("change", () => {
       return response.json();
     })
     .then((result) => {
-      courseSearch.find("option").not(":first").remove();
+      courseSearch.find("option").remove();
       result.data.forEach((element) => {
         courseSearch.append(
           new Option(
@@ -392,7 +391,9 @@ faculty.on("change", () => {
       courseSearch.select2({
         width: "100%",
       });
-      courseSearch.trigger("change");
+      if(courseSearch.has('option').length !== 0) {
+        courseSearch.trigger("change");
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -574,26 +575,28 @@ const assignFaculty = (eventArgs) => {
     });
   });
   event.forEach((element) => {
-    const eventDay = element.start.getDay();
-    const eventRange = moment.range(
-      new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()),
-      new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
-    );
-    let bool1, bool2;
-    bool1 =
-      currentTimeRange[0].range.overlaps(eventRange) &&
-      currentTimeRange[0].day === eventDay;
-    if (currentTimeRange[1]) {
-      bool2 =
-        currentTimeRange[1].range.overlaps(eventRange) &&
-        currentTimeRange[1].day === eventDay;
-    }
-
-    if (bool1 || bool2) {
-      if (element.display === "background") {
-        isUndesiredSchedule = true;
-      } else {
-        conflictSchedules.push(element);
+    if(!element.extendedProps.preview) {
+      const eventDay = element.start.getDay();
+      const eventRange = moment.range(
+        new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()),
+        new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
+      );
+      let bool1, bool2;
+      bool1 =
+        currentTimeRange[0].range.overlaps(eventRange) &&
+        currentTimeRange[0].day === eventDay;
+      if (currentTimeRange[1]) {
+        bool2 =
+          currentTimeRange[1].range.overlaps(eventRange) &&
+          currentTimeRange[1].day === eventDay;
+      }
+  
+      if (bool1 || bool2) {
+        if (element.display === "background") {
+          isUndesiredSchedule = true;
+        } else {
+          conflictSchedules.push(element);
+        }
       }
     }
   });
