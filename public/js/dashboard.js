@@ -118,6 +118,7 @@ fetch("/api/curriculums/active")
             return response.json();
           })
           .then((result) => {
+            let facultyCode;
             downloadCurrentFaculty.off("click");
             downloadAllFaculty.off("click");
             facultyCalendar.getEvents().forEach((element) => {
@@ -145,11 +146,12 @@ fetch("/api/curriculums/active")
                 room: element.room.roomName,
                 level: element.level.display,
               });
+              facultyCode = element.faculty.userInformation.facultyCode;
             });
             facultyCalendar.render();
             downloadCurrentFaculty.on("click", () => {
               downloadSpreadsheet(
-                facultyView.val() + ".xlsx",
+                facultyCode.toUpperCase() + "-SCHEDULES" + ".xlsx",
                 [result.data],
                 "faculty"
               );
@@ -161,7 +163,7 @@ fetch("/api/curriculums/active")
                 })
                 .then((result) => {
                   downloadSpreadsheet(
-                    "faculty.xlsx",
+                    "FACULTY-SCHEDULES.xlsx",
                     result.data.map((e) => e.data),
                     "faculty"
                   );
@@ -231,7 +233,9 @@ fetch("/api/curriculums/active")
             });
             downloadCurrentRoom.on("click", () => {
               downloadSpreadsheet(
-                roomView.find("option").filter(":selected").text() + ".xlsx",
+                roomView.find("option").filter(":selected").text() +
+                  "-SCHEDULES" +
+                  ".xlsx",
                 [result.data],
                 "room"
               );
@@ -243,7 +247,7 @@ fetch("/api/curriculums/active")
                 })
                 .then((result) => {
                   downloadSpreadsheet(
-                    "room.xlsx",
+                    "ROOMS-SCHEDULES.xlsx",
                     result.data.map((e) => e.data),
                     "room"
                   );
@@ -273,7 +277,7 @@ fetch("/api/curriculums/active")
     // Sections
     result.data.forEach((element) => {
       programView.append(
-        new Option(element.program.programName.toUpperCase(), element._id)
+        new Option(element.program.programCode.toUpperCase(), element._id)
       );
     });
     if (result.data.length !== 0) {
@@ -370,22 +374,33 @@ fetch("/api/curriculums/active")
                             });
                           });
                           downloadSpreadsheet(
-                            sectionView
+                            `${programView
                               .find("option")
                               .filter(":selected")
-                              .text() + ".xlsx",
+                              .text()} ${yearView
+                              .find("option")
+                              .filter(":selected")
+                              .text()}-${sectionView
+                              .find("option")
+                              .filter(":selected")
+                              .text()}.xlsx`,
                             [data],
                             "section"
                           );
                         });
                         downloadAllSection.on("click", () => {
-                          fetch(`/api/schedules/section/${sem}/${programView.val()}`)
+                          fetch(
+                            `/api/schedules/section/${sem}/${programView.val()}`
+                          )
                             .then((response) => {
                               return response.json();
                             })
                             .then((result) => {
                               downloadSpreadsheet(
-                                "section.xlsx",
+                                `${programView
+                                  .find("option")
+                                  .filter(":selected")
+                                  .text()}-SCHEDULES.xlsx`,
                                 result.data.map((e) => e.data),
                                 "section"
                               );
@@ -411,23 +426,21 @@ fetch("/api/curriculums/active")
     }
     programView.trigger("change");
     sectionCalendar.render();
-    // return fetch("/api/schedules/loadable-schedules/" + sem);
+    return fetch("/api/schedules/loadable-schedules/" + sem);
   })
-  // .then((response) => {
-  //   return response.json();
-  // })
-  // .then((result) => {
-  //   scheduleWithoutFaculty = result.data.length;
-  //   $("#scheduleWithoutFaculty").html(scheduleWithoutFaculty);
-  //   return fetch("/api/schedules/assignable-schedules/" + sem);
-  // })
-  // .then((response) => {
-  //   return response.json();
-  // })
-  // .then((result) => {
-  //   scheduleWithoutTimeslot = result.data.length;
-  //   $("#scheduleWithoutTimeslot").html(scheduleWithoutTimeslot);
-  // })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    $("#unloadedSchedules").html(result.data.length);
+    return fetch("/api/schedules/assignable-schedules/" + sem);
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((result) => {
+    $("#unassignedSchedule").html(result.data);
+  })
   .catch((error) => {
     // Toast.fire({ icon: "error", title: "Something went wrong" });
     console.log(error);

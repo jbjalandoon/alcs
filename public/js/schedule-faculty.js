@@ -371,7 +371,7 @@ faculty.on("change", () => {
       $("#calendar").removeClass("d-none");
       calendar.render();
 
-      return fetch(`/api/schedules/assignable-course/${sem}/${faculty.val()}`);
+      return fetch(`/api/schedules/loadable-course/${sem}/${faculty.val()}`);
     })
     .then((response) => {
       return response.json();

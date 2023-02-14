@@ -172,7 +172,7 @@ router.get(
   schedule.getAllLoadableSchedules
 );
 router.get(
-  "/schedules/assignable-schedules/:sem",
+  "/schedules/assignable-schedules/:semester",
   schedule.getAllAssignableSchedules
 );
 
@@ -208,9 +208,14 @@ router.get(
   schedule.getGroupedScheduleFaculty
 );
 router.get(
-  "/schedules/assignable-course/:sem/:faculty",
-  schedule.getAssignableCourse
-);
+  "/schedules/loadable-schedules/:sem/:faculty",
+  schedule.getFacultyLoadableSchedules
+); // Routes for getting loadable scheduels for faculty
+router.get(
+  "/schedules/loadable-schedules/:sem",
+  schedule.getAllLoadableSchedules
+); // Routes for getting all of the loadable schedules
+
 router.get("/schedules/faculties/:semester", schedule.getFacultiesSchedule);
 router.get(
   "/schedules/unassigned-schedule/:semester",
