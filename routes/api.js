@@ -200,8 +200,7 @@ router.get(
 );
 router.get("/schedules/section/:section/", schedule.getSectionSchedule);
 
-// router.get("/schedules/section/:semester/", schedule.getGroupedSectionSchedule);
-
+router.get("/schedules/section/:semester/:program", schedule.getGroupedSectionSchedule);
 router.get("/schedules/faculty/:semester/", schedule.getGroupedFacultySchedule);
 router.get("/schedules/room/:semester/", schedule.getGroupedRoomSchedule);
 router.get(

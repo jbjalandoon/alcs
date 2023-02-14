@@ -669,22 +669,25 @@ exports.getRoomsSchedule = (req, res, next) => {
     {
       $match: {
         "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
     {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        section_name: "$semesters.programs.year.sections.section",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
+        group: "$semesters.programs.year.sections.schedules.room",
       },
     },
     {
@@ -732,7 +735,7 @@ exports.getRoomsSchedule = (req, res, next) => {
     { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      console.log(result);
     })
     .then((error) => {
       console.log(error);
@@ -764,20 +767,19 @@ exports.getFinishedRoomSchedule = (req, res, next) => {
           mongoose.Types.ObjectId(req.params.room),
       },
     },
-
     {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        level: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        level: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
       },
@@ -1151,23 +1153,23 @@ exports.getGroupedSectionSchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
       },
     },
     {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        yearLevel: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
         group: "$semesters.programs.year.sections._id",
@@ -1227,6 +1229,7 @@ exports.getGroupedSectionSchedule = (req, res, next) => {
     },
   ])
     .then((result) => {
+      console.log(result);
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1365,7 +1368,6 @@ exports.getGroupedRoomSchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1373,15 +1375,15 @@ exports.getGroupedRoomSchedule = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        yearLevel: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
         group: "$semesters.programs.year.sections.schedules.room",
