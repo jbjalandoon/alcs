@@ -531,6 +531,7 @@ scheduleSectionForm.on("change", () => {
             );
             item.attr("courseType", "lecture");
             item.attr("color", "#007BFF");
+            item.attr("textColor", "white");
             item.attr("hour", element.course.lecture);
             item.addClass("lecture-event");
             lectureList.append(card);
@@ -550,7 +551,8 @@ scheduleSectionForm.on("change", () => {
                 " HOURS"
             );
             item.attr("courseType", "lab");
-            item.attr("color", "#FFC107");
+            item.attr("color", "#5AA2E8");
+            item.attr("textColor", "black");
             item.attr("hour", element.course.lab);
             item.addClass("lab-event");
             labList.append(card);
@@ -729,6 +731,7 @@ $("#roomForm").on("change", () => {
             overlap: false,
             course: info.getAttribute("course"),
             color: info.getAttribute("color"),
+            textColor: info.getAttribute("textColor"),
             courseId: info.getAttribute("course-id"),
             program: info.getAttribute("program"),
             section: info.getAttribute("section"),
