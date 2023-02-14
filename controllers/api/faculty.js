@@ -111,7 +111,7 @@ exports.post = (req, res, next) => {
       return Faculty.populate(result, { path: "userInformation.facultyType" });
     })
     .then((result) => {
-      let emailDetails = {
+      const emailDetails = {
         from: "sticaschedula@gmail.com",
         to: req.body.email,
         subject: "No Reply - Password Generated",

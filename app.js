@@ -4,9 +4,11 @@ const session = require("express-session");
 const mongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 const path = require("path");
 const bcrypt = require("bcrypt");
+const Crypto = require("crypto");
 const app = express();
 const multer = require("multer");
 
@@ -24,6 +26,14 @@ const authenticationRoutes = require("./routes/authentication");
 const store = new mongoDBStore({
   uri: db_uri,
   collection: "session",
+});
+
+const mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "sticaschedula@gmail.com",
+    pass: "fglzoantcdlqjoyr",
+  },
 });
 
 // const fileStorage = multer.diskStorage({
@@ -112,29 +122,36 @@ app.use(
 app.use("/api", apiRoutes);
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);
+let randomString;
 mongoose
   .connect(db_uri)
   .then((result) => {
     return User.findOne({
-      email: "jerome.jalandoon@gmail.com",
+      email: "sticaschedula@gmail.com",
     });
   })
   .then((result) => {
     if (result == null) {
-      return bcrypt.hash("adminpassword", 12).then((password) => {
-        return User.insertMany([
-          {
-            email: "superadmin",
-            password: password,
-            role: "superadmin",
-          },
-          {
-            email: "jerome.jalandoon@gmail.com",
-            password: password,
-            role: "admin",
-          },
-        ]);
+      randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+      return bcrypt.hash(randomString, 12).then((password) => {
+        return new User({
+          email: "sticaschedula@gmail.com",
+          password: password,
+          role: "superadmin",
+        }).save();
       });
+    }
+    return Promise.resolve();
+  })
+  .then((result) => {
+    if (result) {
+      const emailDetails = {
+        from: "sticaschedula@gmail.com",
+        to: result.email,
+        subject: "No Reply - Password Generated",
+        text: randomString,
+      };
+      return mailTransporter.sendMail(emailDetails);
     }
     return Promise.resolve();
   })
