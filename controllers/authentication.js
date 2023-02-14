@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt");
 const { findOne } = require("../models/user");
 const User = require("../models/user");
+const { validationResult } = require("express-validator");
 
 exports.login = (req, res, next) => {
-  console.log(req.body);
   if (req.method === "GET") {
     return res.render("authentication/login", {
       landing: req.query.landing,
@@ -15,13 +15,16 @@ exports.login = (req, res, next) => {
     email: email,
   })
     .then((user) => {
-      console.log(user);
       if (user == null) {
-        return res.redirect("/authentication/login/?valid=false");
+        return res.redirect(
+          "/authentication/login/?valid=false&email=" + req.body.email
+        );
       }
       return bcrypt.compare(password, user.password).then((result) => {
         if (!result) {
-          return res.redirect("/authentication/login/?valid=false");
+          return res.redirect(
+            "/authentication/login/?valid=false&email=" + req.body.email
+          );
         }
         req.session.user = user;
         return req.session.save((error) => {
@@ -42,6 +45,32 @@ exports.login = (req, res, next) => {
     })
     .catch((error) => {
       throw new Error(error);
+    });
+};
+
+exports.changePassword = (req, res, next) => {
+  errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.mapped() });
+  }
+  bcrypt
+    .hash(req.body.newPassword, 12)
+    .then((result) => {
+      console.log(result);
+      return User.updateOne(
+        { email: req.session.user.email },
+        {
+          password: result,
+        }
+      );
+    })
+    .then((result) => {
+      console.log(result);
+      res.json({ status: 201, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.json({ status: 500, data: error });
     });
 };
 

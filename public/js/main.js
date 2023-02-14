@@ -10,11 +10,13 @@ const Toast = Swal.mixin({
   },
 });
 
-function setAttributes(element, attributes) {
+const changePasswordModal = new bootstrap.Modal($("#changePasswordModal"));
+
+const setAttributes = (element, attributes) => {
   Object.keys(attributes).forEach((attr) => {
     element.setAttribute(attr, attributes[attr]);
   });
-}
+};
 
 $("#logout").on("click", (event) => {
   event.preventDefault();
@@ -70,7 +72,6 @@ const removeValidationError = (elements) => {
 
 const displayValidationError = (errors, currentTarget) => {
   Object.keys(errors).forEach((e) => {
-    console.log(e);
     $(currentTarget)
       .find("#" + e)
       .addClass("is-invalid")
@@ -85,3 +86,46 @@ const actionButton = (id) => {
       <button class="btn text-light btn-sm btn-danger mb-1" onClick="deleteData('${id}', this)">Delete</button>
     `;
 };
+
+$(changePasswordModal._element).on("show.bs.modal", (event) => {
+  const oldPassword = $(event.currentTarget).find("#oldPassword");
+  const newPassword = $(event.currentTarget).find("#newPassword");
+  const retypePassword = $(event.currentTarget).find("#retypePassword");
+  const submit = $(event.currentTarget).find("#submit");
+  removeValidationError([oldPassword, newPassword, retypePassword]);
+  oldPassword.val("");
+  newPassword.val("");
+  retypePassword.val("");
+  submit.on("click", () => {
+    fetch("/authentication/password", {
+      method: "PUT",
+      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        oldPassword: oldPassword.val(),
+        newPassword: newPassword.val(),
+        retypePassword: retypePassword.val(),
+      }),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((result) => {
+        removeValidationError([oldPassword, newPassword, retypePassword]);
+        if (result.errors) {
+          displayValidationError(result.errors, event.currentTarget);
+          return displayToast(result);
+        }
+        changePasswordModal.hide();
+        Toast.fire({
+          icon: "success",
+          title: "Password Successfuly Changed",
+        });
+      })
+      .catch((error) => {
+        Toast.fire({
+          icon: "warning",
+          title: "Something Went Wrong",
+        });
+      });
+  });
+});

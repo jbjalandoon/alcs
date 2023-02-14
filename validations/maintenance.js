@@ -1,7 +1,9 @@
 const { check, param } = require("express-validator");
+const bcrypt = require("bcrypt");
 const Program = require("../models/program");
 const Year = require("../models/year");
 const Faculty = require("../models/user");
+const User = require("../models/user");
 const Level = require("../models/level");
 const Course = require("../models/course");
 const AcademicQualification = require("../models/academic-qualification");
@@ -449,6 +451,32 @@ exports.facultyType = [
     .custom((value) => {
       if (value % 1 !== 0) {
         return Promise.reject("Only whole number is allowed.");
+      }
+      return Promise.resolve();
+    }),
+];
+
+exports.forgotPassword = [
+  check("oldPassword")
+    .notEmpty()
+    .withMessage("Please Enter Old Password")
+    .custom((value, { req }) => {
+      return User.findOne({ email: req.session.user.email })
+        .then((result) => {
+          return bcrypt.compare(value, result.password);
+        })
+        .then((result) => {
+          if (!result) return Promise.reject("Password is incorrect");
+        });
+    }),
+  check("newPassword").notEmpty().withMessage("Please Enter New Password"),
+  check("retypePassword")
+    .notEmpty()
+    .withMessage("Please Enter Retype Password")
+    .custom((value, { req }) => {
+      console.log(`${value} === ${req.body.newPassword}`);
+      if (value !== req.body.newPassword) {
+        return Promise.reject("Password does not match");
       }
       return Promise.resolve();
     }),
