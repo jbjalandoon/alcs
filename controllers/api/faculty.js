@@ -127,7 +127,6 @@ exports.post = (req, res, next) => {
       console.log(error);
       res.json({ status: 500, data: error });
     });
-  return;
 };
 
 exports.put = (req, res, next) => {

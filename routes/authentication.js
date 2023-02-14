@@ -10,7 +10,7 @@ router.post("/login", authentication.login);
 
 router.put(
   "/password",
-  validation.forgotPassword,
+  validation.changePassword,
   authentication.changePassword
 );
 

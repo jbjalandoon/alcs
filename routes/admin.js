@@ -9,7 +9,6 @@ const validation = require("../validations/curriculum");
 
 const router = express.Router();
 
-
 // Dashboard Start
 router.get("/dashboard", dashboard.getDashboard);
 // Dashboard End
@@ -25,6 +24,7 @@ router.get("/rooms", maintenance.getRooms);
 router.get("/levels", maintenance.getLevels);
 router.get("/years", maintenance.getYears);
 router.get("/faculty", maintenance.getFaculties);
+router.get("/users", maintenance.getUsers);
 // Maintenances End
 
 // ------------------------------------------------------------------------------------

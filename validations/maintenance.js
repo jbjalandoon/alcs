@@ -343,7 +343,6 @@ exports.faculty = [
     .withMessage("This field is required.")
     .isEmail()
     .withMessage("Email is not valid.")
-    .normalizeEmail({ gmail_remove_dots: "false " })
     .custom((value, { req }) => {
       let query;
       if (req.method === "POST") {
@@ -456,7 +455,7 @@ exports.facultyType = [
     }),
 ];
 
-exports.forgotPassword = [
+exports.changePassword = [
   check("oldPassword")
     .notEmpty()
     .withMessage("Please Enter Old Password")
@@ -480,4 +479,43 @@ exports.forgotPassword = [
       }
       return Promise.resolve();
     }),
+];
+
+exports.user = [
+  check("email")
+    .notEmpty()
+    .withMessage("This field is required.")
+    .isEmail()
+    .withMessage("Email is not valid.")
+    .custom((value, { req }) => {
+      let query;
+      if (req.method === "POST") {
+        query = {
+          email: value,
+          deleted: false,
+        };
+      } else {
+        query = {
+          email: value,
+          _id: { $ne: req.params.id },
+        };
+      }
+      return User.findOne(query).then((data) => {
+        if (data) {
+          return Promise.reject("Email is already exists.");
+        }
+      });
+    }),
+  check("firstName")
+    .notEmpty()
+    .withMessage("This field is required.")
+    .isAlpha("en-US", { ignore: " -" })
+    .withMessage("Numbers and Special characters are not allowed")
+    .trim(),
+  check("lastName")
+    .notEmpty()
+    .withMessage("This field is required.")
+    .isAlpha("en-US", { ignore: " -" })
+    .withMessage("Numbers and Special characters are not allowed")
+    .trim(),
 ];
