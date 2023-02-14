@@ -3,6 +3,8 @@ const AcademicQualification = require("../../models/academic-qualification");
 const Tag = require("../../models/tag");
 const { validationResult } = require("express-validator");
 const readXlsxFile = require("read-excel-file/node");
+const nodemailer = require("nodemailer");
+const Crypto = require("crypto");
 
 const bcrypt = require("bcrypt");
 const FacultyType = require("../../models/faculty-type");
@@ -20,6 +22,14 @@ exports.get = (req, res, next) => {
       res.json({ status: 500, data: error });
     });
 };
+
+let mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "sticaschedula@gmail.com",
+    pass: "fglzoantcdlqjoyr",
+  },
+});
 
 exports.getOne = (req, res, next) => {
   Faculty.findOne({ role: "user", _id: req.params.id })
@@ -44,9 +54,11 @@ exports.post = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
   }
-  let generatedPassword;
+
+  let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9),
+    generatedPassword;
   bcrypt
-    .hash("password", 12)
+    .hash(randomString, 12)
     .then((password) => {
       generatedPassword = password;
       return Faculty.findOne({
@@ -96,6 +108,15 @@ exports.post = (req, res, next) => {
     })
     .then((result) => {
       return Faculty.populate(result, { path: "userInformation.facultyType" });
+    })
+    .then((result) => {
+      let emailDetails = {
+        from: "sticaschedula@gmail.com",
+        to: req.body.email,
+        subject: "No Reply - Password Generated",
+        text: randomString,
+      };
+      return mailTransporter.sendMail(emailDetails);
     })
     .then((result) => {
       console.log(result);
