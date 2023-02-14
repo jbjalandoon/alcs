@@ -467,7 +467,6 @@ $(addCourseModal._element).on("show.bs.modal", (event) => {
             return response.json();
           })
           .then((result) => {
-            console.log(result.data);
             addCourseModal.hide();
             dataTable(
               table.row($(event.relatedTarget).closest("tr")).data,

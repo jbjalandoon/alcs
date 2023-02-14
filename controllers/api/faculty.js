@@ -66,6 +66,7 @@ exports.post = (req, res, next) => {
       });
     })
     .then((result) => {
+      console.log(req.body.email);
       if (result) {
         result.email = req.body.email;
         result.password = generatedPassword;

@@ -341,7 +341,7 @@ exports.faculty = [
     .withMessage("This field is required.")
     .isEmail()
     .withMessage("Email is not valid.")
-    .normalizeEmail()
+    .normalizeEmail({ gmail_remove_dots: "false " })
     .custom((value, { req }) => {
       let query;
       if (req.method === "POST") {
