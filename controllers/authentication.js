@@ -2,6 +2,16 @@ const bcrypt = require("bcrypt");
 const { findOne } = require("../models/user");
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+
+let mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "sticaschedula@gmail.com",
+    pass: "fglzoantcdlqjoyr",
+  },
+});
 
 exports.login = (req, res, next) => {
   if (req.method === "GET") {
@@ -71,6 +81,79 @@ exports.changePassword = (req, res, next) => {
     .catch((error) => {
       console.log(error);
       res.json({ status: 500, data: error });
+    });
+};
+
+exports.forgotPassword = (req, res, next) => {
+  let token;
+  crypto.randomBytes(32, (err, buffer) => {
+    token = buffer.toString("hex");
+    return User.findOne({ email: req.body.email })
+      .then((result) => {
+        if (result == null) {
+          return Promise.reject();
+        }
+        result.resetToken = token;
+        result.resetTokenExpiration = Date.now() + 3600000;
+        return result.save();
+      })
+      .then((result) => {
+        const emailDetails = {
+          from: "sticaschedula@gmail.com",
+          to: req.body.email,
+          subject: "No Reply - Forgot Password",
+          html: `<a href="http://localhost:3000/authentication/reset/${token}">Link</a>`,
+        };
+        return mailTransporter.sendMail(emailDetails);
+      })
+      .then((result) => {
+        return res.redirect("/authentication/login?forgot=true");
+      })
+      .catch((error) => {
+        console.log(error);
+        return res.redirect("/authentication/login?forgot=false");
+      });
+  });
+};
+
+exports.reset = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() },
+  })
+    .then((result) => {
+      if (result) {
+        return res.render("authentication/reset", {
+          userId: result._id.toString(),
+        });
+      }
+      return res.redirect("/authentication/login");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+exports.postReset = (req, res, next) => {
+  bcrypt
+    .hash(req.body.newPassword, 12)
+    .then((password) => {
+      return User.updateOne(
+        { _id: req.body.id },
+        {
+          password: password,
+          resetToken: null,
+          resetTokenExpiration: null,
+        }
+      );
+    })
+    .then((result) => {
+      console.log(result);
+      res.redirect("/authentication/login?reset=true");
+    })
+    .catch((error) => {
+      res.redirect("/authentication/login?reset=false");
     });
 };
 

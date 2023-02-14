@@ -41,11 +41,11 @@ const UserSChema = new Schema({
           type: Number,
         },
         startTime: {
-          type: String
+          type: String,
         },
         endTime: {
-          type: String
-        }
+          type: String,
+        },
       },
     ],
     academicQualifications: [
@@ -80,6 +80,12 @@ const UserSChema = new Schema({
   deleted: {
     type: Boolean,
     default: false,
+  },
+  resetToken: {
+    type: String,
+  },
+  resetTokenExpiration: {
+    type: Date,
   },
 });
 
