@@ -235,7 +235,7 @@ exports.delete = (req, res, next) => {
 
 exports.postSpreadsheet = (req, res, next) => {
   const degreeEquivalent = ["associates", "bachelors", "masters", "doctoral"];
-
+  const randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
   let tags = [],
     fetchedTag,
     academicQualifications = [],
@@ -415,7 +415,7 @@ exports.postSpreadsheet = (req, res, next) => {
           academicQualification: element.academicQualification,
         };
       });
-      return bcrypt.hash("password", 12);
+      return bcrypt.hash(randomString, 12);
     })
     .then((password) => {
       return Faculty.bulkWrite(
@@ -442,6 +442,16 @@ exports.postSpreadsheet = (req, res, next) => {
       );
     })
     .then((result) => {
+      const emailDetails = {
+        from: "sticaschedula@gmail.com",
+        to: data.map((e) => e.email),
+        subject: "No Reply - Password Generated",
+        text: randomString,
+      };
+      return mailTransporter.sendMail(emailDetails);
+    })
+    .then((result) => {
+      console.log(result);
       return Faculty.find({ deleted: false, role: "user" })
         .populate(
           "userInformation.academicQualifications.academicQualification"
