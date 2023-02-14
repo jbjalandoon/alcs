@@ -494,6 +494,12 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
       "spreadsheet",
       $(event.currentTarget).find("#spreadsheet")[0].files[0]
     );
+    Swal.fire({
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false,
+    });
     fetch("/api/faculty/upload", {
       method: "POST",
       headers: { "csrf-token": csrf },
