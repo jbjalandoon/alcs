@@ -93,6 +93,7 @@ router.delete(
   "/faculty/schedule-preference/:id/:preference",
   faculty.deleteSchedulePreference
 );
+router.post("/faculty/send-password/:id/", faculty.sendNewPassword);
 router.post("/faculty/upload", faculty.postSpreadsheet);
 router.delete("/faculty/:id", faculty.delete);
 

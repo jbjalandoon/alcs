@@ -535,6 +535,35 @@ exports.deleteSchedulePreference = (req, res, next) => {
     });
 };
 
+exports.sendNewPassword = (req, res, next) => {
+  let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+  bcrypt
+    .hash(randomString, 12)
+    .then((password) => {
+      return Faculty.findOneAndUpdate(
+        { _id: req.params.id },
+        { password: password }
+      );
+    })
+    .then((result) => {
+      const emailDetails = {
+        from: "sticaschedula@gmail.com",
+        to: result.email,
+        subject: "No Reply - Password Generated",
+        text: randomString,
+      };
+      return mailTransporter.sendMail(emailDetails);
+    })
+    .then((result) => {
+      console.log(result);
+      res.json({ status: 200, data: result });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ status: 500, data: error });
+    });
+};
+
 Array.prototype.unique = function () {
   var a = this.concat();
   for (var i = 0; i < a.length; ++i) {

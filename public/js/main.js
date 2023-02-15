@@ -129,3 +129,12 @@ $(changePasswordModal._element).on("show.bs.modal", (event) => {
       });
   });
 });
+
+const loading = () => {
+  Swal.fire({
+    didOpen: () => {
+      Swal.showLoading();
+    },
+    allowOutsideClick: false,
+  });
+};

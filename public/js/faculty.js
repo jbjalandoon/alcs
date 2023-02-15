@@ -55,6 +55,9 @@ const dataTable = (operation, data) => {
       <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
         data._id
       }">Course Taken</button>
+      <button class="btn btn-sm btn-secondary mb-1" onClick="sendPassword('${
+        data._id
+      }')" id="${data._id}">Send Password</button>
       ${actionButton(data._id)}
     `,
   ]).draw();
@@ -298,13 +301,13 @@ $(editModal._element).on("show.bs.modal", (event) => {
       return response.json();
     })
     .then((result) => {
-      console.log(result.data.userInformation.schedulePreference);
+      console.log(result.data.userInformation.facultyType);
       firstName.val(result.data.userInformation.firstName);
       middleName.val(result.data.userInformation.middleName);
       lastName.val(result.data.userInformation.lastName);
       facultyCode.val(result.data.userInformation.facultyCode);
       email.val(result.data.email);
-      facultyType.val(result.data.userInformation.facultyType);
+      facultyType.val(result.data.userInformation.facultyType._id);
       schedulePreference
         .val(result.data.userInformation.schedulePreference)
         .trigger("change");
@@ -494,12 +497,7 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
       "spreadsheet",
       $(event.currentTarget).find("#spreadsheet")[0].files[0]
     );
-    Swal.fire({
-      didOpen: () => {
-        Swal.showLoading();
-      },
-      allowOutsideClick: false,
-    });
+    loading();
     fetch("/api/faculty/upload", {
       method: "POST",
       headers: { "csrf-token": csrf },
@@ -522,6 +520,25 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
       });
   });
 });
+
+const sendPassword = (id) => {
+  loading();
+  fetch(`/api/faculty/send-password/${id}`, {
+    method: "POST",
+    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      console.log(result);
+      displayToast(result);
+    })
+    .catch((error) => {
+      console.log(error);
+      displayToast(error);
+    });
+};
 
 const makeNewAcademicQualification = (card, academicQualificationList) => {
   const container = $("<div></div>");
