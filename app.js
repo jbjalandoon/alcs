@@ -11,7 +11,8 @@ const bcrypt = require("bcrypt");
 const Crypto = require("crypto");
 const app = express();
 const multer = require("multer");
-
+const helmet = require("helmet");
+const compression = require("compression");
 const User = require("./models/user");
 const FacultyType = require("./models/faculty-type");
 const Level = require("./models/level");
@@ -44,7 +45,8 @@ const mailTransporter = nodemailer.createTransport({
 //     cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
 //   },
 // });
-
+// app.use(helmet());
+app.use(compression());
 app.use(multer({ storage: multer.memoryStorage() }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({}));
