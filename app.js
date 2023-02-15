@@ -17,7 +17,7 @@ const FacultyType = require("./models/faculty-type");
 const Level = require("./models/level");
 
 const error = require("./controllers/error");
-const db_uri = "mongodb://localhost:27017/alcs";
+const db_uri = process.env.DB;
 
 const apiRoutes = require("./routes/api");
 const adminRoutes = require("./routes/admin");
@@ -31,8 +31,8 @@ const store = new mongoDBStore({
 const mailTransporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "sticaschedula@gmail.com",
-    pass: "fglzoantcdlqjoyr",
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASSWORD,
   },
 });
 
@@ -237,7 +237,7 @@ mongoose
     ]);
   })
   .then((result) => {
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
   })
   .catch((error) => {
     throw new Error(error);

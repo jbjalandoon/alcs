@@ -229,7 +229,9 @@ fetch("/api/curriculums/active")
     faculty.select2({
       width: "100%",
     });
-    faculty.trigger("change");
+    if (faculty.val() != null) {
+      faculty.trigger("change");
+    }
     $(document).on("select2:open", () => {
       document.querySelector(".select2-search__field").focus();
     });
@@ -391,7 +393,7 @@ faculty.on("change", () => {
       courseSearch.select2({
         width: "100%",
       });
-      if(courseSearch.has('option').length !== 0) {
+      if (courseSearch.has("option").length !== 0) {
         courseSearch.trigger("change");
       }
     })
@@ -575,7 +577,7 @@ const assignFaculty = (eventArgs) => {
     });
   });
   event.forEach((element) => {
-    if(!element.extendedProps.preview) {
+    if (!element.extendedProps.preview) {
       const eventDay = element.start.getDay();
       const eventRange = moment.range(
         new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()),
@@ -590,7 +592,7 @@ const assignFaculty = (eventArgs) => {
           currentTimeRange[1].range.overlaps(eventRange) &&
           currentTimeRange[1].day === eventDay;
       }
-  
+
       if (bool1 || bool2) {
         if (element.display === "background") {
           isUndesiredSchedule = true;
