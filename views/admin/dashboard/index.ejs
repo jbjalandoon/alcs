@@ -3,149 +3,181 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong id="cardTitle">Dashboard</strong>
-        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-          Set Active Semester
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="container">
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">Dashboard</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Set Active Semester
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
           <div class="row">
-            <div class="col-sm-6 col-lg-3">
-              <div class="card mb-4 text-white bg-info">
-                <div class="card-body pb-5 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="activeFaculty">0</span>
-                      <div>Active Faculty</div>
+            <div class="col-6 col-lg-3 col-md-6">
+              <div class="card">
+                <div class="card-body px-4 py-4-5">
+                  <div class="row">
+                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                      <div class="stats-icon purple mb-2">
+                        <i class="iconly-boldShow"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                      <h6 class="text-muted font-semibold">Active Faculty</h6>
+                      <h6 class="font-extrabold mb-0" id="activeFaculty">0</h6>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card mb-4 text-white bg-info">
-                <div class="card-body pb-5 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="activeRoom">0</span>
-                      <div>Active Room</div>
+            <div class="col-6 col-lg-3 col-md-6">
+              <div class="card">
+                <div class="card-body px-4 py-4-5">
+                  <div class="row">
+                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                      <div class="stats-icon blue mb-2">
+                        <i class="iconly-boldProfile"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                      <h6 class="text-muted font-semibold">Active Room</h6>
+                      <h6 class="font-extrabold mb-0" id="activeRoom">0</h6>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card mb-4 text-white bg-info">
-                <div class="card-body pb-5 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="unloadedSchedules">0</span>
-                        <div>Unloaded Schedule</div>
+            <div class="col-6 col-lg-3 col-md-6">
+              <div class="card">
+                <div class="card-body px-4 py-4-5">
+                  <div class="row">
+                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                      <div class="stats-icon green mb-2">
+                        <i class="iconly-boldAdd-User"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                      <h6 class="text-muted font-semibold">Unloaded Sched</h6>
+                      <h6 class="font-extrabold mb-0" id="unloadedSchedules">0</h6>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card mb-4 text-white bg-info">
-                <div class="card-body pb-5 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="unassignedSchedule">0</span>
-                        <div>Unassigned Schedule</div>
+            <div class="col-6 col-lg-3 col-md-6">
+              <div class="card">
+                <div class="card-body px-4 py-4-5">
+                  <div class="row">
+                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                      <div class="stats-icon red mb-2">
+                        <i class="iconly-boldBookmark"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                      <h6 class="text-muted font-semibold">Unassigned Sched</h6>
+                      <h6 class="font-extrabold mb-0" id="unassignedSchedule">0</h6>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-12">
-              <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="faculty-tab" data-bs-toggle="tab" data-bs-target="#faculty-tab-pane" type="button" role="tab" aria-controls="faculty-tab-pane" aria-selected="true">Faculty</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="section-tab" data-bs-toggle="tab" data-bs-target="#section-tab-pane" type="button" role="tab" aria-controls="section-tab-pane" aria-selected="false">
-                    Room
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="room-tab" data-bs-toggle="tab" data-bs-target="#room-tab-pane" type="button" role="tab" aria-controls="room-tab-pane" aria-selected="false">Section</button>
-                </li>
-              </ul>
+        </div>
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="container">
+                <div class="row">
+                  <div class="col-12">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="faculty-tab" data-bs-toggle="tab" data-bs-target="#faculty-tab-pane" type="button" role="tab" aria-controls="faculty-tab-pane" aria-selected="true">Faculty</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="section-tab" data-bs-toggle="tab" data-bs-target="#section-tab-pane" type="button" role="tab" aria-controls="section-tab-pane" aria-selected="false">
+                          Room
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="room-tab" data-bs-toggle="tab" data-bs-target="#room-tab-pane" type="button" role="tab" aria-controls="room-tab-pane" aria-selected="false">Section</button>
+                      </li>
+                    </ul>
 
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-12">
-              <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="faculty-tab-pane" role="tabpanel" aria-labelledby="faculty-tab" tabindex="0">
-                  <div class="container mt-3">
-                    <div class="row mb-3">
-                      <div class="col-12">
-                        <select name="" class="form-select" id="facultyView">
-                        </select>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <button class="btn btn-primary" id="downloadCurrentFaculty">Download Current</button>
-                        <button class="btn btn-primary" id="downloadAllFaculty">Download All</button>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <div id="facultyCalendar"></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
-                <div class="tab-pane fade" id="section-tab-pane" role="tabpanel" aria-labelledby="section-tab" tabindex="0">
-                  <div class="container mt-3">
-                    <div class="row mb-3">
-                      <div class="col-12">
-                        <select id="roomView"></select>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <button class="btn btn-primary" id="downloadCurrentRoom">Download Current</button>
-                        <button class="btn btn-primary" id="downloadAllRoom">Download All</button>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <div id="roomCalendar">
-
+                <div class="row">
+                  <div class="col-12">
+                    <div class="tab-content" id="myTabContent">
+                      <div class="tab-pane fade show active" id="faculty-tab-pane" role="tabpanel" aria-labelledby="faculty-tab" tabindex="0">
+                        <div class="container mt-3">
+                          <div class="row mb-3">
+                            <div class="col-12">
+                              <select name="" class="form-select" id="facultyView">
+                              </select>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <button class="btn btn-primary" id="downloadCurrentFaculty">Download Current</button>
+                              <button class="btn btn-primary" id="downloadAllFaculty">Download All</button>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <div id="facultyCalendar"></div>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                      <div class="tab-pane fade" id="section-tab-pane" role="tabpanel" aria-labelledby="section-tab" tabindex="0">
+                        <div class="container mt-3">
+                          <div class="row mb-3">
+                            <div class="col-12">
+                              <select id="roomView"></select>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <button class="btn btn-primary" id="downloadCurrentRoom">Download Current</button>
+                              <button class="btn btn-primary" id="downloadAllRoom">Download All</button>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <div id="roomCalendar">
 
-                    </div>
-                  </div>
-                </div>
-                <div class="tab-pane fade" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab" tabindex="0">
-                  <div class="container mt-3">
-                    <div class="row">
-                      <div class="col-md-4 col-sm-12 mb-3 ">
-                        <select name="" class="form-select" id="programView"></select>
-                      </div>
-                      <div class="col-md-4 col-sm-12 mb-3 ">
-                        <select name="" class="form-select" id="yearView"></select>
-                      </div>
-                      <div class="col-md-4 col-sm-12 mb-3 ">
-                        <select name="" class="form-select" id="sectionView"></select>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <button class="btn btn-primary" id="downloadCurrentSection">Download Current</button>
-                        <button class="btn btn-primary" id="downloadAllSection">Download All</button>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <div id="sectionCalendar">
+                              </div>
+                            </div>
 
+                          </div>
+                        </div>
+                      </div>
+                      <div class="tab-pane fade" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab" tabindex="0">
+                        <div class="container mt-3">
+                          <div class="row">
+                            <div class="col-md-4 col-sm-12 mb-3 ">
+                              <select name="" class="form-select" id="programView"></select>
+                            </div>
+                            <div class="col-md-4 col-sm-12 mb-3 ">
+                              <select name="" class="form-select" id="yearView"></select>
+                            </div>
+                            <div class="col-md-4 col-sm-12 mb-3 ">
+                              <select name="" class="form-select" id="sectionView"></select>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <button class="btn btn-primary" id="downloadCurrentSection">Download Current</button>
+                              <button class="btn btn-primary" id="downloadAllSection">Download All</button>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <div id="sectionCalendar">
+
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -155,8 +187,11 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
+  </div>
+  <div class="container-fluid mt-3">
+
     <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
