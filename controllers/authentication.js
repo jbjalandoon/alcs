@@ -84,6 +84,10 @@ exports.changePassword = (req, res, next) => {
     });
 };
 
+exports.getForgotPassword = (req, res, next) => {
+  return res.render("authentication/forgot");
+};
+
 exports.forgotPassword = (req, res, next) => {
   let token;
   crypto.randomBytes(32, (err, buffer) => {
