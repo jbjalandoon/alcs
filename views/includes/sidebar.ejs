@@ -2,31 +2,31 @@
   <div class="container">
     <ul>
       <% if (role === "user") { %>
-      <li class="menu-item">
-        <a href="/user/profile" class='menu-link'>
-          <i class="bi bi-grid-fill"></i>
-          <span>My Profile</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <a href="/user/schedule" class='menu-link'>
-          <i class="bi bi-grid-fill"></i>
-          <span>My Schedule</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <a href="/user/schedule-preference" class='menu-link'>
-          <i class="bi bi-grid-fill"></i>
-          <span>Schedule Preference</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <a href="/user/course-preference" class='menu-link'>
-          <i class="bi bi-grid-fill"></i>
-          <span>Course Preference</span>
-        </a>
-      </li>
-      <% } else { %>
+        <li class="menu-item">
+          <a href="/user/profile" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>My Profile</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/user/schedules" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>My Schedule</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/user/schedule-preference" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>Schedule Preference</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/user/course-preference" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>Course Preference</span>
+          </a>
+        </li>
+      <% } else if (role === "admin") { %>
       <li class="menu-item">
         <a href="/admin/dashboard" class='menu-link'>
           <i class="bi bi-grid-fill"></i>
@@ -75,7 +75,78 @@
           </div>
         </div>
       </li>
+      <% } else { %>
+        <li class="menu-item">
+          <a href="/admin/dashboard" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/admin/faculty" class='menu-link'>
+            <i class="bi bi-grid-fill"></i>
+            <span>Faculty</span>
+          </a>
+        </li>
+        <li class="menu-item has-sub">
+          <a href="#" class='menu-link'>
+            <i class="bi bi-stack"></i>
+            <span>Curriculum</span>
+          </a>
+          <div class="submenu ">
+            <div class="submenu-group-wrapper">
+              <ul class="submenu-group">
+                <li class="submenu-item  ">
+                  <a href="/admin/curriculum" class='submenu-link'>Curriculum</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/years" class='submenu-link'>School Year</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </li>
+        <li class="menu-item has-sub">
+          <a href="#" class='menu-link'>
+            <i class="bi bi-stack"></i>
+            <span>Maintenance</span>
+          </a>
+          <div class="submenu ">
+            <div class="submenu-group-wrapper">
+              <ul class="submenu-group">
+                <li class="submenu-item  ">
+                  <a href="/admin/users" class='submenu-link'>User Admin</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/aq" class='submenu-link'>Academic Qualification</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/programs" class='submenu-link'>Programs</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/courses" class='submenu-link'>Courses</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/levels" class='submenu-link'>Year Level</a>
+                </li>
+                <li class="submenu-item  ">
+                  <a href="/admin/rooms" class='submenu-link'>Rooms</a>
+                </li>
+                <!-- <li class="submenu-item  ">
+                  <a href="/admin/tags" class='submenu-link'></a>
+                </li> -->
+              </ul>
+            </div>
+          </div>
+        </li>
       <% } %>
+
+
+
+
+      
+
+      
     </ul>
   </div>
 </nav>
