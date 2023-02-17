@@ -4,7 +4,8 @@
       <div class="header-top">
         <div class="container">
           <div class="logo">
-            <a href="index.html"><img src="/assets/images/logo/logo.svg" alt="Logo"></a>
+            Schedula
+            <!-- <a href="index.html"><img src="/assets/images/logo/logo.svg" alt="Logo"></a> -->
           </div>
           <div class="header-top-right">
             <div class="theme-toggle d-flex gap-2 d-none align-items-center mt-2">
@@ -28,21 +29,20 @@
             </div>
             <div class="dropdown">
               <a href="#" id="topbarUserDropdown" class="user-dropdown d-flex align-items-center dropend dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="avatar avatar-md2">
-                  <img src="/assets/images/faces/1.jpg" alt="Avatar">
-                </div>
                 <div class="text">
-                  <h6 class="user-dropdown-name">John Ducky</h6>
-                  <p class="user-dropdown-status text-sm text-muted">Member</p>
+                  <h6 class="user-dropdown-name"><%= email %></h6>
+                  <p class="user-dropdown-status text-sm text-muted text-uppercase"><%= role %></p>
                 </div>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="topbarUserDropdown">
-                <li><a class="dropdown-item" href="#">My Account</a></li>
-                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><a class="dropdown-item" data-bs-toggle="modal" href="#changePasswordModal" role="button">Change Password</a></li>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-                <li><a class="dropdown-item" href="auth-login.html">Logout</a></li>
+                <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+                <form action="/authentication/logout" method="post" id="logoutForm">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                </form>
               </ul>
             </div>
 
@@ -57,10 +57,9 @@
       <%- include('sidebar.ejs') %>
     </header>
 
-<!-- <form action="/authentication/logout" method="post" id="logoutForm">
-  <input type="hidden" name="_csrf" value="<%= csrf %>">
-</form>
-<div class="wrapper d-flex flex-column min-vh-100 bg-light">
+    
+
+    <!-- <div class="wrapper d-flex flex-column min-vh-100 bg-light">
   <header class="header header-sticky">
     <div class="container-fluid">
       <button class="header-toggler px-md-0 me-md-3" type="button" onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()">
@@ -92,38 +91,38 @@
     <div class="header-divider"></div>
   </header> -->
 
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="changePasswordModalLabel">Change Password</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="changePasswordForm" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="oldPassword" class="col-form-label">Old Password:</label>
-              <input type="password" class="form-control" id="oldPassword">
-              <div class="invalid-feedback">
-                hahaha
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="changePasswordModalLabel">Change Password</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="changePasswordForm" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label for="oldPassword" class="col-form-label">Old Password:</label>
+                <input type="password" class="form-control" id="oldPassword">
+                <div class="invalid-feedback">
+                  hahaha
+                </div>
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="newPassword" class="col-form-label">New Password:</label>
-              <input type="password" class="form-control" id="newPassword">
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="mb-3">
-              <label for="retypePassword" class="col-form-label">Retype Password:</label>
-              <input type="password" class="form-control" id="retypePassword">
-              <div class="invalid-feedback"></div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="submit">Send message</button>
+              <div class="mb-3">
+                <label for="newPassword" class="col-form-label">New Password:</label>
+                <input type="password" class="form-control" id="newPassword">
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="retypePassword" class="col-form-label">Retype Password:</label>
+                <input type="password" class="form-control" id="retypePassword">
+                <div class="invalid-feedback"></div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="submit">Change Password</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>

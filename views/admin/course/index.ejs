@@ -3,23 +3,21 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>LIST OF AVAILABLE COURSE/S</strong>
-        <div class="float-end">
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            Upload Spreadsheet
-          </button>
-          <button type="button" class="btn btn-sm btn-primary " data-bs-toggle="modal" data-bs-target="#addModal">
-            Add New Course
-          </button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-12">
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Courses</span>
+      <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        Upload Spreadsheet
+      </button>
+      <button type="button" class="btn btn-sm btn-primary me-1 float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add New Course
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
               <div class="table-responsive">
                 <table id="courseTable" class="table table-striped datatables" style="width:100%">
                   <thead>
@@ -47,7 +45,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 

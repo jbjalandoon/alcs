@@ -3,27 +3,35 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>LIST OF AVAILABLE YEAR LEVEL/S</strong>
-        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-          Add New Year Level
-        </button>
-      </div>
-      <div class="card-body">
-        <table id="levelTable" class="table table-striped" style="width:100%">
-          <thead>
-            <tr>
-              <th>Year Level</th>
-              <th>Display</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Year Level</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add New Year Level
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="levelTable" class="table table-striped" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Year Level</th>
+                      <th>Display</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 

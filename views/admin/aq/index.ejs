@@ -3,36 +3,36 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>LIST OF AVAILABLE ACADEMIC QUALIFICATIONS/S</strong>
-        <div class="float-end">
-          <!-- <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            Upload Spreadsheet
-          </button> -->
-          <button type="button" class="btn btn-sm btn-primary " data-bs-toggle="modal" data-bs-target="#addModal">
-            Add New AQ
-          </button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="qualificationTable" class="table table-striped datatables" style="width:100%">
-            <thead>
-              <tr>
-                <th width="10%">Academic Qualification</th>
-                <th width="30%">Professional License & Industry Qualification</th>
-                <th width="10%">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Academic Qualifications</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add New AQ
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="qualificationTable" class="table table-striped datatables" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th width="10%">Academic Qualification</th>
+                      <th width="30%">Professional License & Industry Qualification</th>
+                      <th width="10%">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
 
-            </tbody>
-          </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 
@@ -116,7 +116,7 @@
           <button type="button" class="btn btn-primary" id="editButton">Edit</button>
         </div>
       </div>
-    </div>  
+    </div>
   </div>
 
   <input type="hidden" value="<%= csrf %>" id="csrf">

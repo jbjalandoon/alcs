@@ -190,43 +190,42 @@
       </section>
     </div>
   </div>
-  <div class="container-fluid mt-3">
 
-    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="activeSemesterForm" class="needs-validation" novalidate>
-              <div class="mb-3">
-                <label for="year" class="col-form-label">School Year:</label>
-                <select class="form-select" id="year">
-                </select>
-                <div class="invalid-feedback">
-                </div>
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="activeSemesterForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="year" class="col-form-label">School Year:</label>
+              <select class="form-select" id="year">
+              </select>
+              <div class="invalid-feedback">
               </div>
-              <div class="mb-3">
-                <label for="semester" class="col-form-label">Semester:</label>
-                <select class="form-select" id="semester" disabled>
-                </select>
-                <div class="invalid-feedback">
-                </div>
+            </div>
+            <div class="mb-3">
+              <label for="semester" class="col-form-label">Semester:</label>
+              <select class="form-select" id="semester" disabled>
+              </select>
+              <div class="invalid-feedback">
               </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
-          </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
         </div>
       </div>
     </div>
-    <input type="hidden" value="<%= csrf %>" id="csrf">
-    <%- include('../../includes/footer.ejs') %>
-    <script src="/js/dashboard.js"></script>
+  </div>
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

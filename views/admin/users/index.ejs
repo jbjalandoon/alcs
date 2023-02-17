@@ -3,34 +3,38 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>List of Admin Users</strong>
-        <!-- <a href="/admin/faculty/add" class="float-end"><button class="btn btn-primary">ADD NEW faculty</button></a> -->
-        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-          Add Users
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="userTable" class="table table-striped datatables" style="width:100%">
-            <thead>
-              <tr>
-                <th width="25% ">Name</th>
-                <th width="25%">Email</th>
-                <th width="20%">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-          </table>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Admin Users</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add Users
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="userTable" class="table table-striped datatables" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th width="25% ">Name</th>
+                      <th width="25%">Email</th>
+                      <th width="20%">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+      
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
-
   <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">

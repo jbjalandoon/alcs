@@ -529,7 +529,7 @@ courseSearch.on("change", () => {
               $(document.createElement("span"))
                 .addClass("badge rounded-pill " + buttonBg)
                 .append(
-                  $(document.createElement("i")).addClass("fa-solid fa-plus")
+                  $(document.createElement("i")).addClass("bi bi-plus-lg")
                 )
             )
         );

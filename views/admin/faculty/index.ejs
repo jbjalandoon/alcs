@@ -3,38 +3,45 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>List of Faculty Members</strong>
-        <!-- <a href="/admin/faculty/add" class="float-end"><button class="btn btn-primary">ADD NEW faculty</button></a> -->
-        <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-          Add Faculty
-        </button>
-        <button type="button" class="btn btn-primary btn-sm float-end me-1" data-bs-toggle="modal" data-bs-target="#uploadModal">
-          Upload Spreadsheet
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="facultyTable" class="table table-striped datatables" style="width:100%">
-            <thead>
-              <tr>
-                <th width="5% ">Faculty Code</th>
-                <th width="15%">Name</th>
-                <th width="10%">Faculty Type</th>
-                <th width="15%">Email</th>
-                <th width="20%">Academic Qualifications</th>
-                <th width="10%">Course Taken</th>
-                <th width="20%">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-          </table>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Faculty Members</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add Faculty
+      </button>
+      <button type="button" class="btn btn-primary btn-sm float-end me-1" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        Upload Spreadsheet
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
         </div>
-      </div>
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="facultyTable" class="table table-striped datatables" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th width="5% ">Faculty Code</th>
+                      <th width="15%">Name</th>
+                      <th width="10%">Faculty Type</th>
+                      <th width="15%">Email</th>
+                      <th width="20%">Academic Qualifications</th>
+                      <th width="10%">Course Taken</th>
+                      <th width="20%">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -92,7 +99,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="row">
                 <div class="container">
                   <div class="card">

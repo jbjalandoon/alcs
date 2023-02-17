@@ -3,13 +3,13 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong id="cardTitle">ASSIGN FACULTY</strong>
-      </div>
-      <div class="card-body">
-        <div class="container">
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">Faculty Loading</span>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
           <div class="row">
             <div class="col-sm-4 col-lg-4">
               <div class="card mb-4 text-white bg-info">
@@ -46,106 +46,114 @@
             </div>
           </div>
         </div>
-        <div class="container-fluid">
-
-          <div class="row">
-            <div class="col-12">
-              <div class="d-flex justify-content-center mt-2" id="firstLoading">
-                <div class="spinner-border" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-              <div class="d-none" id="facultySelect">
-                <label for="faculty" class="form-label">
-                  Select Faculty:
-                </label>
-                <select name="" class="form-control" id="faculty">
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="row d-none" id="contentRow">
-            <div class="col-4 mt-4">
-              <div id="courses">
-                <div class="mb-3">
-                  <select type="text" class="form-select form-lg mb-3" id="courseSearch">
-                  </select>
-                </div>
-                <div id="list">
-                  <ol class="list-group list-group-numbered mt-3 schedules" id="courseList">
-                  </ol>
-                </div>
-              </div>
-            </div>
-            <div class="col-8">
-              <div class="container-fluid mt-3">
-                <div class="row">
-                  <div class="col-12">
-                    <strong>Faculty Type: <span id="spanFacultyType">REGULAR</span></strong>
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-12">
+                  <div class="d-flex justify-content-center mt-2" id="firstLoading">
+                    <div class="spinner-border" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                  <div class="d-none" id="facultySelect">
+                    <label for="faculty" class="form-label">
+                      Select Faculty:
+                    </label>
+                    <select name="" class="form-control" id="faculty">
+                    </select>
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-12">
-                    <strong>Units: </strong><span id="spanUnits">25</span> / <span id="spanMaxUnits">40</span>
+              </div>
+              <div class="row d-none" id="contentRow">
+                <div class="col-4 mt-4">
+                  <div id="courses">
+                    <div class="mb-3">
+                      <select type="text" class="form-select form-lg mb-3" id="courseSearch">
+                      </select>
+                    </div>
+                    <div id="list">
+                      <ol class="list-group list-group-numbered mt-3 schedules" id="courseList">
+                      </ol>
+                    </div>
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-12">
-                    <strong>Hours: </strong><span id="spanHours">25</span> / <span id="spanMaxHours">40</span>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-12">
-                    <div id='calendarContainer'>
+                <div class="col-8">
+                  <div class="container-fluid mt-3">
+                    <div class="row">
+                      <div class="col-12">
+                        <strong>Faculty Type: <span id="spanFacultyType">REGULAR</span></strong>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12">
+                        <strong>Units: </strong><span id="spanUnits">25</span> / <span id="spanMaxUnits">40</span>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12">
+                        <strong>Hours: </strong><span id="spanHours">25</span> / <span id="spanMaxHours">40</span>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12">
+                        <div id='calendarContainer'>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
+  </div>
+  <div class="container-fluid mt-3">
+    <div class="card">
 
-    <div class="modal fade" id="facultyModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="modalLabel">New message</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="container">
-              <div class="row">
-                <div class="col-12">
-                  <div class="table-responsive">
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Faculty Code</th>
-                          <th>Name</th>
-                          <th>Hour Count</th>
-                        </tr>
-                      </thead>   
-                      <tbody>
-                      </tbody>                   
-                    </table>
-                  </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="facultyModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modalLabel">New message</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <div class="row">
+              <div class="col-12">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Faculty Code</th>
+                        <th>Name</th>
+                        <th>Hour Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <input type="hidden" id="csrf" value="<%= csrf %>">
-    <%- include('../../includes/footer.ejs') %>
-    <script src="/js/schedule-faculty.js"></script>
+  <input type="hidden" id="csrf" value="<%= csrf %>">
+  <%- include('../../includes/footer.ejs') %>
+  <script src="/js/schedule-faculty.js"></script>
 </body>
 
 </html>

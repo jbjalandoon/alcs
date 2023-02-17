@@ -1,7 +1,6 @@
 const calendarContainer = $("#calendarContainer")[0];
 const scheduleTable = $("#scheduleTable");
 let semester;
-const days = ["m", "t", "w", "th", "f", "s", null];
 const config = {
   allDaySlot: false,
   hiddenDays: [0],

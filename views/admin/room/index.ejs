@@ -3,32 +3,40 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="container-fluid mt-3">
-    <div class="card">
-      <div class="card-header">
-        <strong>LIST OF AVAILABLE ROOM/S</strong>
-        <div class="float-end">
-          <button type="button" class="btn btn-primary btn-sm me-1" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            Upload Spreadsheet
-          </button>
-          <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-            Add New Room
-          </button>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Rooms</span>
+      <button type="button" class="btn btn-primary btn-sm  float-end" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        Upload Spreadsheet
+      </button>
+      <button type="button" class="btn btn-sm btn-primary me-1 float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add New Room
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <div class="card-body">
+                  <table id="roomTable" class="table table-striped" style="width:100%">
+                    <thead>
+                      <tr>
+                        <th>Room Name</th>
+                        <th>Laboratory</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="card-body">
-        <table id="roomTable" class="table table-striped" style="width:100%">
-          <thead>
-            <tr>
-              <th>Room Name</th>
-              <th>Laboratory</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
+      </section>
     </div>
   </div>
 

@@ -45,7 +45,7 @@ const mailTransporter = nodemailer.createTransport({
 //     cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
 //   },
 // });
-// app.use(helmet());
+app.use(helmet());
 app.use(compression());
 app.use(multer({ storage: multer.memoryStorage() }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
