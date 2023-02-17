@@ -88,7 +88,7 @@ exports.getForgotPassword = (req, res, next) => {
   return res.render("authentication/forgot");
 };
 
-exports.forgotPassword = (req, res, next) => {
+exports.postForgotPassword = (req, res, next) => {
   let token;
   crypto.randomBytes(32, (err, buffer) => {
     token = buffer.toString("hex");
@@ -140,6 +140,8 @@ exports.reset = (req, res, next) => {
 };
 
 exports.postReset = (req, res, next) => {
+  console.log(req.body);
+  console.log(req.body);
   bcrypt
     .hash(req.body.newPassword, 12)
     .then((password) => {
