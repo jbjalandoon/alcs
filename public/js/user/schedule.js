@@ -1,6 +1,7 @@
 const calendarContainer = $("#calendarContainer")[0];
 const scheduleTable = $("#scheduleTable");
 let semester;
+const userId = $("#userId").val();
 const config = {
   allDaySlot: false,
   hiddenDays: [0],
@@ -54,32 +55,28 @@ fetch("/api/curriculums/active")
   })
   .then((result) => {
     semester = result.data[0].semesters._id;
-    console.log(result);
-    $("#cardTitle")
-      .addClass("fw-bolder")
-      .html(
-        `SCHEDULE - (${result.data[0].school_year[0].year.toUpperCase()} - ${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
-      );
+    console.log(result.data[0]);
     return fetch(`/api/schedules/faculty/${semester}/${userId}`);
   })
   .then((response) => {
     return response.json();
   })
   .then((result) => {
+    console.log(result);
     const downloadSpreadsheetButton = $("#downloadSpreadsheet");
     downloadSpreadsheetButton.off("click");
     result.data.forEach((element) => {
       calendar.addEvent({
         id: element._id,
         hourDuration: element.hour,
-        daysOfWeek: [(days.indexOf(element.day) + 1).toString()],
-        startTime: element.start_time,
-        endTime: element.end_time,
+        daysOfWeek: [element.day],
+        startTime: element.startTime,
+        endTime: element.endTime,
         overlap: false,
         editabe: false,
         course: element.course.courseCode,
         program: element.program.programCode,
-        section: element.section_name,
+        section: element.sectionName,
         room: element.room.roomName,
         level: element.level.display,
         faculty: element.faculty,
@@ -113,10 +110,10 @@ fetch("/api/curriculums/active")
             "<ul>" +
               element.data
                 .map((e) => {
-                  return `<li>${e.day.toUpperCase()} ${e.start_time} - ${
-                    e.end_time
-                  } (${e.program.programCode.toUpperCase()}${e.level.display}${
-                    e.section_name
+                  return `<li>${days[e.day]} ${e.startTime} - ${
+                    e.endTime
+                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
+                    e.sectionName
                   })</li>`;
                 })
                 .join("") +
@@ -207,8 +204,10 @@ function downloadSpreadsheet(filename, events) {
         const level = element.extendedProps.level.toUpperCase();
         const firstName =
           element.extendedProps.faculty.userInformation.firstName;
-        const middleName =
-          element.extendedProps.faculty.userInformation.middleName ? element.extendedProps.faculty.userInformation.middleName : '';
+        const middleName = element.extendedProps.faculty.userInformation
+          .middleName
+          ? element.extendedProps.faculty.userInformation.middleName
+          : "";
         const lastName = element.extendedProps.faculty.userInformation.lastName;
         const initials = `${firstName.charAt(0)}${middleName.charAt(
           0

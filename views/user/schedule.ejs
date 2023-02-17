@@ -80,10 +80,9 @@
     </div>
   </div>
   <input type="hidden" value="<%= csrf %>" id="csrf">
+  <input type="hidden" value="<%= userId %>" id="userId">
   <%- include('../includes/footer.ejs') %>
-  <script>
-    const userId = '<%= userId %>'
-  </script>
+  
   <script src="/js/user/schedule.js"></script>
 
 </body>

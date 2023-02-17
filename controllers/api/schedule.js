@@ -3,7 +3,6 @@ const Faculty = require("../../models/user");
 const mongoose = require("mongoose");
 
 exports.getSchedule = (req, res, next) => {
-  const day = ["m", "t", "w", "th", "f", "s", null];
   Curriculum.aggregate([
     {
       $match: { "semesters._id": mongoose.Types.ObjectId(req.query.sem) },
@@ -1523,15 +1522,15 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
       $project: {
         _id: "$semesters.programs.year.sections.schedules._id",
         section: "$semesters.programs.year.sections._id",
-        yearLevel: "$semesters.programs.year.year_level",
-        section_name: "$semesters.programs.year.sections.section",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
         program: "$semesters.programs.program",
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         hour: "$semesters.programs.year.sections.schedules.hour",
         day: "$semesters.programs.year.sections.schedules.day",
-        start_time: "$semesters.programs.year.sections.schedules.start_time",
-        end_time: "$semesters.programs.year.sections.schedules.end_time",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
         room: "$semesters.programs.year.sections.schedules.room",
         faculty: "$semesters.programs.year.sections.schedules.faculty",
       },
@@ -1584,7 +1583,7 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      result.forEach((element) => {});
+      console.log(result[0].data);
       res.json({ ok: true, data: result });
     })
     .then((error) => {
