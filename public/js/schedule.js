@@ -78,71 +78,220 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   eventReceive: function (info) {
-    console.log(info);
-    const end = moment(info.event.endStr);
-    const start = moment(info.event.startStr);
-    const hour = moment.duration(end.diff(start)).asHours();
     if ($("#roomForm").val() === "") {
       Toast.fire({ icon: "warning", title: "Please select room first" });
       return info.revert();
     }
-    const startMinutes =
-      info.event.start.getMinutes() == 0
-        ? "00"
-        : info.event.start.getMinutes().toString();
-    const endMinutes =
-      info.event.end.getMinutes() == 0
-        ? "00"
-        : info.event.end.getMinutes().toString();
-    fetch("/api/schedules/assign/" + scheduleSectionForm.val(), {
-      method: "POST",
-      headers: {
-        "csrf-token": csrf,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        courseType: info.event.extendedProps.courseType,
-        course: info.event.extendedProps.courseId,
-        day: info.event.start.getDay(),
-        startTime:
-          ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-        endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-        room: $("#roomForm").val(),
-        hour: hour,
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        info.event.setExtendedProp("hourDuration", hour);
+    const existingEvents = [];
+    let previousTimeGap, nextTimeGap;
 
-        if (info.event.extendedProps.courseType === "lecture") {
-          currentCourseHourCount[
-            info.event.extendedProps.course
-          ].currentLecture =
-            currentCourseHourCount[info.event.extendedProps.course].maxLecture;
-        } else {
-          currentCourseHourCount[info.event.extendedProps.course].currentLab =
-            currentCourseHourCount[info.event.extendedProps.course].maxLab;
-        }
-        $("#external-events")
-          .find(
-            `[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`
-          )
-          .removeClass(
-            `${info.event.extendedProps.courseType}-event bg-primary text-light`
-          )
-          .addClass("bg-warning text-dark")
-          .css("cursor", "")
-          .attr("hour", "0:00");
-        info.event.setExtendedProp("scheduleID", result.id);
-        displayToast(result);
+    calendar.getEvents().forEach((element) => {
+      const sameDay = element.start.getDay() === info.event.start.getDay();
+      if (sameDay && element.extendedProps.current) {
+        existingEvents.push(element);
+      }
+    });
+    existingEvents.sort(function (a, b) {
+      return a.start - b.start;
+    });
+    const currentIndex = existingEvents.findIndex(function (event) {
+      return event.extendedProps.new === true;
+    });
+    previousEvent =
+      currentIndex > 0 ? existingEvents[currentIndex - 1] : undefined;
+    nextEvent =
+      currentIndex < existingEvents.length - 1
+        ? existingEvents[currentIndex + 1]
+        : undefined;
+
+    if (previousEvent) {
+      previousTimeGap =
+        (info.event.start.getTime() - previousEvent.end.getTime()) / 1000;
+    }
+
+    if (nextEvent) {
+      nextTimeGap =
+        (nextEvent.start.getTime() - info.event.end.getTime()) / 1000;
+    }
+    info.event.setExtendedProp("new", false);
+    console.log(nextTimeGap >= 10800 || nextTimeGap < 1800);
+    console.log(previousTimeGap);
+    console.log(previousTimeGap >= 10800 || previousTimeGap < 1800);
+    // return;
+    if (previousTimeGap || nextTimeGap) {
+      let previous = false;
+      let text = "";
+      if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
+        text += `${
+          previousTimeGap / 60 / 60
+        } hour/s of gap from previous schedule`;
+        previous = true;
+      }
+      if (nextTimeGap >= 5400 || nextTimeGap < 1800) {
+        if (previous) text += " & ";
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+      }
+      text += ", Do you still want to continue?";
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: text,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Confirm",
+        preConfirm: () => {
+          const startMinutes =
+            info.event.start.getMinutes() == 0
+              ? "00"
+              : info.event.start.getMinutes().toString();
+          const endMinutes =
+            info.event.end.getMinutes() == 0
+              ? "00"
+              : info.event.end.getMinutes().toString();
+          const end = moment(info.event.endStr);
+          const start = moment(info.event.startStr);
+          const hour = moment.duration(end.diff(start)).asHours();
+          fetch("/api/schedules/assign/" + scheduleSectionForm.val(), {
+            method: "POST",
+            headers: {
+              "csrf-token": csrf,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              courseType: info.event.extendedProps.courseType,
+              course: info.event.extendedProps.courseId,
+              day: info.event.start.getDay(),
+              startTime:
+                ("0" + info.event.start.getHours()).slice(-2) +
+                ":" +
+                startMinutes,
+              endTime:
+                ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+              room: $("#roomForm").val(),
+              hour: hour,
+            }),
+          })
+            .then((response) => {
+              return response.json();
+            })
+            .then((result) => {
+              info.event.setExtendedProp("hourDuration", hour);
+
+              if (info.event.extendedProps.courseType === "lecture") {
+                currentCourseHourCount[
+                  info.event.extendedProps.course
+                ].currentLecture =
+                  currentCourseHourCount[
+                    info.event.extendedProps.course
+                  ].maxLecture;
+              } else {
+                currentCourseHourCount[
+                  info.event.extendedProps.course
+                ].currentLab =
+                  currentCourseHourCount[
+                    info.event.extendedProps.course
+                  ].maxLab;
+              }
+              $("#external-events")
+                .find(
+                  `[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`
+                )
+                .removeClass(
+                  `${info.event.extendedProps.courseType}-event bg-primary text-light`
+                )
+                .addClass("bg-warning text-dark")
+                .css("cursor", "")
+                .attr("hour", "0:00");
+              info.event.setExtendedProp("scheduleID", result.id);
+              displayToast(result);
+            })
+            .catch((error) => {
+              console.log(error);
+              displayToast(error);
+            });
+        },
       })
-      .catch((error) => {
-        console.log(error);
-        displayToast(error);
-      });
+        .then((result) => {
+          if (result.isConfirmed) {
+            Toast.fire({
+              icon: "success",
+              title: "Successfully Adjusted",
+            });
+          } else {
+            info.revert();
+          }
+        })
+        .catch((error) => {
+          info.revert();
+          console.log(error);
+        });
+    } else {
+      const startMinutes =
+        info.event.start.getMinutes() == 0
+          ? "00"
+          : info.event.start.getMinutes().toString();
+      const endMinutes =
+        info.event.end.getMinutes() == 0
+          ? "00"
+          : info.event.end.getMinutes().toString();
+      const end = moment(info.event.endStr);
+      const start = moment(info.event.startStr);
+      const hour = moment.duration(end.diff(start)).asHours();
+      fetch("/api/schedules/assign/" + scheduleSectionForm.val(), {
+        method: "POST",
+        headers: {
+          "csrf-token": csrf,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseType: info.event.extendedProps.courseType,
+          course: info.event.extendedProps.courseId,
+          day: info.event.start.getDay(),
+          startTime:
+            ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+          endTime:
+            ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+          room: $("#roomForm").val(),
+          hour: hour,
+        }),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((result) => {
+          info.event.setExtendedProp("hourDuration", hour);
+
+          if (info.event.extendedProps.courseType === "lecture") {
+            currentCourseHourCount[
+              info.event.extendedProps.course
+            ].currentLecture =
+              currentCourseHourCount[
+                info.event.extendedProps.course
+              ].maxLecture;
+          } else {
+            currentCourseHourCount[info.event.extendedProps.course].currentLab =
+              currentCourseHourCount[info.event.extendedProps.course].maxLab;
+          }
+          $("#external-events")
+            .find(
+              `[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`
+            )
+            .removeClass(
+              `${info.event.extendedProps.courseType}-event bg-primary text-light`
+            )
+            .addClass("bg-warning text-dark")
+            .css("cursor", "")
+            .attr("hour", "0:00");
+          info.event.setExtendedProp("scheduleID", result.id);
+          displayToast(result);
+        })
+        .catch((error) => {
+          console.log(error);
+          displayToast(error);
+        });
+    }
   },
   eventDrop: function (info) {
     const id = info.event.extendedProps.scheduleID;
@@ -354,7 +503,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
           info.event.end.getMinutes() == 0
             ? "00"
             : info.event.end.getMinutes().toString();
-        console.log(currentHour + "---------" + maxHours);
         if (currentHour > maxHours) {
           Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
           return info.revert();
@@ -512,6 +660,7 @@ scheduleSectionForm.on("change", () => {
             course: element.course.courseCode,
             program: "BSIT",
             section: "1",
+            new: true,
             level: "1",
             overlap: false,
             durationEditable: true,
@@ -670,7 +819,6 @@ $("#roomForm").on("change", () => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
       const events = calendar.getEvents();
       events.forEach((element) => {
         if (!element.extendedProps.current) {
@@ -729,6 +877,7 @@ $("#roomForm").on("change", () => {
             startEditable: true,
             current: true,
             overlap: false,
+            new: info.getAttribute("new") === "true" ? true : false,
             course: info.getAttribute("course"),
             color: info.getAttribute("color"),
             textColor: info.getAttribute("textColor"),
@@ -756,7 +905,6 @@ function renderEvent(info) {
   const titleEl = info.el.querySelector(".fc-event-title");
   const timeEl = info.el.querySelector(".fc-event-time");
   info.el.style.textAlign = "center";
-  console.log(info.event.extendedProps.faculty);
   const faculty = info.event.extendedProps.faculty
     ? info.event.extendedProps.faculty.toUpperCase()
     : "";
@@ -768,4 +916,22 @@ function renderEvent(info) {
   const type = info.event.extendedProps.courseType.toUpperCase();
 
   titleEl.innerHTML = `${course} (${type})<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
+}
+
+function findClosestTime(datetimes, targetDatetime) {
+  let closestDatetimeIndex = 0;
+
+  // Loop through the remaining datetimes and update the closestDatetimeIndex variable if a closer datetime is found
+  for (let i = 1; i < datetimes.length; i++) {
+    const closestTimeDiff = Math.abs(
+      targetDatetime - datetimes[closestDatetimeIndex]
+    );
+    const currentTimeDiff = Math.abs(targetDatetime - datetimes[i]);
+
+    if (currentTimeDiff < closestTimeDiff) {
+      closestDatetimeIndex = i;
+    }
+  }
+
+  return closestDatetimeIndex;
 }

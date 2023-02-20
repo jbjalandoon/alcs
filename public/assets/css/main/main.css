@@ -1,0 +1,25 @@
+.select2-container--open {
+  z-index: 99999999999999;
+}
+
+.fc-day {
+  background-color: inherit !important;
+}
+
+/* .fc-day {
+    background-color: #ffc107 !important;
+  } */
+
+.fc-col-header-cell-cushion {
+  text-decoration: none;
+  color: black;
+}
+
+.fc-event {
+  font-size: .8rem !important;
+  align-items: center !important;
+}
+
+.fc-event-time {
+  display: none;
+}

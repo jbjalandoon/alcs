@@ -1707,13 +1707,14 @@ exports.assignSchedule = (req, res, next) => {
 };
 
 exports.reAssignSchedule = (req, res, next) => {
-  console.log(req.params);
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections._id": req.params.section,
     },
     {
       $set: {
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day":
+          req.body.day,
         "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].startTime":
           req.body.startTime,
         "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
