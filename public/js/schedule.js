@@ -114,11 +114,8 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         (nextEvent.start.getTime() - info.event.end.getTime()) / 1000;
     }
     info.event.setExtendedProp("new", false);
-    console.log(nextTimeGap >= 10800 || nextTimeGap < 1800);
-    console.log(previousTimeGap);
-    console.log(previousTimeGap >= 10800 || previousTimeGap < 1800);
-    // return;
-    if (previousTimeGap || nextTimeGap) {
+    console.log(nextTimeGap);
+    if (previousTimeGap != undefined || nextTimeGap != undefined) {
       let previous = false;
       let text = "";
       if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
