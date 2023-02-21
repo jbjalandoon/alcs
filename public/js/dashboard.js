@@ -38,20 +38,17 @@ const config = {
   },
 };
 
-const facultyCalendar = new FullCalendar.Calendar(
-  document.querySelector("#facultyCalendar"),
-  config
-);
+$(".owl-carousel").owlCarousel({
+  nav: true,
+  items: 1,
+  margin: 10,
+});
 
-const roomCalendar = new FullCalendar.Calendar(
-  document.querySelector("#roomCalendar"),
-  config
-);
+const facultyCalendar = new FullCalendar.Calendar(document.querySelector("#facultyCalendar"), config);
 
-const sectionCalendar = new FullCalendar.Calendar(
-  document.querySelector("#sectionCalendar"),
-  config
-);
+const roomCalendar = new FullCalendar.Calendar(document.querySelector("#roomCalendar"), config);
+
+const sectionCalendar = new FullCalendar.Calendar(document.querySelector("#sectionCalendar"), config);
 
 const facultyView = $("#facultyView").select2({ width: "100%" });
 const roomView = $("#roomView").select2({ width: "100%" });
@@ -88,9 +85,7 @@ fetch("/api/curriculums/active")
     });
     sem = result.data[0].semesters._id;
     $("#cardTitle").html(
-      `S.Y. ${
-        result.data[0].schoolYear[0].year
-      } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
+      `S.Y. ${result.data[0].schoolYear[0].year} (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
     return fetch("/api/curriculums/faculty/" + sem);
   })
@@ -104,9 +99,7 @@ fetch("/api/curriculums/active")
     result.data.forEach((element) => {
       facultyView.append(
         new Option(
-          element.userInformation.firstName.toUpperCase() +
-            " " +
-            element.userInformation.lastName.toUpperCase(),
+          element.userInformation.firstName.toUpperCase() + " " + element.userInformation.lastName.toUpperCase(),
           element._id
         )
       );
@@ -139,9 +132,7 @@ fetch("/api/curriculums/active")
                 startEditable: false,
                 course: element.course.courseCode,
                 program: element.program.programCode,
-                faculty: element.faculty
-                  ? element.faculty.userInformation.facultyCode
-                  : "",
+                faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
                 section: element.sectionName,
                 room: element.room.roomName,
                 level: element.level.display,
@@ -150,11 +141,7 @@ fetch("/api/curriculums/active")
             });
             facultyCalendar.render();
             downloadCurrentFaculty.on("click", () => {
-              downloadSpreadsheet(
-                facultyCode.toUpperCase() + "-SCHEDULES" + ".xlsx",
-                [result.data],
-                "faculty"
-              );
+              downloadSpreadsheet(facultyCode.toUpperCase() + "-SCHEDULES" + ".xlsx", [result.data], "faculty");
             });
             downloadAllFaculty.on("click", () => {
               fetch(`/api/schedules/faculty/${sem}`)
@@ -171,6 +158,38 @@ fetch("/api/curriculums/active")
                 .catch((error) => {
                   console.log(error);
                 });
+            });
+
+            return fetch(`/api/schedules/faculty/grouped/${sem}/${facultyView.val()}`);
+          })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            result.data.forEach((element) => {
+              const facultyScheduleTable = $("#facultyScheduleTable");
+              const tBody = facultyScheduleTable.find("tbody");
+              const tRow = $("<tr></tr>");
+              tRow
+                .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
+                .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
+                .append($("<td></td>").html(element.course.units))
+                .append($("<td></td>").html(element.course.lecture))
+                .append($("<td></td>").html(element.course.lab))
+                .append(
+                  $("<td></td>").html(
+                    "<ul>" +
+                      element.data
+                        .map((e) => {
+                          return `<li>${days[e.day]} ${e.startTime} - ${
+                            e.endTime
+                          } (${e.program.programCode.toUpperCase()}${e.level.display}-${e.sectionName})</li>`;
+                        })
+                        .join("") +
+                      "</ul>"
+                  )
+                );
+              tBody.append(tRow);
             });
           })
           .catch((error) => {
@@ -192,9 +211,7 @@ fetch("/api/curriculums/active")
     const downloadCurrentRoom = $("#downloadCurrentRoom");
     const downloadAllRoom = $("#downloadAllRoom");
     result.data.forEach((element) => {
-      roomView.append(
-        new Option(element.room.roomName.toUpperCase(), element._id)
-      );
+      roomView.append(new Option(element.room.roomName.toUpperCase(), element._id));
     });
     if (result.data.length !== 0) {
       roomView.on("change", () => {
@@ -223,9 +240,7 @@ fetch("/api/curriculums/active")
                 startEditable: false,
                 course: element.course.courseCode,
                 program: element.program.programCode,
-                faculty: element.faculty
-                  ? element.faculty.userInformation.facultyCode
-                  : "",
+                faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
                 section: element.sectionName,
                 room: element.room.roomName,
                 level: element.level.display,
@@ -233,9 +248,7 @@ fetch("/api/curriculums/active")
             });
             downloadCurrentRoom.on("click", () => {
               downloadSpreadsheet(
-                roomView.find("option").filter(":selected").text() +
-                  "-SCHEDULES" +
-                  ".xlsx",
+                roomView.find("option").filter(":selected").text() + "-SCHEDULES" + ".xlsx",
                 [result.data],
                 "room"
               );
@@ -276,9 +289,7 @@ fetch("/api/curriculums/active")
   .then((result) => {
     // Sections
     result.data.forEach((element) => {
-      programView.append(
-        new Option(element.program.programCode.toUpperCase(), element._id)
-      );
+      programView.append(new Option(element.program.programCode.toUpperCase(), element._id));
     });
     if (result.data.length !== 0) {
       programView.on("change", () => {
@@ -289,9 +300,7 @@ fetch("/api/curriculums/active")
           .then((result) => {
             yearView.empty();
             result.data.forEach((element) => {
-              yearView.append(
-                new Option(element.level.yearLevel.toUpperCase(), element._id)
-              );
+              yearView.append(new Option(element.level.yearLevel.toUpperCase(), element._id));
             });
             yearView.on("change", () => {
               fetch("/api/curriculums/sections/" + yearView.val())
@@ -310,9 +319,7 @@ fetch("/api/curriculums/active")
                     });
                   }
                   result.data.forEach((element) => {
-                    sectionView.append(
-                      new Option(element.section.toUpperCase(), element._id)
-                    );
+                    sectionView.append(new Option(element.section.toUpperCase(), element._id));
                   });
                   sectionView.on("change", () => {
                     fetch(`/api/schedules/section/${sectionView.val()}`)
@@ -323,9 +330,7 @@ fetch("/api/curriculums/active")
                         sectionCalendar.getEvents().forEach((element) => {
                           element.remove();
                         });
-                        const downloadCurrentSection = $(
-                          "#downloadCurrentSection"
-                        );
+                        const downloadCurrentSection = $("#downloadCurrentSection");
                         const downloadAllSection = $("#downloadAllSection");
                         downloadCurrentSection.off("click");
                         downloadAllSection.off("click");
@@ -341,18 +346,12 @@ fetch("/api/curriculums/active")
                               courseType: schedule.type,
                               overlap: false,
                               durationEditable: false,
-                              color:
-                                schedule.type === "lecture"
-                                  ? "#007BFF"
-                                  : "#3399FF",
-                              textColor:
-                                schedule.type === "lecture" ? "white" : "black",
+                              color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
+                              textColor: schedule.type === "lecture" ? "white" : "black",
                               startEditable: false,
                               course: element.course.courseCode,
                               program: element.program.programCode,
-                              faculty: element.faculty
-                                ? element.faculty.userInformation.facultyCode
-                                : "",
+                              faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
                               section: element.sectionName,
                               room: schedule.room.roomName,
                               level: element.yearLevel.display,
@@ -374,33 +373,22 @@ fetch("/api/curriculums/active")
                             });
                           });
                           downloadSpreadsheet(
-                            `${programView
+                            `${programView.find("option").filter(":selected").text()} ${yearView
                               .find("option")
                               .filter(":selected")
-                              .text()} ${yearView
-                              .find("option")
-                              .filter(":selected")
-                              .text()}-${sectionView
-                              .find("option")
-                              .filter(":selected")
-                              .text()}.xlsx`,
+                              .text()}-${sectionView.find("option").filter(":selected").text()}.xlsx`,
                             [data],
                             "section"
                           );
                         });
                         downloadAllSection.on("click", () => {
-                          fetch(
-                            `/api/schedules/section/${sem}/${programView.val()}`
-                          )
+                          fetch(`/api/schedules/section/${sem}/${programView.val()}`)
                             .then((response) => {
                               return response.json();
                             })
                             .then((result) => {
                               downloadSpreadsheet(
-                                `${programView
-                                  .find("option")
-                                  .filter(":selected")
-                                  .text()}-SCHEDULES.xlsx`,
+                                `${programView.find("option").filter(":selected").text()}-SCHEDULES.xlsx`,
                                 result.data.map((e) => e.data),
                                 "section"
                               );
@@ -472,9 +460,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
         })
       );
       result.data.forEach((element) => {
-        activeYear.append(
-          new Option(element.schoolYear.toUpperCase(), element._id)
-        );
+        activeYear.append(new Option(element.schoolYear.toUpperCase(), element._id));
       });
       activeYear.on("change", (event) => {
         fetch("/api/curriculums/semesters/" + activeYear.val())
@@ -491,9 +477,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
               })
             );
             result.data.forEach((element) => {
-              activeSemester.append(
-                new Option(element.sem.toUpperCase(), element._id)
-              );
+              activeSemester.append(new Option(element.sem.toUpperCase(), element._id));
             });
             activeSemester.removeAttr("disabled");
           })
@@ -535,26 +519,7 @@ $("#addButton").on("click", () => {
 });
 
 function downloadSpreadsheet(filename, events, type) {
-  const cols = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-  ];
+  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
 
   const wb = XLSX.utils.book_new();
   events.forEach((element) => {
@@ -593,8 +558,7 @@ function downloadSpreadsheet(filename, events, type) {
         cellData(""),
       ];
       element.forEach((element) => {
-        if (type === "faculty")
-          sheet = element.faculty.userInformation.facultyCode.toUpperCase();
+        if (type === "faculty") sheet = element.faculty.userInformation.facultyCode.toUpperCase();
         if (type === "room") sheet = element.room.roomName.toUpperCase();
         if (type === "section")
           sheet =
@@ -610,9 +574,7 @@ function downloadSpreadsheet(filename, events, type) {
           const section = element.sectionName.toUpperCase();
           const room = element.room.roomName.toUpperCase();
           const level = element.level.display.toUpperCase();
-          const initials = element.faculty
-            ? element.faculty.userInformation.facultyCode.toUpperCase()
-            : "";
+          const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
           rowData[element.day * 2] = {
             v: `${course}\n${program}${level}-${section}\n${room}\n${initials}`,
             t: "s",

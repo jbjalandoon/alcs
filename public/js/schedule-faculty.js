@@ -1,4 +1,3 @@
-console.log(days);
 let sem;
 const csrf = $("#csrf").val();
 const faculty = $("#faculty");
@@ -47,11 +46,9 @@ const config = {
         deleteEvents.push(info.event);
         calendar.getEvents().forEach((element) => {
           const sameID = element.id !== info.event.id;
-          const sameProgram =
-            element.extendedProps.program === eventInfo.program;
+          const sameProgram = element.extendedProps.program === eventInfo.program;
           const sameYear = element.extendedProps.year === eventInfo.year;
-          const sameSection =
-            element.extendedProps.section === eventInfo.section;
+          const sameSection = element.extendedProps.section === eventInfo.section;
           const sameCourse = element.extendedProps.course === eventInfo.course;
 
           if (sameID && sameProgram && sameYear && sameSection && sameCourse) {
@@ -83,15 +80,12 @@ const config = {
               cancelButtonColor: "#d33",
               confirmButtonText: "Yes, delete it!",
               preConfirm: () => {
-                return fetch(
-                  "/api/schedules/unassign/" + deleteEvents.map((e) => e.id),
-                  {
-                    method: "DELETE",
-                    headers: {
-                      "csrf-token": csrf,
-                    },
-                  }
-                )
+                return fetch("/api/schedules/unassign/" + deleteEvents.map((e) => e.id), {
+                  method: "DELETE",
+                  headers: {
+                    "csrf-token": csrf,
+                  },
+                })
                   .then((response) => {
                     return response.json();
                   })
@@ -103,15 +97,8 @@ const config = {
               if (clicked.isConfirmed) {
                 let notFound = true;
                 courseSearch.children().each((element) => {
-                  console.log(
-                    $(courseSearch.children()[element]).val() +
-                      "===" +
-                      result.data.course._id
-                  );
-                  if (
-                    result.data.course._id ===
-                    $(courseSearch.children()[element]).val()
-                  ) {
+                  console.log($(courseSearch.children()[element]).val() + "===" + result.data.course._id);
+                  if (result.data.course._id === $(courseSearch.children()[element]).val()) {
                     notFound = false;
                   }
                 });
@@ -187,9 +174,7 @@ fetch("/api/curriculums/active")
       });
     }
     $("#cardTitle").html(
-      `S.Y. ${
-        result.data[0].schoolYear[0].year
-      } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
+      `S.Y. ${result.data[0].schoolYear[0].year} (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
     sem = result.data[0].semesters._id;
     return fetch(`/api/curriculums/faculty/counts/${sem}`);
@@ -220,9 +205,7 @@ fetch("/api/curriculums/active")
     result.data.forEach((element) => {
       const firstName = element.userInformation.firstName.toUpperCase();
       const lastName = element.userInformation.lastName.toUpperCase();
-      const middleName = element.userInformation.middleName
-        ? element.userInformation.middleName.toUpperCase()
-        : "";
+      const middleName = element.userInformation.middleName ? element.userInformation.middleName.toUpperCase() : "";
       const name = firstName + " " + middleName + " " + lastName;
       faculty.append(new Option(name.toUpperCase(), element._id));
     });
@@ -246,17 +229,10 @@ fetch("/api/curriculums/active")
 $(facultyModal._element).on("show.bs.modal", (event) => {
   $(event.currentTarget)
     .find("#modalLabel")
-    .html(
-      $(event.relatedTarget).attr("data-bs-type").toUpperCase() +
-        " FACULTY MEMBERS"
-    );
+    .html($(event.relatedTarget).attr("data-bs-type").toUpperCase() + " FACULTY MEMBERS");
   const tbody = $(event.currentTarget).find("tbody");
 
-  fetch(
-    `/api/curriculums/faculty/type/${$(event.relatedTarget).attr(
-      "data-bs-type"
-    )}/${sem}`
-  )
+  fetch(`/api/curriculums/faculty/type/${$(event.relatedTarget).attr("data-bs-type")}/${sem}`)
     .then((response) => {
       return response.json();
     })
@@ -266,16 +242,8 @@ $(facultyModal._element).on("show.bs.modal", (event) => {
         const tr = $("<tr></tr>");
         tbody.append(
           tr
-            .append(
-              $("<td></td>")
-                .attr("id", element._id)
-                .html(element.facultyInformation.facultyCode.toUpperCase())
-            )
-            .append(
-              $("<td></td>")
-                .attr("id", element._id)
-                .html(element.facultyInformation.lastName.toUpperCase())
-            )
+            .append($("<td></td>").attr("id", element._id).html(element.facultyInformation.facultyCode.toUpperCase()))
+            .append($("<td></td>").attr("id", element._id).html(element.facultyInformation.lastName.toUpperCase()))
           // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
           // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
         );
@@ -311,9 +279,7 @@ faculty.on("change", () => {
     })
     .then((result) => {
       tags = [];
-      $("#spanFacultyType").html(
-        result.data.userInformation.facultyType.facultyType
-      );
+      $("#spanFacultyType").html(result.data.userInformation.facultyType.facultyType);
       unitsCount = 0;
       hoursCount = 0;
       calendar.getEvents().forEach((element) => {
@@ -473,20 +439,8 @@ courseSearch.on("change", () => {
           currentTimeRange.push({
             day: element.day,
             range: moment.range(
-              new Date(
-                0,
-                0,
-                0,
-                element.startTime.split(":")[0],
-                element.startTime.split(":")[1]
-              ),
-              new Date(
-                0,
-                0,
-                0,
-                element.endTime.split(":")[0],
-                element.endTime.split(":")[1]
-              )
+              new Date(0, 0, 0, element.startTime.split(":")[0], element.startTime.split(":")[1]),
+              new Date(0, 0, 0, element.endTime.split(":")[0], element.endTime.split(":")[1])
             ),
           });
         });
@@ -498,13 +452,9 @@ courseSearch.on("change", () => {
           );
           let bool1 = false,
             bool2 = false;
-          bool1 =
-            currentTimeRange[0].range.overlaps(eventRange) &&
-            currentTimeRange[0].day === eventDay;
+          bool1 = currentTimeRange[0].range.overlaps(eventRange) && currentTimeRange[0].day === eventDay;
           if (currentTimeRange[1]) {
-            bool2 =
-              currentTimeRange[1].range.overlaps(eventRange) &&
-              currentTimeRange[1].day === eventDay;
+            bool2 = currentTimeRange[1].range.overlaps(eventRange) && currentTimeRange[1].day === eventDay;
           }
           // console.log(bool1);
           // console.log(bool2);
@@ -528,9 +478,7 @@ courseSearch.on("change", () => {
             .append(
               $(document.createElement("span"))
                 .addClass("badge rounded-pill " + buttonBg)
-                .append(
-                  $(document.createElement("i")).addClass("bi bi-plus-lg")
-                )
+                .append($(document.createElement("i")).addClass("bi bi-plus-lg"))
             )
         );
         $("#courseList").append(listItem);
@@ -559,20 +507,8 @@ const assignFaculty = (eventArgs) => {
     currentTimeRange.push({
       day: parseInt(button.attr("daysofWeek")),
       range: moment.range(
-        new Date(
-          0,
-          0,
-          0,
-          button.attr("startTime").split(":")[0],
-          button.attr("startTime").split(":")[1]
-        ),
-        new Date(
-          0,
-          0,
-          0,
-          button.attr("endTime").split(":")[0],
-          button.attr("endTime").split(":")[1]
-        )
+        new Date(0, 0, 0, button.attr("startTime").split(":")[0], button.attr("startTime").split(":")[1]),
+        new Date(0, 0, 0, button.attr("endTime").split(":")[0], button.attr("endTime").split(":")[1])
       ),
     });
   });
@@ -584,13 +520,9 @@ const assignFaculty = (eventArgs) => {
         new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
       );
       let bool1, bool2;
-      bool1 =
-        currentTimeRange[0].range.overlaps(eventRange) &&
-        currentTimeRange[0].day === eventDay;
+      bool1 = currentTimeRange[0].range.overlaps(eventRange) && currentTimeRange[0].day === eventDay;
       if (currentTimeRange[1]) {
-        bool2 =
-          currentTimeRange[1].range.overlaps(eventRange) &&
-          currentTimeRange[1].day === eventDay;
+        bool2 = currentTimeRange[1].range.overlaps(eventRange) && currentTimeRange[1].day === eventDay;
       }
 
       if (bool1 || bool2) {
@@ -611,33 +543,19 @@ const assignFaculty = (eventArgs) => {
         const orderedList = $("<ol></ol>");
         orderedList.addClass("list-group list-group-numbered");
         conflictSchedules.forEach((element) => {
-          const startTime = moment(
-            new Date(
-              0,
-              0,
-              0,
-              element.start.getHours(),
-              element.start.getMinutes()
-            )
-          );
-          const endTime = moment(
-            new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
-          );
+          const startTime = moment(new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()));
+          const endTime = moment(new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes()));
           const listItem = $("<li></li>");
-          listItem.addClass(
-            "list-group-item d-flex justify-content-between align-items-start"
-          );
+          listItem.addClass("list-group-item d-flex justify-content-between align-items-start");
           const content = $("<div></div>");
           content.addClass("ms-2 me-auto");
           const header = $("<div></div>");
           header.addClass("fw-bold");
           header.html(
             element.extendedProps.course.toUpperCase() +
-              ` ${days[
-                element.start.getDay()
-              ].toUpperCase()} [${startTime.format(
+              ` ${days[element.start.getDay()].toUpperCase()} [${startTime.format("hh:mm A")} - ${endTime.format(
                 "hh:mm A"
-              )} - ${endTime.format("hh:mm A")}]`
+              )}]`
           );
           content.append(header);
           listItem.append(content);
@@ -677,8 +595,7 @@ const assignFaculty = (eventArgs) => {
                 startTime: button.attr("startTime"),
                 endTime: button.attr("endTime"),
                 type: button.attr("type"),
-                color:
-                  button.attr("type") === "lecture" ? "#007BFF" : "#3399FF",
+                color: button.attr("type") === "lecture" ? "#007BFF" : "#3399FF",
                 overlap: false,
                 durationEditable: false,
                 startEditable: false,

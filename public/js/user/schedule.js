@@ -62,7 +62,6 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
-    console.log(result);
     const downloadSpreadsheetButton = $("#downloadSpreadsheet");
     downloadSpreadsheetButton.off("click");
     result.data.forEach((element) => {
