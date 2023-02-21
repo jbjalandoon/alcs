@@ -28,16 +28,12 @@ const config = {
     const section = info.event.extendedProps.section.toUpperCase();
     const room = info.event.extendedProps.room.toUpperCase();
     const level = info.event.extendedProps.level.toUpperCase();
-    const firstName =
-      info.event.extendedProps.faculty.userInformation.firstName;
-    const middleName = info.event.extendedProps.faculty.userInformation
-      .middleName
+    const firstName = info.event.extendedProps.faculty.userInformation.firstName;
+    const middleName = info.event.extendedProps.faculty.userInformation.middleName
       ? info.event.extendedProps.faculty.userInformation.middleName
       : "";
     const lastName = info.event.extendedProps.faculty.userInformation.lastName;
-    const initials = `${firstName.charAt(0)}${middleName.charAt(
-      0
-    )}${lastName.charAt(0)}`.toUpperCase();
+    const initials = `${firstName.charAt(0)}${middleName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     // info.setExtendedProp(
     //   "customTitle",
     //   `${course}<br>${program}${level}-${section}<br>${room}<br>${initials}`
@@ -55,7 +51,6 @@ fetch("/api/curriculums/active")
   })
   .then((result) => {
     semester = result.data[0].semesters._id;
-    console.log(result.data[0]);
     return fetch(`/api/schedules/faculty/${semester}/${userId}`);
   })
   .then((response) => {
@@ -100,20 +95,16 @@ fetch("/api/curriculums/active")
       const tRow = $("<tr></tr>");
       tRow
         .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
-        .append(
-          $("<td></td>").html(element.course.courseDescription.toUpperCase())
-        )
+        .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
         .append($("<td></td>").html(element.course.units))
         .append(
           $("<td></td>").html(
             "<ul>" +
               element.data
                 .map((e) => {
-                  return `<li>${days[e.day]} ${e.startTime} - ${
-                    e.endTime
-                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
-                    e.sectionName
-                  })</li>`;
+                  return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${
+                    e.level.display
+                  }-${e.sectionName})</li>`;
                 })
                 .join("") +
               "</ul>"
@@ -155,23 +146,7 @@ function downloadSpreadsheet(filename, events) {
   // Create a 2D array with the time strings as the first column and the random activities at random times
   const data = [];
   const merges = [];
-  const cols = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-  ];
+  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"];
   const mergedCells = [];
   for (let i = 0; i < times.length; i++) {
     let row = [];
@@ -201,16 +176,12 @@ function downloadSpreadsheet(filename, events) {
         const section = element.extendedProps.section.toUpperCase();
         const room = element.extendedProps.room.toUpperCase();
         const level = element.extendedProps.level.toUpperCase();
-        const firstName =
-          element.extendedProps.faculty.userInformation.firstName;
-        const middleName = element.extendedProps.faculty.userInformation
-          .middleName
+        const firstName = element.extendedProps.faculty.userInformation.firstName;
+        const middleName = element.extendedProps.faculty.userInformation.middleName
           ? element.extendedProps.faculty.userInformation.middleName
           : "";
         const lastName = element.extendedProps.faculty.userInformation.lastName;
-        const initials = `${firstName.charAt(0)}${middleName.charAt(
-          0
-        )}${lastName.charAt(0)}`.toUpperCase();
+        const initials = `${firstName.charAt(0)}${middleName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
         rowData[element.start.getDay() * 2] = {
           v: `${course}\n${program}${level}-${section}\n${room}\n${initials}`,
           t: "s",
@@ -236,11 +207,7 @@ function downloadSpreadsheet(filename, events) {
           },
         });
         const mergeCell = [];
-        for (
-          let j = i + 2;
-          j <= i + 1 + element.extendedProps.hourDuration * 2;
-          j++
-        ) {
+        for (let j = i + 2; j <= i + 1 + element.extendedProps.hourDuration * 2; j++) {
           let singleCell = `${cols[element.start.getDay() * 2]}${j}`;
           mergeCell.push(singleCell);
         }
@@ -311,7 +278,6 @@ function downloadSpreadsheet(filename, events) {
 }
 
 function downloadSpreadsheetTable(filename, table) {
-  console.log(document.getElementById("downloadTable"));
   var wb = XLSX.utils.table_to_book(document.getElementById("scheduleTable"), {
     sheet: "Sheet JS",
   });
@@ -320,11 +286,8 @@ function downloadSpreadsheetTable(filename, table) {
     bookSST: true,
     type: "binary",
   });
-
-  saveAs(
-    new Blob([s2ab(wbout)], { type: "application/octet-stream" }),
-    "test.xlsx"
-  );
+ 
+  saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "test.xlsx");
 
   // This function is used to convert the workbook data to a binary string
 }

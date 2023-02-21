@@ -170,17 +170,13 @@ exports.getAllAssignableSchedules = (req, res, next) => {
 
         element.schedules.forEach((schedule) => {
           if (schedule.type === "lecture") {
-            currentCourseHourCount[element._id][
-              schedule.course
-            ].currentLecture += schedule.hour;
+            currentCourseHourCount[element._id][schedule.course].currentLecture += schedule.hour;
             hour = Math.abs(
-              currentCourseHourCount[element._id][schedule.course]
-                .currentLecture -
+              currentCourseHourCount[element._id][schedule.course].currentLecture -
                 currentCourseHourCount[element._id][schedule.course].maxLecture
             );
           } else {
-            currentCourseHourCount[element._id][schedule.course].currentLab +=
-              schedule.hour;
+            currentCourseHourCount[element._id][schedule.course].currentLab += schedule.hour;
             hour = Math.abs(
               currentCourseHourCount[element._id][schedule.course].currentLab -
                 currentCourseHourCount[element._id][schedule.course].maxLab
@@ -190,14 +186,11 @@ exports.getAllAssignableSchedules = (req, res, next) => {
       });
       for (const key in currentCourseHourCount) {
         for (const otherKey in currentCourseHourCount[key]) {
-          console.log(`${otherKey}: ${currentCourseHourCount[key][otherKey]}`);
           const lab = Math.abs(
-            currentCourseHourCount[key][otherKey].currentLab -
-              currentCourseHourCount[key][otherKey].maxLab
+            currentCourseHourCount[key][otherKey].currentLab - currentCourseHourCount[key][otherKey].maxLab
           );
           const lecture = Math.abs(
-            currentCourseHourCount[key][otherKey].currentLecture -
-              currentCourseHourCount[key][otherKey].maxLecture
+            currentCourseHourCount[key][otherKey].currentLecture - currentCourseHourCount[key][otherKey].maxLecture
           );
           if (lab !== 0) {
             ctr++;
@@ -298,9 +291,7 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
                 course.course.qualification.licenseIndustry.some((r) => {
                   element.academicQualification.licenseIndustry.includes(r);
                 })) &&
-              courseTaken
-                .map((element) => element._id.toString())
-                .includes(course._id.toString())
+              courseTaken.map((element) => element._id.toString()).includes(course._id.toString())
             ) {
               return true;
             } else {
@@ -313,9 +304,7 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
               course.course.qualification.licenseIndustry.some((r) =>
                 element.academicQualification.licenseIndustry.includes(r)
               ) ||
-              courseTaken
-                .map((e) => e._id.toString())
-                .includes(course._id.toString())
+              courseTaken.map((e) => e._id.toString()).includes(course._id.toString())
             ) {
               return true;
             } else {
@@ -324,15 +313,13 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
           }
         });
       });
-      const filteredAcademicQualification = academicQualification.filter(
-        (element) => {
-          return result
-            .map((element) => {
-              return element.course.qualification.academicQualification;
-            })
-            .includes(element.academicQualification._id);
-        }
-      );
+      const filteredAcademicQualification = academicQualification.filter((element) => {
+        return result
+          .map((element) => {
+            return element.course.qualification.academicQualification;
+          })
+          .includes(element.academicQualification._id);
+      });
       res.json({ ok: true, data: filteredResult });
     })
     .catch((error) => {
@@ -384,13 +371,10 @@ exports.getAllLoadableSchedules = (req, res, next) => {
 };
 
 exports.getYearLevelSchedules = (req, res, next) => {
-  console.log(req.params.yearLevel);
   Curriculum.aggregate([
     {
       $match: {
-        "semesters.programs.year._id": mongoose.Types.ObjectId(
-          req.params.yearLevel
-        ),
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.yearLevel),
       },
     },
     {
@@ -404,9 +388,7 @@ exports.getYearLevelSchedules = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year._id": mongoose.Types.ObjectId(
-          req.params.yearLevel
-        ),
+        "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.yearLevel),
       },
     },
 
@@ -510,8 +492,7 @@ exports.getOneSchedule = (req, res, next) => {
     {
       $match: {
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
-        "semesters.programs.year.sections.schedules._id":
-          mongoose.Types.ObjectId(req.params.schedule),
+        "semesters.programs.year.sections.schedules._id": mongoose.Types.ObjectId(req.params.schedule),
       },
     },
     {
@@ -611,8 +592,7 @@ exports.getRoomSchedule = (req, res, next) => {
       $match: {
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
         // "semesters.programs.year.sections.schedules.faculty": { $ne: null },
-        "semesters.programs.year.sections.schedules.room":
-          mongoose.Types.ObjectId(req.params.room),
+        "semesters.programs.year.sections.schedules.room": mongoose.Types.ObjectId(req.params.room),
       },
     },
 
@@ -802,8 +782,7 @@ exports.getFinishedRoomSchedule = (req, res, next) => {
       $match: {
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
         "semesters.programs.year.sections.schedules.faculty": { $ne: null },
-        "semesters.programs.year.sections.schedules.room":
-          mongoose.Types.ObjectId(req.params.room),
+        "semesters.programs.year.sections.schedules.room": mongoose.Types.ObjectId(req.params.room),
       },
     },
     {
@@ -901,8 +880,7 @@ exports.getFacultySchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty":
-          mongoose.Types.ObjectId(req.params.faculty),
+        "semesters.programs.year.sections.schedules.faculty": mongoose.Types.ObjectId(req.params.faculty),
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1002,8 +980,7 @@ exports.getFacultyScheduleUnitHour = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty":
-          mongoose.Types.ObjectId(req.params.faculty),
+        "semesters.programs.year.sections.schedules.faculty": mongoose.Types.ObjectId(req.params.faculty),
         // "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1041,9 +1018,7 @@ exports.getSectionSchedule = (req, res, next) => {
   Curriculum.aggregate([
     {
       $match: {
-        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
-          req.params.section
-        ),
+        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
       },
     },
     {
@@ -1060,9 +1035,7 @@ exports.getSectionSchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
-          req.params.section
-        ),
+        "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
       },
     },
     {
@@ -1276,7 +1249,7 @@ exports.getGroupedSectionSchedule = (req, res, next) => {
     });
 };
 
-exports.getGroupedFacultySchedule = (req, res, next) => {
+exports.getGroupedAllFacultySchedule = (req, res, next) => {
   Curriculum.aggregate([
     {
       $match: {
@@ -1489,7 +1462,7 @@ exports.getGroupedRoomSchedule = (req, res, next) => {
     });
 };
 
-exports.getGroupedScheduleFaculty = (req, res, next) => {
+exports.getGroupedCourseScheduleFaculty = (req, res, next) => {
   Curriculum.aggregate([
     {
       $match: {
@@ -1513,8 +1486,7 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules.faculty":
-          mongoose.Types.ObjectId(req.params.faculty),
+        "semesters.programs.year.sections.schedules.faculty": mongoose.Types.ObjectId(req.params.faculty),
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1583,7 +1555,6 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
     { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
   ])
     .then((result) => {
-      console.log(result[0].data);
       res.json({ ok: true, data: result });
     })
     .then((error) => {
@@ -1591,9 +1562,123 @@ exports.getGroupedScheduleFaculty = (req, res, next) => {
     });
 };
 
+exports.getGroupedCourseAllScheduleFaculty = (req, res, next) => {
+  Curriculum.aggregate([
+    {
+      $match: {
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $unwind: "$semesters",
+    },
+    {
+      $unwind: "$semesters.programs",
+    },
+    {
+      $unwind: "$semesters.programs.year",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections",
+    },
+    {
+      $unwind: "$semesters.programs.year.sections.schedules",
+    },
+    {
+      $match: {
+        "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+      },
+    },
+    {
+      $project: {
+        _id: "$semesters.programs.year.sections.schedules._id",
+        section: "$semesters.programs.year.sections._id",
+        yearLevel: "$semesters.programs.year.yearLevel",
+        sectionName: "$semesters.programs.year.sections.section",
+        program: "$semesters.programs.program",
+        course: "$semesters.programs.year.sections.schedules.course",
+        type: "$semesters.programs.year.sections.schedules.type",
+        hour: "$semesters.programs.year.sections.schedules.hour",
+        day: "$semesters.programs.year.sections.schedules.day",
+        startTime: "$semesters.programs.year.sections.schedules.startTime",
+        endTime: "$semesters.programs.year.sections.schedules.endTime",
+        room: "$semesters.programs.year.sections.schedules.room",
+        faculty: "$semesters.programs.year.sections.schedules.faculty",
+      },
+    },
+    {
+      $lookup: {
+        from: "programs",
+        localField: "program",
+        foreignField: "_id",
+        as: "program",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "room",
+        foreignField: "_id",
+        as: "room",
+      },
+    },
+    {
+      $lookup: {
+        from: "levels",
+        localField: "yearLevel",
+        foreignField: "_id",
+        as: "level",
+      },
+    },
+    {
+      $lookup: {
+        from: "courses",
+        localField: "course",
+        foreignField: "_id",
+        as: "course",
+      },
+    },
+    { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+    { $group: { _id: { faculty: "$faculty", course: "$course" }, data: { $push: "$$ROOT" } } },
+    { $group: { _id: "$_id.faculty", schedule: { $push: { course: "$_id.course", data: "$data" } } } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "faculty",
+      },
+    },
+
+    { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: "$schedule.course", preserveNullAndEmptyArrays: true } },
+  ])
+    .then((result) => {
+      const returnResult = result.map((element) => {
+        return {
+          _id: element._id,
+          schedule: element.schedule.map((element) => {
+            return {
+              course: element.course[0],
+              data: element.data,
+            };
+          }),
+          faculty: element.faculty,
+        };
+      });
+      res.json({ status: 200, data: returnResult });
+    })
+    .then((error) => {
+      console.log(error);
+    });
+};
+
 exports.getFacultiesSchedule = (req, res, next) => {
-  if (!req.params.semester.match(/^[0-9a-fA-F]{24}$/))
-    return res.json({ ok: false, msg: "Invalid Query" });
+  if (!req.params.semester.match(/^[0-9a-fA-F]{24}$/)) return res.json({ ok: false, msg: "Invalid Query" });
   Curriculum.aggregate([
     {
       $match: {
@@ -1713,16 +1798,11 @@ exports.reAssignSchedule = (req, res, next) => {
     },
     {
       $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day":
-          req.body.day,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].startTime":
-          req.body.startTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
-          req.body.endTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
-          req.body.room,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty":
-          null,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day": req.body.day,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].startTime": req.body.startTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime": req.body.endTime,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room": req.body.room,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
       },
     },
     { arrayFilters: [{ "schedule._id": req.params.schedule }] }
@@ -1744,8 +1824,7 @@ exports.loadSchedule = (req, res, next) => {
     },
     {
       $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty":
-          req.body.faculty,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": req.body.faculty,
       },
     },
     {
@@ -1792,8 +1871,7 @@ exports.adjustSchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules._id":
-          mongoose.Types.ObjectId(req.params.schedule),
+        "semesters.programs.year.sections.schedules._id": mongoose.Types.ObjectId(req.params.schedule),
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1811,23 +1889,15 @@ exports.adjustSchedule = (req, res, next) => {
         },
         {
           $set: {
-            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime":
-              req.body.startTime,
-            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime":
-              req.body.endTime,
-            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room":
-              req.body.room,
-            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour":
-              req.body.hour,
-            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[course].faculty":
-              null,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime": req.body.startTime,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime": req.body.endTime,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room": req.body.room,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour": req.body.hour,
+            "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[course].faculty": null,
           },
         },
         {
-          arrayFilters: [
-            { "schedule._id": req.params.schedule },
-            { "course.course": course },
-          ],
+          arrayFilters: [{ "schedule._id": req.params.schedule }, { "course.course": course }],
         }
       );
     })
@@ -1849,14 +1919,11 @@ exports.unassignSchedule = (req, res, next) => {
     },
     {
       $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty":
-          null,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
       },
     },
     {
-      arrayFilters: [
-        { "schedule._id": { $in: req.params.schedule.split(",") } },
-      ],
+      arrayFilters: [{ "schedule._id": { $in: req.params.schedule.split(",") } }],
     }
   )
     .then((result) => {
@@ -1893,8 +1960,7 @@ exports.deleteSchedule = (req, res, next) => {
     },
     {
       $match: {
-        "semesters.programs.year.sections.schedules._id":
-          mongoose.Types.ObjectId(req.params.schedule),
+        "semesters.programs.year.sections.schedules._id": mongoose.Types.ObjectId(req.params.schedule),
         "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
     },
@@ -1906,17 +1972,15 @@ exports.deleteSchedule = (req, res, next) => {
   ])
     .then((result) => {
       course = result[0].course;
-      console.log("hello");
       return Curriculum.updateOne(
         {
           "semesters._id": req.params.semester,
         },
         {
           $pull: {
-            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules":
-              {
-                _id: req.params.schedule,
-              },
+            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules": {
+              _id: req.params.schedule,
+            },
           },
         },
         {
@@ -1929,15 +1993,13 @@ exports.deleteSchedule = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log("test");
       return Curriculum.updateOne(
         {
           "semesters._id": req.params.semester,
         },
         {
           $set: {
-            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[course].faculty":
-              null,
+            "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[course].faculty": null,
           },
         },
         {
@@ -1950,7 +2012,6 @@ exports.deleteSchedule = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
       if (!result.modifiedCount) {
         return res.json({ status: 500 });
       }

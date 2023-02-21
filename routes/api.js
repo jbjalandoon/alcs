@@ -53,20 +53,9 @@ router.delete("/rooms/:id", room.delete);
 
 router.get("/academic-qualifications", academicQualification.get);
 router.get("/academic-qualifications/:id", academicQualification.getOne);
-router.get(
-  "/academic-qualifications/multiple/:academicQualification",
-  academicQualification.getMultiple
-);
-router.post(
-  "/academic-qualifications",
-  validation.academicQualification,
-  academicQualification.post
-);
-router.put(
-  "/academic-qualifications/:id",
-  validation.academicQualification,
-  academicQualification.edit
-);
+router.get("/academic-qualifications/multiple/:academicQualification", academicQualification.getMultiple);
+router.post("/academic-qualifications", validation.academicQualification, academicQualification.post);
+router.put("/academic-qualifications/:id", validation.academicQualification, academicQualification.edit);
 router.delete("/academic-qualifications/:id", academicQualification.delete);
 // router.delete("/academic-qualifications/:id", academicQualification.delete);
 
@@ -85,14 +74,8 @@ router.post("/faculty", validation.faculty, faculty.post);
 router.put("/faculty/:id", validation.faculty, faculty.put);
 router.post("/faculty/course/:id", faculty.postCourse);
 router.post("/faculty/schedule-preference/:id", faculty.postSchedulePreference);
-router.put(
-  "/faculty/schedule-preference/:id/:preference",
-  faculty.putSchedulePreference
-);
-router.delete(
-  "/faculty/schedule-preference/:id/:preference",
-  faculty.deleteSchedulePreference
-);
+router.put("/faculty/schedule-preference/:id/:preference", faculty.putSchedulePreference);
+router.delete("/faculty/schedule-preference/:id/:preference", faculty.deleteSchedulePreference);
 router.post("/faculty/send-password/:id/", faculty.sendNewPassword);
 router.post("/faculty/upload", faculty.postSpreadsheet);
 router.delete("/faculty/:id", faculty.delete);
@@ -122,11 +105,7 @@ router.get("/curriculums/active", curriculum.getActiveSemester);
 router.put("/curriculums/active/:semester", curriculum.putActiveSemester);
 
 router.get("/curriculums/programs/:semester", curriculum.getPrograms);
-router.post(
-  "/curriculums/programs/:semester",
-  curriculumValidation.postPrograms,
-  curriculum.postPrograms
-);
+router.post("/curriculums/programs/:semester", curriculumValidation.postPrograms, curriculum.postPrograms);
 router.get("/curriculums/program/:program", curriculum.getOneProgram);
 router.delete("/curriculums/program/:program", curriculum.deleteOneProgram);
 
@@ -140,35 +119,18 @@ router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
 router.get("/curriculums/faculty/:semester", curriculum.getActiveFaculty);
-router.get(
-  "/curriculums/faculty/counts/:semester",
-  curriculum.getActiveFacultyCounts
-);
-router.get(
-  "/curriculums/faculty/type/:type/:semester",
-  curriculum.getActiveFacultyType
-);
+router.get("/curriculums/faculty/counts/:semester", curriculum.getActiveFacultyCounts);
+router.get("/curriculums/faculty/type/:type/:semester", curriculum.getActiveFacultyType);
 router.post("/curriculums/faculty/:semester", curriculum.postActiveFaculty);
-router.delete(
-  "/curriculums/faculty/:semester/:id",
-  curriculum.deleteActiveFaculty
-);
+router.delete("/curriculums/faculty/:semester/:id", curriculum.deleteActiveFaculty);
 
 router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 router.delete("/curriculums/course/:year/:course", curriculum.deleteCourse);
-router.post(
-  "/curriculums/course/:year",
-  curriculumValidation.courses,
-  curriculum.postCourse
-);
+router.post("/curriculums/course/:year", curriculumValidation.courses, curriculum.postCourse);
 router.get("/curriculums/course/:year", curriculum.getCourse);
 
-router.post(
-  "/curriculums/year/:program",
-  validation.postYearLevel,
-  curriculum.addYearLevel
-);
+router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
 router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
 
@@ -177,14 +139,8 @@ router.delete("/schedules/single/:semester/:schedule", schedule.deleteSchedule);
 
 router.get("/schedules", schedule.getSchedule);
 
-router.get(
-  "/schedules/loadable-schedules/:sem",
-  schedule.getAllLoadableSchedules
-);
-router.get(
-  "/schedules/assignable-schedules/:semester",
-  schedule.getAllAssignableSchedules
-);
+router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules);
+router.get("/schedules/assignable-schedules/:semester", schedule.getAllAssignableSchedules);
 
 router.post("/schedules/assign/:section", schedule.assignSchedule);
 router.put("/schedules/reassign/:section/:schedule", schedule.reAssignSchedule);
@@ -194,49 +150,26 @@ router.put("/schedules/load/:schedule", schedule.loadSchedule);
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
 
 router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
-router.get(
-  "/schedules/room/finished/:semester/:room",
-  schedule.getFinishedRoomSchedule
-);
+router.get("/schedules/room/finished/:semester/:room", schedule.getFinishedRoomSchedule);
 router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
-router.get(
-  "/schedules/faculty/:semester/:faculty/",
-  schedule.getFacultySchedule
-);
-router.get(
-  "/schedules/faculty/unit-hour/:faculty/:semester",
-  schedule.getFacultyScheduleUnitHour
-);
+router.get("/schedules/faculty/:semester/:faculty/", schedule.getFacultySchedule);
+router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
 router.get("/schedules/section/:section/", schedule.getSectionSchedule);
 
-router.get(
-  "/schedules/section/:semester/:program",
-  schedule.getGroupedSectionSchedule
-);
-router.get("/schedules/faculty/:semester/", schedule.getGroupedFacultySchedule);
+router.get("/schedules/section/:semester/:program", schedule.getGroupedSectionSchedule);
+
+router.get("/schedules/faculty/:semester/", schedule.getGroupedAllFacultySchedule);
 router.get("/schedules/room/:semester/", schedule.getGroupedRoomSchedule);
-router.get(
-  "/schedules/faculty/grouped/:semester/:faculty/",
-  schedule.getGroupedScheduleFaculty
-);
-router.get(
-  "/schedules/loadable-schedules/:sem/:faculty",
-  schedule.getFacultyLoadableSchedules
-); // Routes for getting loadable scheduels for faculty
-router.get(
-  "/schedules/loadable-schedules/:sem",
-  schedule.getAllLoadableSchedules
-); // Routes for getting all of the loadable schedules
+
+router.get("/schedules/faculty/grouped/course/:semester/:faculty/", schedule.getGroupedCourseScheduleFaculty);
+router.get("/schedules/faculty/grouped/course/:semester", schedule.getGroupedCourseAllScheduleFaculty);
+
+router.get("/schedules/loadable-schedules/:sem/:faculty", schedule.getFacultyLoadableSchedules); // Routes for getting loadable scheduels for faculty
+router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules); // Routes for getting all of the loadable schedules
 
 router.get("/schedules/faculties/:semester", schedule.getFacultiesSchedule);
-router.get(
-  "/schedules/unassigned-schedule/:semester",
-  schedule.getUnassignedSchedules
-);
-router.get(
-  "/schedules/unloaded-schedule/:semester",
-  schedule.getUnloadedSchedules
-);
+router.get("/schedules/unassigned-schedule/:semester", schedule.getUnassignedSchedules);
+router.get("/schedules/unloaded-schedule/:semester", schedule.getUnloadedSchedules);
 
 module.exports = router;

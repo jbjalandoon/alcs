@@ -160,12 +160,14 @@ fetch("/api/curriculums/active")
                 });
             });
 
-            return fetch(`/api/schedules/faculty/grouped/${sem}/${facultyView.val()}`);
+            return fetch(`/api/schedules/faculty/grouped/course/${sem}/${facultyView.val()}`);
           })
           .then((response) => {
             return response.json();
           })
           .then((result) => {
+            const downloadCurrentFacultyTable = $("#downloadCurrentFacultyTable");
+            const downloadAllFacultyTable = $("#downloadAllFacultyTable");
             result.data.forEach((element) => {
               const facultyScheduleTable = $("#facultyScheduleTable");
               const tBody = facultyScheduleTable.find("tbody");
@@ -190,6 +192,26 @@ fetch("/api/curriculums/active")
                   )
                 );
               tBody.append(tRow);
+            });
+            downloadCurrentFacultyTable.on("click", () => {
+              downloadSpreadsheetTable(
+                "filename.xlsx",
+                [result.data].map((element) => {
+                  return { schedule: element };
+                })
+              );
+            });
+            downloadAllFacultyTable.on("click", () => {
+              fetch(`/api/schedules/faculty/grouped/course/${sem}`)
+                .then((response) => {
+                  return response.json();
+                })
+                .then((result) => {
+                  downloadSpreadsheetTable("filename.xlsx", result.data);
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
             });
           })
           .catch((error) => {
@@ -659,6 +681,65 @@ function downloadSpreadsheet(filename, events, type) {
       { wch: 20 },
       { wch: 3 }, // "characters"
       { wch: 20 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, sheet);
+  });
+
+  // Create a worksheet with the data and a header row with labels for Time and Monday through Friday
+
+  // Merge the cells for each activity
+
+  // Add the worksheet to the Excel file
+
+  // Write the Excel file to the filesystem
+  XLSX.writeFile(wb, filename);
+}
+
+function downloadSpreadsheetTable(filename, events) {
+  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+
+  const wb = XLSX.utils.book_new();
+  events.forEach((element) => {
+    console.log(element);
+    const data = [];
+    element.schedule.forEach((element) => {
+      data.push([
+        cellData(element.course.courseCode.toUpperCase()),
+        cellData(element.course.courseDescription.toUpperCase()),
+        cellData(element.course.units),
+        cellData(element.course.lecture),
+        cellData(element.course.lab),
+        cellData(
+          element.data
+            .map((element) => {
+              return `${element.day} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
+            })
+            .join(" | ")
+        ),
+      ]);
+    });
+    let sheet;
+    const ws = XLSX.utils.aoa_to_sheet([
+      [
+        cellData("Course Code"),
+        cellData("Course"),
+        cellData("Units"),
+        cellData("Lecture"),
+        cellData("Lab"),
+        cellData("Schedule"),
+      ],
+      ...data,
+    ]);
+
+    ws["!cols"] = [
+      { wch: 25 }, // "characters"
+      { wch: 30 }, // "pixels"
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 40 },
     ];
     XLSX.utils.book_append_sheet(wb, ws, sheet);
   });
