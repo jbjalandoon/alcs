@@ -23,7 +23,7 @@ let copyYear, copySem;
 const addNewCourseModal = new bootstrap.Modal($("#addNewCourseModal"));
 const addNewSectionModal = new bootstrap.Modal($("#addNewSectionModal"));
 
-fetch("/api/curriculums/active")
+fetch("/api/curriculums/semesters/active")
   .then((response) => {
     return response.json();
   })
@@ -58,7 +58,7 @@ fetch("/api/curriculums/active")
       programs.push(element.program.programCode.toUpperCase());
     });
     viewProgram.on("change", () => {
-      fetch(`/api/curriculums/program/${viewProgram.val()}`)
+      fetch(`/api/curriculums/programs/${semester}/${viewProgram.val()}`)
         .then((response) => {
           return response.json();
         })
@@ -485,7 +485,7 @@ $("#removeProgram").on("click", () => {
     cancelButtonColor: "#d33",
     confirmButtonText: "Yes, delete it!",
     preConfirm: () => {
-      return fetch("/api/curriculums/program/" + viewProgram.val(), {
+      return fetch("/api/curriculums/program/"+ semester + "/" + viewProgram.val(), {
         method: "DELETE",
         headers: {
           "csrf-token": csrf,
@@ -607,6 +607,7 @@ $("#copySubmit").on("click", () => {
       title: "Active Semester and Selected Semester is same",
     });
   }
+  console.log("/api/curriculums/copy/" + semester + "/" + copySem.val());
   fetch("/api/curriculums/copy/" + semester + "/" + copySem.val(), {
     method: "POST",
     headers: { "csrf-token": csrf, "Content-Type": "application/json" },

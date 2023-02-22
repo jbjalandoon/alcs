@@ -21,6 +21,9 @@ const error = require("./controllers/error");
 const db_uri = process.env.DB;
 
 const apiRoutes = require("./routes/api");
+
+const curriculumRoutes = require("./routes/curriculum");
+
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
 const authenticationRoutes = require("./routes/authentication");
@@ -37,15 +40,8 @@ const mailTransporter = nodemailer.createTransport({
   },
 });
 
-// const fileStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, path.join(__dirname, "uploads"));
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
-//   },
-// });
 // app.use(helmet());
+
 app.use(compression());
 app.use(multer({ storage: multer.memoryStorage() }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
@@ -53,6 +49,7 @@ app.use(express.json({}));
 
 app.use(express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
+
 app.use(
   session({
     secret: "my secret",
@@ -61,6 +58,7 @@ app.use(
     store: store,
   })
 );
+
 app.use(csrf());
 app.use(flash());
 app.set("view engine", "ejs");
@@ -79,14 +77,12 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   next();
 });
 
 app.use("/authentication", authenticationRoutes);
+
 app.use((req, res, next) => {
   if (res.locals.isActive) {
     next();
@@ -94,6 +90,7 @@ app.use((req, res, next) => {
     res.redirect("/authentication/login?landing=" + req.path);
   }
 });
+
 app.use(
   "/admin",
   (req, res, next) => {
@@ -109,6 +106,8 @@ app.use(
   },
   adminRoutes
 );
+
+
 app.use(
   "/user",
   (req, res, next) => {
@@ -121,7 +120,10 @@ app.use(
   },
   userRoutes
 );
+
+
 app.use("/api", apiRoutes);
+app.use("/api/curriculums", curriculumRoutes);
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);
 let randomString;

@@ -99,22 +99,22 @@ router.get("/tags", tag.get);
 // router.delete("/tags/:id", faculty.delete);
 
 router.get("/curriculums/school-year", curriculum.getSchoolYears);
-router.get("/curriculums/semesters/:schoolYear", curriculum.getSemesters);
+// router.get("/curriculums/semesters/:schoolYear", curriculum.getSemesters);
 
-router.get("/curriculums/active", curriculum.getActiveSemester);
-router.put("/curriculums/active/:semester", curriculum.putActiveSemester);
+// router.get("/curriculums/active", curriculum.getActiveSemester);
+// router.put("/curriculums/active/:semester", curriculum.putActiveSemester);
 
-router.get("/curriculums/programs/:semester", curriculum.getPrograms);
-router.post("/curriculums/programs/:semester", curriculumValidation.postPrograms, curriculum.postPrograms);
-router.get("/curriculums/program/:program", curriculum.getOneProgram);
-router.delete("/curriculums/program/:program", curriculum.deleteOneProgram);
+// router.get("/curriculums/programs/:semester", curriculum.getPrograms);
+// router.post("/curriculums/programs/:semester", curriculumValidation.postPrograms, curriculum.postPrograms);
+// router.get("/curriculums/program/:program", curriculum.getOneProgram);
+// router.delete("/curriculums/program/:program", curriculum.deleteOneProgram);
 
 router.get("/curriculums/sections/:year_level", curriculum.getSections);
 router.post("/curriculums/sections/:year", curriculum.postSections);
 
 router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
 
-router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
+// router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
 
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
