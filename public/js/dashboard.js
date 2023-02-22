@@ -168,9 +168,11 @@ fetch("/api/curriculums/active")
           .then((result) => {
             const downloadCurrentFacultyTable = $("#downloadCurrentFacultyTable");
             const downloadAllFacultyTable = $("#downloadAllFacultyTable");
+            const facultyScheduleTable = $("#facultyScheduleTable");
+            const tBody = facultyScheduleTable.find("tbody");
+            facultyScheduleTable.find("tobdy").empty();
+            let facultyCode;
             result.data.forEach((element) => {
-              const facultyScheduleTable = $("#facultyScheduleTable");
-              const tBody = facultyScheduleTable.find("tbody");
               const tRow = $("<tr></tr>");
               tRow
                 .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
@@ -183,6 +185,7 @@ fetch("/api/curriculums/active")
                     "<ul>" +
                       element.data
                         .map((e) => {
+                          facultyCode = e.faculty.userInformation.facultyCode;
                           return `<li>${days[e.day]} ${e.startTime} - ${
                             e.endTime
                           } (${e.program.programCode.toUpperCase()}${e.level.display}-${e.sectionName})</li>`;
@@ -195,7 +198,7 @@ fetch("/api/curriculums/active")
             });
             downloadCurrentFacultyTable.on("click", () => {
               downloadSpreadsheetTable(
-                "filename.xlsx",
+                `table-view-${facultyCode}.xlsx`,
                 [result.data].map((element) => {
                   return { schedule: element };
                 })
@@ -207,7 +210,7 @@ fetch("/api/curriculums/active")
                   return response.json();
                 })
                 .then((result) => {
-                  downloadSpreadsheetTable("filename.xlsx", result.data);
+                  downloadSpreadsheetTable("table-view-faculty.xlsx", result.data);
                 })
                 .catch((error) => {
                   console.log(error);
@@ -700,7 +703,6 @@ function downloadSpreadsheetTable(filename, events) {
 
   const wb = XLSX.utils.book_new();
   events.forEach((element) => {
-    console.log(element);
     const data = [];
     element.schedule.forEach((element) => {
       data.push([
@@ -721,6 +723,9 @@ function downloadSpreadsheetTable(filename, events) {
       ]);
     });
     let sheet;
+
+    // sheet = element.faculty.userInformation.facultyCode.toUpperCase();
+
     const ws = XLSX.utils.aoa_to_sheet([
       [
         cellData("Course Code"),

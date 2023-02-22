@@ -96,6 +96,7 @@ fetch("/api/curriculums/active")
     const downloadTable = $("#downloadSpreadsheetTable");
     downloadTable.off("click");
     downloadTable.removeClass("d-none");
+    scheduleTable.find("tbody").empty();
     result.data.forEach((element) => {
       const tBody = scheduleTable.find("tbody");
       const tRow = $("<tr></tr>");
