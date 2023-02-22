@@ -3,6 +3,9 @@ const router = express.Router();
 
 const Semester = require("../controllers/api/curriculum/semester");
 const Program = require("../controllers/api/curriculum/program");
+const Course = require("../controllers/api/curriculum/course");
+const Section = require("../controllers/api/curriculum/section");
+const Faculty = require("../controllers/api/curriculum/faculty");
 
 const CurriculumValidation = require("../validations/curriculum");
 
@@ -20,5 +23,23 @@ router.get("/programs/:semester/:program", Program.getOneProgram);
 router.delete("/programs/:program", Program.deleteOneProgram);
 // ---> END OF PROGRAM <---
 
+// ---> START OF COURSE <---
+router.get("/course/:year", Course.getCourses);
+router.post("/course/:year", CurriculumValidation.courses, Course.postCourse);
+router.delete("/course/:year/:course", Course.deleteCourse);
+// ---> END OF COURSE <---
+
+// ---> START OF SECTION <---
+router.get("/sections/:level", Section.getSections);
+router.post("/sections/:level", Section.postSection);
+// ---> END OF SECTION <---
+
+// ---> START OF SECTION <---
+router.get("/curriculums/faculty/:semester", Faculty.getActiveFaculty);
+router.get("/curriculums/faculty/counts/:semester", Faculty.getActiveFacultyCounts);
+router.get("/curriculums/faculty/type/:type/:semester", Faculty.getActiveFacultyType);
+router.post("/curriculums/faculty/:semester", Faculty.postActiveFaculty);
+router.delete("/curriculums/faculty/:semester/:id", Faculty.deleteActiveFaculty);
+// ---> END OF SECTION <---
 
 module.exports = router;
