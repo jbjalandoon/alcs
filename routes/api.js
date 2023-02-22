@@ -166,7 +166,7 @@ router.get("/schedules/faculty/grouped/course/:semester/:faculty/", schedule.get
 router.get("/schedules/faculty/grouped/course/:semester", schedule.getGroupedCourseAllScheduleFaculty);
 
 router.get("/schedules/section/grouped/course/:semester/:section", schedule.getGroupedCourseScheduleSection);
-// router.get("/schedules/section/grouped/course/:semester", schedule.getGroupedAllScheduleSection);
+router.get("/schedules/section/grouped/course/:semester", schedule.getGroupedCourseAllScheduleSection);
 
 router.get("/schedules/loadable-schedules/:sem/:faculty", schedule.getFacultyLoadableSchedules); // Routes for getting loadable scheduels for faculty
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules); // Routes for getting all of the loadable schedules

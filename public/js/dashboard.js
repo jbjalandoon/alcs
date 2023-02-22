@@ -428,7 +428,10 @@ fetch("/api/curriculums/active")
                         return response.json();
                       })
                       .then((result) => {
-                        console.log(result);
+                        const downloadAllSecionTable = $("#downloadCurrentSecionTable");
+                        const downloadCurrentSecionTable = $("#downloadAllSecionTable");
+                        downloadAllSecionTable.off("click");
+                        downloadCurrentSecionTable.off("click");
                         const sectionScheduleTable = $("#sectionScheduleTable");
                         const tBody = sectionScheduleTable.find("tbody");
                         tBody.empty();
@@ -447,7 +450,7 @@ fetch("/api/curriculums/active")
                                     .map((e) => {
                                       return `<li>${days[e.day]} ${e.startTime} - ${
                                         e.endTime
-                                      } (${e.program.programCode.toUpperCase()}${e.yearLevel.display}-${
+                                      } (${e.program.programCode.toUpperCase()}${e.level.display}-${
                                         e.sectionName
                                       })</li>`;
                                     })
@@ -456,6 +459,29 @@ fetch("/api/curriculums/active")
                               )
                             );
                           tBody.append(tRow);
+                        });
+                        downloadAllSecionTable.on("click", () => {
+                          downloadSpreadsheetTable(
+                            `${programView.find("option").filter(":selected").text()} ${yearView
+                              .find("option")
+                              .filter(":selected")
+                              .text()}-${sectionView.find("option").filter(":selected").text()}.xlsx`,
+                            [result.data].map((element) => {
+                              return { schedule: element };
+                            })
+                          );
+                        });
+                        downloadCurrentSecionTable.on("click", () => {
+                          fetch(`/api/schedules/section/grouped/course/${sem}`)
+                            .then((response) => {
+                              return response.json();
+                            })
+                            .then((result) => {
+                              downloadSpreadsheetTable("table-view-faculty.xlsx", result.data);
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            });
                         });
                       })
                       .catch((error) => {
