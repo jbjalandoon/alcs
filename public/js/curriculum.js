@@ -570,7 +570,7 @@ $(copyModal._element).on("show.bs.modal", (event) => {
       );
 
       result.data.forEach((element) => {
-        copyYear.append(new Option(element.school_year, element._id));
+        copyYear.append(new Option(element.schoolYear, element._id));
       });
       copyYear.on("change", () => {
         fetch("/api/curriculums/semesters/" + copyYear.val())
@@ -607,7 +607,6 @@ $("#copySubmit").on("click", () => {
       title: "Active Semester and Selected Semester is same",
     });
   }
-  console.log("/api/curriculums/copy/" + semester + "/" + copySem.val());
   fetch("/api/curriculums/copy/" + semester + "/" + copySem.val(), {
     method: "POST",
     headers: { "csrf-token": csrf, "Content-Type": "application/json" },

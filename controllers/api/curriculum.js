@@ -147,9 +147,9 @@ exports.copySemester = (req, res, next) => {
     {
       $lookup: {
         from: "years",
-        localField: "school_year",
+        localField: "schoolYear",
         foreignField: "_id",
-        as: "school_year",
+        as: "schoolYear",
       },
     },
   ])
@@ -160,7 +160,7 @@ exports.copySemester = (req, res, next) => {
           program: element.program,
           year: element.year.map((element) => {
             return {
-              year_level: element.year_level,
+              yearLevel: element.yearLevel,
               courses: element.courses,
             };
           }),
