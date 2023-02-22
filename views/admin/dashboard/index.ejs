@@ -187,29 +187,59 @@
                           </div>
                         </div>
                       </div>
-                      <div class="tab-pane fade" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab" tabindex="0">
-                        <div class="container mt-3">
-                          <div class="row">
-                            <div class="col-md-4 col-sm-12 mb-3 ">
-                              <select name="" class="form-select" id="programView"></select>
-                            </div>
-                            <div class="col-md-4 col-sm-12 mb-3 ">
-                              <select name="" class="form-select" id="yearView"></select>
-                            </div>
-                            <div class="col-md-4 col-sm-12 mb-3 ">
-                              <select name="" class="form-select" id="sectionView"></select>
-                            </div>
+                      <div class="tab-pane fade mt-3" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab" tabindex="0">
+                        <div class="row">
+                          <div class="col-md-4 col-sm-12 mb-3 ">
+                            <select name="" class="form-select" id="programView"></select>
                           </div>
-                          <div class="row">
-                            <div class="col-12">
-                              <button class="btn btn-primary" id="downloadCurrentSection">Download Current</button>
-                              <button class="btn btn-primary" id="downloadAllSection">Download All</button>
-                            </div>
+                          <div class="col-md-4 col-sm-12 mb-3 ">
+                            <select name="" class="form-select" id="yearView"></select>
                           </div>
-                          <div class="row">
-                            <div class="col-12">
-                              <div id="sectionCalendar">
+                          <div class="col-md-4 col-sm-12 mb-3 ">
+                            <select name="" class="form-select" id="sectionView"></select>
+                          </div>
+                        </div>
+                        <div class="owl-carousel owl-theme">
+                          <div class="item">
 
+                            <div class="row">
+                              <div class="col-12">
+                                <button class="btn btn-primary" id="downloadCurrentSectionCalendar">Download</button>
+                                <button class="btn btn-primary" id="downloadAllSectionCalendar">Download All</button>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="col-12">
+                                <div id="sectionCalendar"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="item">
+                            <div class="row">
+                              <div class="col-12">
+                                <button class="btn btn-primary" id="downloadCurrentFacultyTable">Download</button>
+                                <button class="btn btn-primary" id="downloadAllFacultyTable">Download All</button>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="col-12">
+                                <div class="table-responsive">
+                                  <table class="table table-bordered table-stripe mt-3" id="sectionScheduleTable">
+                                    <thead>
+                                      <tr>
+                                        <th width="15%">Course Code</th>
+                                        <th width="25%">Course</th>
+                                        <th width="5%">Units</th>
+                                        <th width="5%">Lecture</th>
+                                        <th width="5%">Lab</th>
+                                        <th width="35%">Schedule</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody class="table-group-divider">
+
+                                    </tbody>
+                                  </table>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -221,7 +251,6 @@
               </div>
             </div>
           </div>
-        </div>
       </section>
     </div>
   </div>

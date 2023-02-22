@@ -355,8 +355,8 @@ fetch("/api/curriculums/active")
                         sectionCalendar.getEvents().forEach((element) => {
                           element.remove();
                         });
-                        const downloadCurrentSection = $("#downloadCurrentSection");
-                        const downloadAllSection = $("#downloadAllSection");
+                        const downloadCurrentSection = $("#downloadCurrentSectionCalendar");
+                        const downloadAllSection = $("#downloadAllSectionCalendar");
                         downloadCurrentSection.off("click");
                         downloadAllSection.off("click");
                         console.log(result.data);
@@ -422,6 +422,44 @@ fetch("/api/curriculums/active")
                               console.log(error);
                             });
                         });
+                        return fetch(`/api/schedules/section/grouped/course/${sem}/${sectionView.val()}`);
+                      })
+                      .then((response) => {
+                        return response.json();
+                      })
+                      .then((result) => {
+                        console.log(result);
+                        const sectionScheduleTable = $("#sectionScheduleTable");
+                        const tBody = sectionScheduleTable.find("tbody");
+                        tBody.empty();
+                        result.data.forEach((element) => {
+                          const tRow = $("<tr></tr>");
+                          tRow
+                            .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
+                            .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
+                            .append($("<td></td>").html(element.course.units))
+                            .append($("<td></td>").html(element.course.lecture))
+                            .append($("<td></td>").html(element.course.lab))
+                            .append(
+                              $("<td></td>").html(
+                                "<ul>" +
+                                  element.data
+                                    .map((e) => {
+                                      return `<li>${days[e.day]} ${e.startTime} - ${
+                                        e.endTime
+                                      } (${e.program.programCode.toUpperCase()}${e.yearLevel.display}-${
+                                        e.sectionName
+                                      })</li>`;
+                                    })
+                                    .join("") +
+                                  "</ul>"
+                              )
+                            );
+                          tBody.append(tRow);
+                        });
+                      })
+                      .catch((error) => {
+                        console.log(error);
                       });
                   });
                   sectionView.trigger("change");
