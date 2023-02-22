@@ -43,7 +43,14 @@ const config = {
   },
 };
 
+$(".owl-carousel").owlCarousel({
+  nav: true,
+  items: 1,
+  margin: 10,
+});
+
 const calendar = new FullCalendar.Calendar(calendarContainer, config);
+calendar.render();
 
 fetch("/api/curriculums/active")
   .then((response) => {
@@ -57,7 +64,7 @@ fetch("/api/curriculums/active")
     return response.json();
   })
   .then((result) => {
-    const downloadSpreadsheetButton = $("#downloadSpreadsheet");
+    const downloadSpreadsheetButton = $("#downloadSpreadsheetCalendar");
     downloadSpreadsheetButton.off("click");
     result.data.forEach((element) => {
       calendar.addEvent({
@@ -78,16 +85,15 @@ fetch("/api/curriculums/active")
     });
     downloadSpreadsheetButton.removeClass("d-none");
     downloadSpreadsheetButton.on("click", () => {
-      downloadSpreadsheet("weekly-schedule.xlsx", calendar.getEvents());
+      downloadSpreadsheet("calendar-view.xlsx", calendar.getEvents());
     });
-    calendar.render();
-    return fetch(`/api/schedules/faculty/grouped/${semester}/${userId}`);
+    return fetch(`/api/schedules/faculty/grouped/course/${semester}/${userId}`);
   })
   .then((response) => {
     return response.json();
   })
   .then((result) => {
-    const downloadTable = $("#downloadTable");
+    const downloadTable = $("#downloadSpreadsheetTable");
     downloadTable.off("click");
     downloadTable.removeClass("d-none");
     result.data.forEach((element) => {
@@ -97,6 +103,8 @@ fetch("/api/curriculums/active")
         .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
         .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
         .append($("<td></td>").html(element.course.units))
+        .append($("<td></td>").html(element.course.lecture))
+        .append($("<td></td>").html(element.course.lab))
         .append(
           $("<td></td>").html(
             "<ul>" +
@@ -113,7 +121,12 @@ fetch("/api/curriculums/active")
       tBody.append(tRow);
     });
     downloadTable.on("click", () => {
-      downloadSpreadsheetTable("filename", downloadTable);
+      downloadSpreadsheetTable(
+        "table-view.xlsx",
+        [result.data].map((element) => {
+          return { schedule: element };
+        })
+      );
     });
   })
   .catch((error) => {
@@ -277,19 +290,62 @@ function downloadSpreadsheet(filename, events) {
   XLSX.writeFile(wb, filename);
 }
 
-function downloadSpreadsheetTable(filename, table) {
-  var wb = XLSX.utils.table_to_book(document.getElementById("scheduleTable"), {
-    sheet: "Sheet JS",
-  });
-  var wbout = XLSX.write(wb, {
-    bookType: "xlsx",
-    bookSST: true,
-    type: "binary",
-  });
- 
-  saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "test.xlsx");
+function downloadSpreadsheetTable(filename, events) {
+  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
 
-  // This function is used to convert the workbook data to a binary string
+  const wb = XLSX.utils.book_new();
+  events.forEach((element) => {
+    const data = [];
+    element.schedule.forEach((element) => {
+      data.push([
+        cellData(element.course.courseCode.toUpperCase()),
+        cellData(element.course.courseDescription.toUpperCase()),
+        cellData(element.course.units),
+        cellData(element.course.lecture),
+        cellData(element.course.lab),
+        cellData(
+          element.data
+            .map((element) => {
+              return `${element.day} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
+            })
+            .join(" | ")
+        ),
+      ]);
+    });
+    let sheet;
+    const ws = XLSX.utils.aoa_to_sheet([
+      [
+        cellData("Course Code"),
+        cellData("Course"),
+        cellData("Units"),
+        cellData("Lecture"),
+        cellData("Lab"),
+        cellData("Schedule"),
+      ],
+      ...data,
+    ]);
+
+    ws["!cols"] = [
+      { wch: 25 }, // "characters"
+      { wch: 30 }, // "pixels"
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 40 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, sheet);
+  });
+
+  // Create a worksheet with the data and a header row with labels for Time and Monday through Friday
+
+  // Merge the cells for each activity
+
+  // Add the worksheet to the Excel file
+
+  // Write the Excel file to the filesystem
+  XLSX.writeFile(wb, filename);
 }
 
 function s2ab(s) {

@@ -14,63 +14,49 @@
             <div class="card-body">
               <div class="row">
                 <div class="col-12">
-                  <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Timetable View</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Table View</button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-12">
-                  <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                      <div class="container mt-3">
-                        <div class="row">
-                          <div class="col-12">
-                            <button class="float-left btn btn-primary d-none" id="downloadSpreadsheet">Download</button>
-                          </div>
+                  <div class="owl-carousel owl-theme">
+                    <div class="item">
+                      <div class="row">
+                        <div class="col-12">
+                          <button class="btn btn-primary" id="downloadSpreadsheetCalendar">Download</button>
                         </div>
-                        <div class="row">
-                          <div class="col-12">
-                            <div id="calendarContainer">
-                            </div>
-                          </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-12">
+                          <div id="calendarContainer"></div>
                         </div>
                       </div>
                     </div>
-                    <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
-                      <div class="container mt-3">
-                        <div class="row">
-                          <div class="col-12">
-                            <button class="float-left btn btn-primary d-none" id="downloadTable">Download</button>
-                          </div>
+                    <div class="item">
+                      <div class="row">
+                        <div class="col-12">
+                          <button class="btn btn-primary" id="downloadSpreadsheetTable">Download</button>
                         </div>
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="table-reponsive">
-                              <table class="table" id="scheduleTable">
-                                <thead>
-                                  <tr>
-                                    <th>Course Code</th>
-                                    <th>Course Description</th>
-                                    <th>Units</th>
-                                    <th>Schedule</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
+                      </div>
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="table-responsive">
+                            <table class="table table-bordered table-stripe mt-3" id="scheduleTable">
+                              <thead>
+                                <tr>
+                                  <th width="15%">Course Code</th>
+                                  <th width="25%">Course</th>
+                                  <th width="5%">Units</th>
+                                  <th width="5%">Lecture</th>
+                                  <th width="5%">Lab</th>
+                                  <th width="35%">Schedule</th>
+                                </tr>
+                              </thead>
+                              <tbody class="table-group-divider">
 
-                                </tbody>
-                              </table>
-                            </div>
+                              </tbody>
+                            </table>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                 
                 </div>
               </div>
             </div>
@@ -82,7 +68,7 @@
   <input type="hidden" value="<%= csrf %>" id="csrf">
   <input type="hidden" value="<%= userId %>" id="userId">
   <%- include('../includes/footer.ejs') %>
-  
+
   <script src="/js/user/schedule.js"></script>
 
 </body>
