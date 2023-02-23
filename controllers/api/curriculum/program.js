@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const { validationResult } = require("express-validator");
 
 exports.getPrograms = async (req, res, next) => {
   try {

@@ -764,7 +764,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
 });
 
 scheduleProgramForm.on("change", () => {
-  fetch("/api/curriculums/year-levels/" + scheduleProgramForm.val())
+  fetch("/api/curriculums/levels/" + scheduleProgramForm.val())
     .then((response) => {
       return response.json();
     })

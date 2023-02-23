@@ -318,7 +318,7 @@ fetch("/api/curriculums/active")
     });
     if (result.data.length !== 0) {
       programView.on("change", () => {
-        fetch("/api/curriculums/year-levels/" + programView.val())
+        fetch("/api/curriculums/levels/" + programView.val())
           .then((response) => {
             return response.json();
           })

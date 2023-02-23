@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const { validationResult } = require("express-validator");
 
 // middleware for getting the course by year
 exports.getCourses = async (req, res, next) => {

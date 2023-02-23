@@ -2,6 +2,7 @@ const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
 const Faculty = require("../../../models/user");
 const FacultyType = require("../../../models/faculty-type");
+const { validationResult } = require("express-validator");
 
 exports.getActiveFaculty = async (req, res, next) => {
   try {

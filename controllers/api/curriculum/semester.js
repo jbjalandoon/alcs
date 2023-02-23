@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const { validationResult } = require("express-validator");
 
 // middleware for getting the 3 sem based on school year
 exports.getSemesters = async (req, res, next) => {

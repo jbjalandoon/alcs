@@ -100,7 +100,7 @@ router.get("/tags", tag.get);
 
 router.get("/curriculums/school-year", curriculum.getSchoolYears);
 
-router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
+// router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
 
 // router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
 
@@ -108,7 +108,7 @@ router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
 router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
-router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
+// router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
 router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
 
