@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const Course = require("../../../models/course");
 const { validationResult } = require("express-validator");
 
 // middleware for getting the course by year
@@ -101,7 +102,7 @@ exports.deleteCourse = async (req, res, next) => {
       }
     );
 
-    res.status(202).json({ status: 202, data: result });
+    res.status(202).json({ status: 202, data: operation });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, data: error });

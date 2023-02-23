@@ -21,7 +21,7 @@ router.post("/semesters/copy/:active/:sem", Semester.copySemester);
 router.get("/programs/:semester", Program.getPrograms);
 router.post("/programs/:semester", CurriculumValidation.postPrograms, Program.postPrograms);
 router.get("/programs/:semester/:program", Program.getOneProgram);
-router.delete("/programs/:program", Program.deleteOneProgram);
+router.delete("/programs/:semester/:program", Program.deleteOneProgram);
 // ---> END OF PROGRAM <---
 
 // ---> START OF COURSE <---

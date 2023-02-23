@@ -1,13 +1,6 @@
 const { default: mongoose } = require("mongoose");
-const { validationResult } = require("express-validator");
 const Curriculum = require("../../models/curriculum");
-const Course = require("../../models/course");
-const Faculty = require("../../models/user");
-const Level = require("../../models/level");
-const FacultyType = require("../../models/faculty-type");
-const year = require("../../models/year");
-const { response } = require("express");
-const { faculty } = require("../../validations/curriculum");
+
 
 exports.getSchoolYears = (req, res, next) => {
   Curriculum.aggregate([

@@ -41,8 +41,8 @@ exports.getYearLevels = async (req, res, next) => {
       { $unwind: "$level" },
     ]);
 
-    if (levents.length === 0) return res.status(404).json({ status: 404, data: levels });
-    res.status(200).json({ status: 200, data: result });
+    if (levels.length === 0) return res.status(404).json({ status: 404, data: levels });
+    res.status(200).json({ status: 200, data: levels });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, data: error });

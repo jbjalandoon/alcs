@@ -58,7 +58,7 @@ const sectionView = $("#sectionView");
 
 const addModal = new bootstrap.Modal($("#addModal"));
 
-fetch("/api/curriculums/active")
+fetch("/api/curriculums/semesters/active")
   .then((response) => {
     return response.json();
   })
@@ -584,7 +584,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
 });
 
 $("#addButton").on("click", () => {
-  fetch("/api/curriculums/active/" + activeSemester.val(), {
+  fetch(`/api/curriculums/semesters/active/${activeSemester.val()}`, {
     method: "PUT",
     headers: { "csrf-token": csrf, "Content-Type": "application/json" },
   })

@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const Level = require("../../../models/level");
 const { validationResult } = require("express-validator");
 
 // middleware for getting the 3 sem based on school year
@@ -20,7 +21,7 @@ exports.getSemesters = async (req, res, next) => {
       },
     ]);
     if (semesters.length === 0) return res.status(404).json({ status: 404, data: semesters });
-    return res.status(200).json({ status: 200, data: result });
+    return res.status(200).json({ status: 200, data: semesters });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, errors: error });
@@ -74,7 +75,7 @@ exports.putActiveSemester = async (req, res, next) => {
       },
       { arrayFilters: [{ "semester._id": req.params.semester }] }
     );
-    res.status(200).json({ status: 200, data: result });
+    res.status(200).json({ status: 200, data: setActiveTrue });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, data: error });

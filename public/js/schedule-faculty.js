@@ -159,10 +159,8 @@ const config = {
 
 const facultyModal = new bootstrap.Modal($("#facultyModal"));
 
-console.log($("#facultyModal"));
-
 const calendar = new FullCalendar.Calendar(calendarContainer, config);
-fetch("/api/curriculums/active")
+fetch("/api/curriculums/semesters/active")
   .then((response) => {
     return response.json();
   })

@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const Level = require("../../../models/level");
 const { validationResult } = require("express-validator");
 
 exports.getPrograms = async (req, res, next) => {
@@ -147,9 +148,9 @@ exports.postPrograms = async (req, res, next) => {
 
 exports.deleteOneProgram = async (req, res, next) => {
   try {
-    const update = Curriculum.updateOne(
+    const update = await Curriculum.updateOne(
       {
-        "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
+        "semesters._id": mongoose.Types.ObjectId(req.params.semester),
       },
       {
         $pull: {

@@ -18,7 +18,7 @@ let scheduleModal;
 // Tables
 const scheduleTable = $("#scheduleTable");
 
-fetch("/api/curriculums/active")
+fetch("/api/curriculums/semesters/active")
   .then((response) => {
     return response.json();
   })

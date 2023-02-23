@@ -24,7 +24,7 @@ exports.getActiveFaculty = async (req, res, next) => {
       },
     ]);
 
-    const populatedFaculty = await Faculty.find({ _id: { $in: result.map((e) => e.faculty) } })
+    const populatedFaculty = await Faculty.find({ _id: { $in: activeFaculty.map((e) => e.faculty) } })
       .populate("userInformation.academicQualifications.academicQualification")
       .populate("userInformation.academicQualifications.licenseIndustry")
       .populate("userInformation.courseTaken")
@@ -159,7 +159,7 @@ exports.postActiveFaculty = async (req, res, next) => {
       .populate("userInformation.courseTaken")
       .populate("userInformation.facultyType");
 
-    res, status(201).json({ status: 201, data: faculty });
+    res.status(201).json({ status: 201, data: faculty });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, data: error });
@@ -183,7 +183,7 @@ exports.deleteActiveFaculty = async (req, res, next) => {
       }
     );
 
-    res.status(202).json({ status: 202, data: result });
+    res.status(202).json({ status: 202, data: deleteActiveFaculty });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, data: error });

@@ -485,7 +485,7 @@ $("#removeProgram").on("click", () => {
     cancelButtonColor: "#d33",
     confirmButtonText: "Yes, delete it!",
     preConfirm: () => {
-      return fetch("/api/curriculums/program/"+ semester + "/" + viewProgram.val(), {
+      return fetch("/api/curriculums/programs/"+ semester + "/" + viewProgram.val(), {
         method: "DELETE",
         headers: {
           "csrf-token": csrf,
@@ -607,8 +607,7 @@ $("#copySubmit").on("click", () => {
       title: "Active Semester and Selected Semester is same",
     });
   }
-  console.log("/api/curriculums/copy/" + semester + "/" + copySem.val());
-  fetch("/api/curriculums/copy/" + semester + "/" + copySem.val(), {
+  fetch("/api/curriculums/semesters/copy/" + semester + "/" + copySem.val(), {
     method: "POST",
     headers: { "csrf-token": csrf, "Content-Type": "application/json" },
   })

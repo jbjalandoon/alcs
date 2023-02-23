@@ -65,7 +65,7 @@ const degreeEquivalent = [
 const addModal = new bootstrap.Modal($("#addModal"));
 const existing = [];
 
-fetch(`/api/curriculums/active`)
+fetch(`/api/curriculums/semesters/active`)
   .then((response) => {
     return response.json();
   })
