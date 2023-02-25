@@ -127,7 +127,7 @@ const getPrograms = async (semester) => {
           tableRow.addClass("row");
           const table = $("<table></table>");
           table.addClass("table");
-          table.attr("id", element._id);
+          table.attr("id", `table${element._id}`);
           table
             .append(
               $("<thead></thead>")
@@ -370,7 +370,6 @@ const addCourse = () => {
           new Option(element.courseCode.toUpperCase() + " - " + element.courseDescription.toUpperCase(), element._id)
         );
       });
-
       button.on("click", async () => {
         try {
           const addCourseRequest = await fetch("/api/curriculums/course/" + year, {
@@ -386,12 +385,13 @@ const addCourse = () => {
             displayValidationError(result.errors, event.currentTarget);
             return displayToast(result);
           }
-          const table = $(`#${year}`);
+          const table = $(`#table${year}`);
+          console.log(table);
           addNewCourseModal.hide();
           if (table.children("tbody").find(".empty").length !== 0) {
             table.children("tbody").find(".empty").remove();
           }
-
+          console.log(addCourseResponse);
           addCourseResponse.data.forEach((element) => {
             const tr = $("<tr></tr>");
             tr.append($("<td></td>").html(element.courseCode.toUpperCase()))
