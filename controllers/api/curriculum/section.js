@@ -100,3 +100,27 @@ exports.postSection = async (req, res, next) => {
     res.status(500).json({ status: 500, data: error });
   }
 };
+
+exports.deleteSection = async (req, res, next) => {
+  console.log(req.params.section);
+  try {
+    const update = await Curriculum.updateOne(
+      {
+        "semesters.programs.year.sections._id": req.params.section,
+      },
+      {
+        $pull: {
+          "semesters.$[].programs.$[].year.$[].sections": { _id: req.params.section },
+        },
+      }
+    );
+    console.log(update);
+    if (update.modifiedCount === 0) {
+      return res.status(500).json({ status: 500, error: "Error" });
+    }
+    return res.status(202).json({ status: 202, data: update });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 500, error: error });
+  }
+};

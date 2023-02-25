@@ -87,6 +87,25 @@ const actionButton = (id) => {
     `;
 };
 
+const getActiveSemester = async () => {
+  try {
+    const request = await fetch(`/api/curriculums/semesters/active`);
+    const result = await request.json();
+
+    if (result.data.length === 0) {
+      return null;
+    }
+    return {
+      id: result.data[0].semesters._id,
+      year: result.data[0].schoolYear[0].year,
+      sem: result.data[0].semesters.sem,
+    };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 $(changePasswordModal._element).on("show.bs.modal", (event) => {
   const oldPassword = $(event.currentTarget).find("#oldPassword");
   const newPassword = $(event.currentTarget).find("#newPassword");

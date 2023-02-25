@@ -51,56 +51,16 @@ exports.getYearLevels = async (req, res, next) => {
 
 exports.addYearLevel = async (req, res, next) => {
   try {
-    const schedules = [];
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //   return res.status(400).json({ ok: false, errors: errors.mapped() });
-    // }
-
-    const course = await Course.find({ _id: { $in: req.body.course } });
-
-    course.forEach((element) => {
-      if (element.lecture != 0) {
-        schedules.push({
-          course: element._id,
-          hour: element.lecture,
-          type: "lecture",
-          day: null,
-          start_time: null,
-          end_time: null,
-          room: null,
-          faculty: null,
-        });
-      }
-      if (element.lab != 0) {
-        schedules.push({
-          course: element._id,
-          hour: element.lab,
-          type: "lab",
-          day: null,
-          start_time: null,
-          end_time: null,
-          room: null,
-          faculty: null,
-        });
-      }
-    });
-
-    const update = Curriculum.updateOne(
+    const update = await Curriculum.updateOne(
       {
         "semesters.programs._id": req.params.program,
       },
       {
         $push: {
           "semesters.$[].programs.$[program].year": {
-            year_level: req.body.year_level,
-            courses: req.body.course,
-            sections: req.body.section.map((element) => {
-              return {
-                section: element,
-                schedules: schedules,
-              };
-            }),
+            yearLevel: req.body.yearLevel,
+            courses: [],
+            sections: [],
           },
         },
       },
@@ -108,8 +68,34 @@ exports.addYearLevel = async (req, res, next) => {
         arrayFilters: [{ "program._id": req.params.program }],
       }
     );
-
+    if (update.modifiedCount === 0) {
+      return res.status(500).json({ status: 500, data: update });
+    }
     return res.status(201).json({ status: 201, data: update });
+  } catch (error) {
+    res.status(500).json({ status: 500, error: error });
+  }
+};
+
+exports.deleteYearLevel = async (req, res, next) => {
+  try {
+    const update = await Curriculum.updateOne(
+      {
+        "semesters.programs._id": req.params.program,
+      },
+      {
+        $pull: {
+          "semesters.$[].programs.$[].year": {
+            _id: req.params.yearLevel,
+          },
+        },
+      }
+    );
+    console.log(update);
+    if (update.modifiedCount === 0) {
+      return res.status(500).json({ status: 500, data: update });
+    }
+    return res.status(201).json({ status: 202, data: update });
   } catch (error) {
     res.status(500).json({ status: 500, error: error });
   }

@@ -28,6 +28,8 @@ const config = {
     start: "7:00:00",
     end: "22:00:00",
   },
+  slotLabelInterval: { minutes: 30 },
+  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   eventClick: (info) => {
     if (info.event.display === "background") {
       return;

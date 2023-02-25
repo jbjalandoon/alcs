@@ -1,5 +1,6 @@
 const { mongoose } = require("mongoose");
 const Curriculum = require("../../../models/curriculum");
+const Program = require("../../../models/program");
 const Level = require("../../../models/level");
 const { validationResult } = require("express-validator");
 
@@ -138,8 +139,10 @@ exports.postPrograms = async (req, res, next) => {
       },
       { arrayFilters: [{ "semester._id": req.params.semester }] }
     );
-
-    res.status(201).json({ status: 201, data: update });
+    if (update.modifiedCount === 1) {
+      return res.status(201).json({ status: 201, data: update });
+    }
+    res.status(500).json({ status: 500, data: [] });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, error: error });

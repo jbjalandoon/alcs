@@ -33,6 +33,7 @@ router.delete("/course/:year/:course", Course.deleteCourse);
 // ---> START OF SECTION <---
 router.get("/sections/:level", Section.getSections);
 router.post("/sections/:level", Section.postSection);
+router.delete("/sections/:section", Section.deleteSection);
 // ---> END OF SECTION <---
 
 // ---> START OF SECTION <---
@@ -43,7 +44,9 @@ router.post("/faculty/:semester", Faculty.postActiveFaculty);
 router.delete("/faculty/:semester/:id", Faculty.deleteActiveFaculty);
 // ---> END OF SECTION <---
 
+// ---> START OF LEVEL <---
 router.get("/levels/:program", Level.getYearLevels);
 router.post("/levels/:program", Level.addYearLevel);
-
+router.delete("/levels/:program/:yearLevel", Level.deleteYearLevel);
+// ---> END OF LEVEL <---
 module.exports = router;
