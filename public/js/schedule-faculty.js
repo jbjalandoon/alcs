@@ -1,7 +1,7 @@
 let sem;
 const csrf = $("#csrf").val();
 const faculty = $("#faculty");
-
+const sameDayHours = [0, 0, 0, 0, 0, 0, 0];
 let totalUnit,
   preferredSchedule,
   tags = [],
@@ -99,7 +99,6 @@ const config = {
               if (clicked.isConfirmed) {
                 let notFound = true;
                 courseSearch.children().each((element) => {
-                  console.log($(courseSearch.children()[element]).val() + "===" + result.data.course._id);
                   if (result.data.course._id === $(courseSearch.children()[element]).val()) {
                     notFound = false;
                   }
@@ -117,9 +116,10 @@ const config = {
                 }
                 deleteEvents.forEach((element) => {
                   hoursCount -= parseInt(element.extendedProps.hourDuration);
+                  sameDayHours[element.start.getDay() - 1] -= element.extendedProps.hourDuration;
                   element.remove();
                 });
-                // console.log(result.data.course.units);
+
                 unitsCount -= parseInt(result.data.course.units);
                 $("#spanUnits").html(unitsCount);
                 $("#spanHours").html(hoursCount);
@@ -269,6 +269,7 @@ $(facultyModal._element).on("show.bs.modal", (event) => {
 });
 
 faculty.on("change", () => {
+  sameDayHours.fill(0);
   $("#courseList").empty();
   $("#contentRow").removeClass("d-none");
   totalUnit = 0;
@@ -308,7 +309,7 @@ faculty.on("change", () => {
     })
     .then((result) => {
       result.data.forEach((element) => {
-        console.log(element);
+        sameDayHours[element.day - 1] += element.hour;
         if (element.type !== "lab") {
           unitsCount += parseInt(element.course.units);
         }
@@ -406,7 +407,6 @@ courseSearch.on("change", () => {
           "list-style": "none",
           "padding-left": 0,
         });
-        console.log(days);
         scheduleCol.append(scheduleUl);
         scheduleRow.append(scheduleCol);
         element.schedules.forEach((element) => {
@@ -456,10 +456,7 @@ courseSearch.on("change", () => {
           if (currentTimeRange[1]) {
             bool2 = currentTimeRange[1].range.overlaps(eventRange) && currentTimeRange[1].day === eventDay;
           }
-          // console.log(bool1);
-          // console.log(bool2);
           if (bool1 || bool2) {
-            console.log(e.display);
             if (e.display === "background") {
               buttonBg = "bg-warning";
             } else {
@@ -499,7 +496,7 @@ const assignFaculty = (eventArgs) => {
   let isUndesiredSchedule = false;
   const conflictSchedules = [];
   const currentTimeRange = [];
-  let continueOperation = true;
+  const limits = [];
   const courseList = currentButton.parent().find("ul").children();
   courseList.each(function (i, obj) {
     const button = $(obj);
@@ -510,6 +507,12 @@ const assignFaculty = (eventArgs) => {
         new Date(0, 0, 0, button.attr("startTime").split(":")[0], button.attr("startTime").split(":")[1]),
         new Date(0, 0, 0, button.attr("endTime").split(":")[0], button.attr("endTime").split(":")[1])
       ),
+    });
+    sameDayHours[parseInt(button.attr("daysofWeek")) - 1] += parseInt(button.attr("hourDuration"));
+    sameDayHours.forEach((element, index) => {
+      if (element > 8 && index === parseInt(button.attr("daysofWeek")) - 1) {
+        limits.push(days[index + 1]);
+      }
     });
   });
   event.forEach((element) => {
@@ -565,11 +568,20 @@ const assignFaculty = (eventArgs) => {
       },
     });
   }
-  if (isUndesiredSchedule) {
+  if (isUndesiredSchedule || limits.length !== 0) {
+    const textDay = [...new Set(limits)]
+    let text = "";
+    if (limits.length !== 0) {
+      text += `The ${textDay.join(", ")} already exceed 8 hours.`;
+    }
+    if (isUndesiredSchedule) {
+      text += "This schedule is marked as unwanted schedule of the faculty member.";
+    }
+    text += ".Do you still want to continue?";
     return Swal.fire({
       icon: "warning",
       title: "Warning",
-      text: "This schedule is marked as unwanted schedule of the faculty member, you want to continue?",
+      text: text,
       confirmButtonText: "Confirm",
       showCancelButton: true,
     }).then((result) => {
