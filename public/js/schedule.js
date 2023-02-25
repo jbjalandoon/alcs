@@ -46,7 +46,7 @@ fetch("/api/curriculums/semesters/active")
         title: "Academic Program is empty.",
       });
     result.data.forEach((element) => {
-      scheduleProgramForm.append(new Option(element.program.programName.toUpperCase(), element._id));
+      scheduleProgramForm.append(new Option(element.program.programCode.toUpperCase(), element._id));
     });
     scheduleProgramForm.trigger("change");
   })
