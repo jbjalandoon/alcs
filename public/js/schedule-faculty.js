@@ -97,32 +97,33 @@ const config = {
               },
             }).then((clicked) => {
               if (clicked.isConfirmed) {
-                let notFound = true;
-                courseSearch.children().each((element) => {
-                  if (result.data.course._id === $(courseSearch.children()[element]).val()) {
-                    notFound = false;
-                  }
-                });
-                if (notFound) {
-                  courseSearch.append(
-                    new Option(
-                      `${result.data.course.courseCode.toUpperCase()} - ${result.data.course.courseDescription.toUpperCase()}`,
-                      result.data.course._id
-                    )
-                  );
-                }
-                if (result.data.course._id == courseSearch.val()) {
-                  courseSearch.trigger("change");
-                }
-                deleteEvents.forEach((element) => {
-                  hoursCount -= parseInt(element.extendedProps.hourDuration);
-                  sameDayHours[element.start.getDay() - 1] -= element.extendedProps.hourDuration;
-                  element.remove();
-                });
+                faculty.trigger("change");
+                // let notFound = true;
+                // courseSearch.children().each((element) => {
+                //   if (result.data.course._id === $(courseSearch.children()[element]).val()) {
+                //     notFound = false;
+                //   }
+                // });
+                // if (notFound) {
+                //   courseSearch.append(
+                //     new Option(
+                //       `${result.data.course.courseCode.toUpperCase()} - ${result.data.course.courseDescription.toUpperCase()}`,
+                //       result.data.course._id
+                //     )
+                //   );
+                // }
+                // if (result.data.course._id == courseSearch.val()) {
+                //   courseSearch.trigger("change");
+                // }
+                // deleteEvents.forEach((element) => {
+                //   hoursCount -= parseInt(element.extendedProps.hourDuration);
+                //   sameDayHours[element.start.getDay() - 1] -= element.extendedProps.hourDuration;
+                //   element.remove();
+                // });
 
-                unitsCount -= parseInt(result.data.course.units);
-                $("#spanUnits").html(unitsCount);
-                $("#spanHours").html(hoursCount);
+                // unitsCount -= parseInt(result.data.course.units);
+                // $("#spanUnits").html(unitsCount);
+                // $("#spanHours").html(hoursCount);
                 Toast.fire({
                   icon: "success",
                   title: "Successfully Removed",
@@ -450,13 +451,16 @@ courseSearch.on("change", () => {
             new Date(0, 0, 0, e.start.getHours(), e.start.getMinutes()),
             new Date(0, 0, 0, e.end.getHours(), e.end.getMinutes())
           );
-          let bool1 = false,
-            bool2 = false;
-          bool1 = currentTimeRange[0].range.overlaps(eventRange) && currentTimeRange[0].day === eventDay;
-          if (currentTimeRange[1]) {
-            bool2 = currentTimeRange[1].range.overlaps(eventRange) && currentTimeRange[1].day === eventDay;
+          let conflict = false;
+          for (let i = 0; i < currentTimeRange.length; i++) {
+            const overlaps = currentTimeRange[i].range.overlaps(eventRange);
+            const sameDay = currentTimeRange[i].day === eventDay;
+            if (overlaps && sameDay) {
+              conflict = true;
+              break;
+            }
           }
-          if (bool1 || bool2) {
+          if (conflict) {
             if (e.display === "background") {
               buttonBg = "bg-warning";
             } else {
@@ -515,6 +519,7 @@ const assignFaculty = (eventArgs) => {
       }
     });
   });
+  console.log(currentTimeRange);
   event.forEach((element) => {
     if (!element.extendedProps.preview) {
       const eventDay = element.start.getDay();
@@ -522,13 +527,17 @@ const assignFaculty = (eventArgs) => {
         new Date(0, 0, 0, element.start.getHours(), element.start.getMinutes()),
         new Date(0, 0, 0, element.end.getHours(), element.end.getMinutes())
       );
-      let bool1, bool2;
-      bool1 = currentTimeRange[0].range.overlaps(eventRange) && currentTimeRange[0].day === eventDay;
-      if (currentTimeRange[1]) {
-        bool2 = currentTimeRange[1].range.overlaps(eventRange) && currentTimeRange[1].day === eventDay;
+      let conflict = false;
+      for (let i = 0; i < currentTimeRange.length; i++) {
+        const overlaps = currentTimeRange[i].range.overlaps(eventRange);
+        const sameDay = currentTimeRange[i].day === eventDay;
+        if (overlaps && sameDay) {
+          conflict = true;
+          break;
+        }
       }
 
-      if (bool1 || bool2) {
+      if (conflict) {
         if (element.display === "background") {
           isUndesiredSchedule = true;
         } else {
@@ -569,7 +578,7 @@ const assignFaculty = (eventArgs) => {
     });
   }
   if (isUndesiredSchedule || limits.length !== 0) {
-    const textDay = [...new Set(limits)]
+    const textDay = [...new Set(limits)];
     let text = "";
     if (limits.length !== 0) {
       text += `The ${textDay.join(", ")} already exceed 8 hours.`;
