@@ -2,9 +2,11 @@ const csrf = $("#csrf").val();
 
 const config = {
   allDaySlot: false,
-  hiddenDays: [0],
   height: "auto",
-  dayHeaderFormat: { weekday: "long" },
+  dayHeaderFormat: { weekday: "short" },
+  firstDay: 1,
+  slotLabelInterval: { minutes: 30 },
+  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "",

@@ -61,8 +61,10 @@ const csrf = $("#csrf").val();
 const calendar = new FullCalendar.Calendar(calendarEl, {
   allDaySlot: false,
   height: "auto",
+  dayHeaderFormat: { weekday: "short" },
   firstDay: 1,
-  dayHeaderFormat: { weekday: "long" },
+  slotLabelInterval: { minutes: 30 },
+  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "",

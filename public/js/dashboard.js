@@ -4,9 +4,11 @@ let sem, activeYear, activeSemester;
 let activeFaculty, activeRoom, scheduleWithoutFaculty, scheduleWithoutTimeslot;
 const config = {
   allDaySlot: false,
-  hiddenDays: [0],
+  dayHeaderFormat: { weekday: "short" },
+  firstDay: 1,
+  slotLabelInterval: { minutes: 30 },
+  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   height: "auto",
-  dayHeaderFormat: { weekday: "long" },
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "",

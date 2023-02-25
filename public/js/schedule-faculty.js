@@ -14,9 +14,11 @@ const courseSearch = $("#courseSearch");
 const calendarContainer = document.querySelector("#calendarContainer");
 const config = {
   allDaySlot: false,
-  hiddenDays: [0],
   height: "auto",
-  dayHeaderFormat: { weekday: "long" },
+  dayHeaderFormat: { weekday: "short" },
+  firstDay: 1,
+  slotLabelInterval: { minutes: 30 },
+  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "",
@@ -28,8 +30,7 @@ const config = {
     start: "7:00:00",
     end: "22:00:00",
   },
-  slotLabelInterval: { minutes: 30 },
-  slotLabelFormat: { hour: "numeric", minute: "2-digit" },
+
   eventClick: (info) => {
     if (info.event.display === "background") {
       return;
@@ -519,7 +520,6 @@ const assignFaculty = (eventArgs) => {
       }
     });
   });
-  console.log(currentTimeRange);
   event.forEach((element) => {
     if (!element.extendedProps.preview) {
       const eventDay = element.start.getDay();
