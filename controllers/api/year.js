@@ -8,7 +8,8 @@ exports.get = (req, res, next) => {
       res.json({ status: 200, data: year });
     })
     .catch((error) => {
-      return res.json({ ok: false });
+      console.log(error);
+      return res.json({ ok: false, error: error });
     });
 };
 
@@ -18,12 +19,12 @@ exports.getOne = (req, res, next) => {
       res.json({ status: 201, data: year });
     })
     .catch((error) => {
+      cconsole.log(error);
       res.json({ status: 500, data: error });
     });
 };
 
 exports.post = (req, res, next) => {
-  console.log(req.body);
   let year;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -59,7 +60,7 @@ exports.edit = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ status: 400, errors: errors.mapped() });
   }
-  Year.findOneAndUpdate({ _id: req.params.id }, { year: req.body.year })
+  Year.findOneAndUpdate({ _id: req.params.id }, { year: req.body.year }, { new: true })
     .then((result) => {
       res.status(201).json({ status: 201, data: result });
     })

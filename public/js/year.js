@@ -5,6 +5,7 @@ const table = $("#yearTable").DataTable({
         </div>`,
   },
 });
+
 const csrf = $("#csrf").val();
 
 const tableData = (operation, data) => {
@@ -17,23 +18,77 @@ const tableData = (operation, data) => {
   ]).draw();
 };
 
-// const formModal = new bootstrap.Modal($("#editModal"));
-const addModal = new bootstrap.Modal($("#addModal"));
-const editModal = new bootstrap.Modal($("#editModal"));
+const getYears = async () => {
+  try {
+    const yearsRequest = await fetch("/api/years", { method: "GET" });
+    const yearsResponse = await yearsRequest.json();
 
-fetch("/api/years", { method: "GET" })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    result.data.forEach((element) => {
+    yearsResponse.data.forEach((element) => {
       tableData(table.row.add, element);
     });
-    displayToast(result);
-  })
-  .catch((error) => {
-    displayToast(error);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const editYears = () => {
+  const editModal = new bootstrap.Modal($("#editModal"));
+  $(editModal._element).on("show.bs.modal", async (event) => {
+    try {
+      const year = $(event.currentTarget).find("#year");
+      const id = $(event.relatedTarget).attr("data-bs-id");
+      const button = $(event.currentTarget).find("#editButton");
+      console.log(button);
+      button.removeClass("disabled");
+      button.off("click");
+      removeValidationError([year]);
+
+      const yearRequest = await fetch(`/api/years/${id}`);
+      const yearResponse = await yearRequest.json();
+
+      if (!yearResponse.data) {
+        button.addClass("disabled");
+        return Toast.fire({ icon: "warning", title: "Something Went Wrong" });
+      }
+      year.val(yearResponse.data.year.toLowerCase());
+      button.on("click", async () => {
+        try {
+          const updateYearRequest = await fetch(`/api/years/${id}`, {
+            method: "PUT",
+            headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              year: year.val(),
+            }),
+          });
+          const updateYearResponse = await updateYearRequest.json();
+          if (updateYearResponse.errors) {
+            displayValidationError(updateYearResponse.errors, updateYearResponse);
+            return Toast.fire({
+              icon: "warning",
+              title: "Validation Error",
+            });
+          }
+          editModal.hide();
+          console.log(updateYearResponse.data);
+          tableData(table.row($(event.relatedTarget).closest("tr")).data, updateYearResponse.data);
+          Toast.fire({ icon: "success", title: "Successfully Edited" });
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    }
   });
+};
+
+(async () => {
+  getYears();
+  editYears();
+})();
+
+// const formModal = new bootstrap.Modal($("#editModal"));
+const addModal = new bootstrap.Modal($("#addModal"));
 
 $(addModal._element).on("show.bs.modal", (event) => {
   const year = $(event.currentTarget).find("#year");
@@ -71,53 +126,6 @@ $(addModal._element).on("show.bs.modal", (event) => {
   });
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
-  const year = $(event.currentTarget).find("#year");
-  const id = $(event.relatedTarget).attr("data-bs-id");
-  const button = $(event.relatedTarget).find("#editButton");
-  button.off("click");
-  fetch("/api/levels/" + id)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      removeValidationError([year]);
-      year.val(result.data.year.toLowerCase());
-      button.on("click", () => {
-        fetch("/api/years/" + id, {
-          method: "PUT",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: year.val(),
-          }),
-        })
-          .then((response) => {
-            return response
-              .json()
-              .then((result) => {
-                if (result.errors) {
-                  displayValidationError(result.errors, result);
-                  return displayToast(result);
-                }
-                editModal.hide();
-                tableData(
-                  table.row($(event.relatedTarget).closest("tr")),
-                  result.data
-                );
-                displayToast(result);
-              })
-              .catch((error) => {
-                console.log(error);
-                displayToast(error);
-              });
-          })
-          .catch((error) => {
-            res.json({ status: 500, data: error });
-          });
-      });
-    });
-});
-
 const deleteData = (id, element) => {
   Swal.fire({
     title: "Are you sure?",
@@ -143,7 +151,7 @@ const deleteData = (id, element) => {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      yearTable.row(element.closest("tr")).remove().draw();
+      table.row(element.closest("tr")).remove().draw();
       Toast.fire({
         icon: "success",
         title: "Successfully Deleted",

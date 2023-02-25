@@ -237,7 +237,6 @@ $(editModal._element).on("show.bs.modal", (event) => {
             licenseIndustry.val(licenseIndustryValue).trigger("change");
           });
       });
-      console.log(result.data.courseCode);
       courseCode.val(result.data.courseCode);
       courseDescription.val(result.data.courseDescription);
       lecture.val(result.data.lecture);
@@ -272,7 +271,6 @@ $(editModal._element).on("show.bs.modal", (event) => {
             return response.json();
           })
           .then((result) => {
-            console.log(result);
             if (result.errors) {
               displayValidationError(result.errors, event.currentTarget);
               return displayToast(result);
