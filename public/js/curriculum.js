@@ -140,7 +140,7 @@ const getPrograms = async (semester) => {
             )
             .append($("<tbody></tbody>"));
 
-          tableRow.append($("<div></div>").addClass("col-12").append(table));
+          tableRow.append($("<div></div>").addClass("table-responsive").append(table));
           content.append(actionRow);
           content.append(tableRow);
 
@@ -386,12 +386,10 @@ const addCourse = () => {
             return displayToast(result);
           }
           const table = $(`#table${year}`);
-          console.log(table);
           addNewCourseModal.hide();
           if (table.children("tbody").find(".empty").length !== 0) {
             table.children("tbody").find(".empty").remove();
           }
-          console.log(addCourseResponse);
           addCourseResponse.data.forEach((element) => {
             const tr = $("<tr></tr>");
             tr.append($("<td></td>").html(element.courseCode.toUpperCase()))
