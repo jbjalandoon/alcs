@@ -186,6 +186,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
               displayToast(result);
             })
             .catch((error) => {
+              info.revert();
               console.log(error);
               displayToast(error);
             });
@@ -257,6 +258,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         })
         .catch((error) => {
           console.log(error);
+          info.revert();
           displayToast(error);
         });
     }
@@ -773,7 +775,7 @@ scheduleProgramForm.on("change", () => {
     .then((result) => {
       scheduleYearLevelForm.empty();
       result.data.forEach((element) => {
-        scheduleYearLevelForm.append(new Option(element.level.yearLevel.toUpperCase(), element._id));
+        scheduleYearLevelForm.append(new Option(element.level.display.toUpperCase(), element._id));
       });
       scheduleYearLevelForm.trigger("change");
     })
@@ -832,6 +834,7 @@ scheduleSectionForm.on("change", () => {
           currentLab: null,
           maxLab: null,
         };
+        console.log(element);
         for (let i = 0; i < 2; i++) {
           const card = $("<div></div>");
           card.addClass("card mb-1");
@@ -839,10 +842,10 @@ scheduleSectionForm.on("change", () => {
           item.addClass("list-group-item bg-success text-light fc-event");
           item.attr({
             course: element.course.courseCode,
-            program: "BSIT",
-            section: "1",
+            program: scheduleProgramForm.children(':selected').text(),
+            section: scheduleSectionForm.children(':selected').text(),
             new: true,
-            level: "1",
+            level: scheduleYearLevelForm.children(':selected').text(),
             overlap: false,
             durationEditable: true,
             startEditable: true,
@@ -1079,7 +1082,7 @@ function renderEvent(info) {
   const level = info.event.extendedProps.level.toUpperCase();
   const type = info.event.extendedProps.courseType.toUpperCase();
 
-  titleEl.innerHTML = `${course} (${type})<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
+  titleEl.innerHTML = `${course}<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
 }
 
 function findClosestTime(datetimes, targetDatetime) {

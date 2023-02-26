@@ -546,6 +546,7 @@ const assignFaculty = (eventArgs) => {
       }
     }
   });
+  const aboveMax = parseInt(courseList.eq(0).attr("units")) + unitsCount > maxUnits;
   if (conflictSchedules.length !== 0) {
     return Swal.fire({
       icon: "error",
@@ -577,16 +578,19 @@ const assignFaculty = (eventArgs) => {
       },
     });
   }
-  if (isUndesiredSchedule || limits.length !== 0) {
+  if (isUndesiredSchedule || limits.length !== 0 || aboveMax) {
     const textDay = [...new Set(limits)];
     let text = "";
     if (limits.length !== 0) {
-      text += `The ${textDay.join(", ")} already exceed 8 hours.`;
+      text += `The ${textDay.join(", ")} already exceed 8 hours. `;
     }
     if (isUndesiredSchedule) {
-      text += "This schedule is marked as unwanted schedule of the faculty member.";
+      text += "This schedule is marked as unwanted schedule of the faculty member. ";
     }
-    text += ".Do you still want to continue?";
+    if (aboveMax) {
+      text += `The faculty already reached ${parseInt(courseList.eq(0).attr("units")) + unitsCount} units. `;
+    }
+    text += "Do you still want to continue?";
     return Swal.fire({
       icon: "warning",
       title: "Warning",

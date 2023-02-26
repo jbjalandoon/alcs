@@ -2259,6 +2259,7 @@ exports.deleteSchedule = (req, res, next) => {
       res.json({ status: 202 });
     })
     .catch((error) => {
+      console.log(error);
       res.json({ status: 500 });
     });
 };
