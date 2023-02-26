@@ -679,10 +679,14 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
       .then((result) => {
         Swal.fire({
           icon: "info",
-          title: `${result.data.course.courseDescription.toUpperCase()} - ${result.data.type.toUpperCase()}`,
-          text: `${days[result.data.day - 1]} ${result.data.startTime} - ${
+          title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${
+            result.data.level.display
+          }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
+          text: `${days[result.data.day]} ${result.data.startTime} - ${
             result.data.endTime
-          } (${result.data.room.roomName.toUpperCase()})`,
+          } (${result.data.room.roomName.toUpperCase()}${
+            result.data.faculty ? "/" + result.data.faculty.userInformation.facultyCode.toUpperCase() : ""
+          })`,
           width: "50%",
           showCancelButton: true,
           showDenyButton: true,
@@ -842,10 +846,10 @@ scheduleSectionForm.on("change", () => {
           item.addClass("list-group-item bg-success text-light fc-event");
           item.attr({
             course: element.course.courseCode,
-            program: scheduleProgramForm.children(':selected').text(),
-            section: scheduleSectionForm.children(':selected').text(),
+            program: scheduleProgramForm.children(":selected").text(),
+            section: scheduleSectionForm.children(":selected").text(),
             new: true,
-            level: scheduleYearLevelForm.children(':selected').text(),
+            level: scheduleYearLevelForm.children(":selected").text(),
             overlap: false,
             durationEditable: true,
             startEditable: true,

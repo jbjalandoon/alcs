@@ -60,12 +60,14 @@ const config = {
         });
         Swal.fire({
           icon: "info",
-          title: `${result.data.course.courseDescription.toUpperCase()} - ${
-            result.data.type === "lab" ? "LAB" : "LECTURE"
-          }`,
+          title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${
+            result.data.level.display
+          }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
           text: `${days[result.data.day]} ${result.data.startTime} - ${
             result.data.endTime
-          } (${result.data.room.roomName.toUpperCase()})`,
+          } (${result.data.room.roomName.toUpperCase()}${
+            result.data.faculty ? "/" + result.data.faculty.userInformation.facultyCode.toUpperCase() : ""
+          })`,
           width: "50%",
           showCancelButton: true,
           showDenyButton: true,

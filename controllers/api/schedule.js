@@ -501,7 +501,7 @@ exports.getOneSchedule = (req, res, next) => {
         course: "$semesters.programs.year.sections.schedules.course",
         type: "$semesters.programs.year.sections.schedules.type",
         program: "$semesters.programs.program",
-        level: "$semesters.programs.year.year_level",
+        level: "$semesters.programs.year.yearLevel",
         sectionName: "$semesters.programs.year.sections.section",
         sectionID: "$semesters.programs.year.sections._id",
         hour: "$semesters.programs.year.sections.schedules.hour",
@@ -538,7 +538,7 @@ exports.getOneSchedule = (req, res, next) => {
     },
     {
       $lookup: {
-        from: "faculties",
+        from: "users",
         localField: "faculty",
         foreignField: "_id",
         as: "faculty",
