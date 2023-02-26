@@ -19,9 +19,7 @@ const Level = require("./models/level");
 
 const error = require("./controllers/error");
 const db_uri = process.env.DB;
-
 const apiRoutes = require("./routes/api");
-
 const curriculumRoutes = require("./routes/curriculum");
 
 const adminRoutes = require("./routes/admin");
