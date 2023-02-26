@@ -54,7 +54,7 @@ exports.post = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
   }
-
+  let returnFaculty;
   let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9),
     generatedPassword;
   bcrypt
@@ -111,6 +111,7 @@ exports.post = (req, res, next) => {
       return Faculty.populate(result, { path: "userInformation.facultyType" });
     })
     .then((result) => {
+      returnFaculty = result;
       const emailDetails = {
         from: "sticaschedula@gmail.com",
         to: req.body.email,
@@ -120,8 +121,7 @@ exports.post = (req, res, next) => {
       return mailTransporter.sendMail(emailDetails);
     })
     .then((result) => {
-      console.log(result);
-      res.status(201).json({ status: 201, data: result });
+      res.status(201).json({ status: 201, data: returnFaculty });
     })
     .catch((error) => {
       console.log(error);
@@ -174,11 +174,7 @@ exports.put = (req, res, next) => {
 };
 
 exports.postCourse = (req, res, next) => {
-  Faculty.findOneAndUpdate(
-    { _id: req.params.id },
-    { "userInformation.courseTaken": req.body.courses },
-    { new: true }
-  )
+  Faculty.findOneAndUpdate({ _id: req.params.id }, { "userInformation.courseTaken": req.body.courses }, { new: true })
     .then((result) => {
       return Faculty.populate(result, {
         path: "userInformation.academicQualifications.academicQualification",
@@ -253,15 +249,11 @@ exports.postSpreadsheet = (req, res, next) => {
             const array = e.toLowerCase().split("-");
             const degreeLicense = array[1].toLowerCase().split("/");
             const degree = degreeLicense[0].replace(/\s/g, "");
-            const licenseIndustry = degreeLicense[1]
-              ? degreeLicense[1].toLowerCase().split(".")
-              : [];
+            const licenseIndustry = degreeLicense[1] ? degreeLicense[1].toLowerCase().split(".") : [];
             return {
               academicQualification: array[0].toLowerCase().replace(/\s/g, ""),
               degree:
-                degreeEquivalent.indexOf(degree.toLowerCase()) < 0
-                  ? 0
-                  : degreeEquivalent.indexOf(degree.toLowerCase()),
+                degreeEquivalent.indexOf(degree.toLowerCase()) < 0 ? 0 : degreeEquivalent.indexOf(degree.toLowerCase()),
               licenseIndustry: licenseIndustry,
             };
           });
@@ -311,24 +303,22 @@ exports.postSpreadsheet = (req, res, next) => {
           middleName: element.middleName,
           email: element.email,
           facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map(
-            (element) => {
-              return {
-                academicQualification: element.academicQualification,
-                degree: element.degree,
-                licenseIndustry: element.licenseIndustry.map((element) => {
-                  let id;
-                  for (let i = 0; i < result.length; i++) {
-                    if (result[i].tag === element) {
-                      id = result[i]._id;
-                      break;
-                    }
+          academicQualification: element.academicQualification.map((element) => {
+            return {
+              academicQualification: element.academicQualification,
+              degree: element.degree,
+              licenseIndustry: element.licenseIndustry.map((element) => {
+                let id;
+                for (let i = 0; i < result.length; i++) {
+                  if (result[i].tag === element) {
+                    id = result[i]._id;
+                    break;
                   }
-                  return id;
-                }),
-              };
-            }
-          ),
+                }
+                return id;
+              }),
+            };
+          }),
         };
       });
       data.forEach((element) => {
@@ -370,25 +360,20 @@ exports.postSpreadsheet = (req, res, next) => {
           middleName: element.middleName,
           email: element.email,
           facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map(
-            (element) => {
-              let id;
-              for (let i = 0; i < result.length; i++) {
-                if (
-                  result[i].academicQualification ===
-                  element.academicQualification
-                ) {
-                  id = result[i]._id;
-                }
+          academicQualification: element.academicQualification.map((element) => {
+            let id;
+            for (let i = 0; i < result.length; i++) {
+              if (result[i].academicQualification === element.academicQualification) {
+                id = result[i]._id;
               }
-              return {
-                academicQualification: id,
-                degree: element.degree,
-                experience: 0,
-                licenseIndustry: element.licenseIndustry,
-              };
             }
-          ),
+            return {
+              academicQualification: id,
+              degree: element.degree,
+              experience: 0,
+              licenseIndustry: element.licenseIndustry,
+            };
+          }),
         };
       });
       return FacultyType.find({ deleted: false });
@@ -397,10 +382,7 @@ exports.postSpreadsheet = (req, res, next) => {
       data = data.map((element) => {
         let facultyType;
         for (let i = 0; i < result.length; i++) {
-          if (
-            result[i].facultyType.toLowerCase() ===
-            element.facultyType.toLowerCase()
-          ) {
+          if (result[i].facultyType.toLowerCase() === element.facultyType.toLowerCase()) {
             facultyType = result[i]._id;
             break;
           }
@@ -453,9 +435,7 @@ exports.postSpreadsheet = (req, res, next) => {
     .then((result) => {
       console.log(result);
       return Faculty.find({ deleted: false, role: "user" })
-        .populate(
-          "userInformation.academicQualifications.academicQualification"
-        )
+        .populate("userInformation.academicQualifications.academicQualification")
         .populate("userInformation.academicQualifications.licenseIndustry")
         .populate("userInformation.courseTaken")
         .populate("userInformation.facultyType");
@@ -498,10 +478,8 @@ exports.putSchedulePreference = (req, res, next) => {
     { _id: req.params.id },
     {
       "userInformation.schedulePreference.$[schedule].day": req.body.day,
-      "userInformation.schedulePreference.$[schedule].startTime":
-        req.body.startTime,
-      "userInformation.schedulePreference.$[schedule].endTime":
-        req.body.endTime,
+      "userInformation.schedulePreference.$[schedule].startTime": req.body.startTime,
+      "userInformation.schedulePreference.$[schedule].endTime": req.body.endTime,
     },
     { arrayFilters: [{ "schedule._id": req.params.preference }] }
   )
@@ -540,10 +518,7 @@ exports.sendNewPassword = (req, res, next) => {
   bcrypt
     .hash(randomString, 12)
     .then((password) => {
-      return Faculty.findOneAndUpdate(
-        { _id: req.params.id },
-        { password: password }
-      );
+      return Faculty.findOneAndUpdate({ _id: req.params.id }, { password: password });
     })
     .then((result) => {
       const emailDetails = {

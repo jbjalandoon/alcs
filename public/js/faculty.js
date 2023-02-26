@@ -6,18 +6,11 @@ const table = $("#facultyTable").DataTable({
   },
 });
 
-const degreeEquivalent = [
-  "Associate Degree",
-  "Bachelor Degree",
-  "Master Degree",
-  "Doctoral",
-];
+const degreeEquivalent = ["Associate Degree", "Bachelor Degree", "Master Degree", "Doctoral"];
 
 const dataTable = (operation, data) => {
   const firstName = data.userInformation.firstName.toUpperCase();
-  const middleName = data.userInformation.middleName
-    ? data.userInformation.middleName.toUpperCase()
-    : "";
+  const middleName = data.userInformation.middleName ? data.userInformation.middleName.toUpperCase() : "";
   const lastName = data.userInformation.lastName.toUpperCase();
   operation([
     data.userInformation.facultyCode.toUpperCase(),
@@ -55,9 +48,9 @@ const dataTable = (operation, data) => {
       <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
         data._id
       }">Course Taken</button>
-      <button class="btn btn-sm btn-secondary mb-1" onClick="sendPassword('${
-        data._id
-      }')" id="${data._id}">Send Password</button>
+      <button class="btn btn-sm btn-secondary mb-1" onClick="sendPassword('${data._id}')" id="${
+      data._id
+    }">Send Password</button>
       ${actionButton(data._id)}
     `,
   ]).draw();
@@ -84,29 +77,19 @@ fetch("/api/faculty")
   });
 
 $(addModal._element).on("show.bs.modal", (event) => {
-  let academicQualificationList,
-    experience,
-    degrees,
-    licenseIndustry,
-    academicQualification;
+  let academicQualificationList, experience, degrees, licenseIndustry, academicQualification;
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
   const facultyCode = $(event.currentTarget).find("#facultyCode");
   const email = $(event.currentTarget).find("#email");
   const facultyType = $(event.currentTarget).find("#facultyType");
-  const schedulePreference = $(event.currentTarget)
-    .find("#schedulePreference")
-    .select2({
-      multiple: true,
-      width: "100%",
-    });
-  const removeAcademicQualification = $(event.currentTarget).find(
-    "#removeAcademicQualification"
-  );
-  const newAcademicQualification = $(event.currentTarget).find(
-    "#newAcademicQualification"
-  );
+  const schedulePreference = $(event.currentTarget).find("#schedulePreference").select2({
+    multiple: true,
+    width: "100%",
+  });
+  const removeAcademicQualification = $(event.currentTarget).find("#removeAcademicQualification");
+  const newAcademicQualification = $(event.currentTarget).find("#newAcademicQualification");
   const button = $(event.currentTarget).find("#addButton");
   const card = $(event.currentTarget).find("#qaCard");
   removeAcademicQualification.off("click");
@@ -119,9 +102,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       facultyType.find("option").not(":first").remove();
       result.data.forEach((element) => {
-        facultyType.append(
-          new Option(element.facultyType.toUpperCase(), element._id)
-        );
+        facultyType.append(new Option(element.facultyType.toUpperCase(), element._id));
       });
       return fetch("/api/academic-qualifications");
     })
@@ -133,9 +114,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
       card.empty();
       if (academicQualification) academicQualification.off("change");
       makeNewAcademicQualification(card, academicQualificationList);
-      academicQualification = $(event.currentTarget).find(
-        ".academic-qualification"
-      );
+      academicQualification = $(event.currentTarget).find(".academic-qualification");
       experience = $(event.currentTarget).find(".experience");
       degrees = $(event.currentTarget).find(".degree");
       licenseIndustry = $(event.currentTarget).find(".license-industry");
@@ -159,23 +138,20 @@ $(addModal._element).on("show.bs.modal", (event) => {
       email.val("");
       facultyType.val("");
       schedulePreference.val(["m", "t", "w", "th", "f", "s"]).trigger("change");
-      removeAcademicQualification.on("click", () => {
+      removeAcademicQualification.on("click", (button) => {
         card.children().last().remove();
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
+        console.log(academicQualification.length);
         experience = $(event.currentTarget).find(".experience");
         degrees = $(event.currentTarget).find(".degree");
         licenseIndustry = $(event.currentTarget).find(".license-industry");
         if (academicQualification.length === 1) {
-          $(event.currentTarget).addClass("disabled");
+          $(button.currentTarget).addClass("disabled");
         }
       });
       newAcademicQualification.on("click", () => {
         makeNewAcademicQualification(card, academicQualificationList);
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
         experience = $(event.currentTarget).find(".experience");
         degrees = $(event.currentTarget).find(".degree");
         licenseIndustry = $(event.currentTarget).find(".license-industry");
@@ -184,6 +160,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
         }
       });
       button.on("click", () => {
+        loading();
         const qualifications = [];
         academicQualification.each((index) => {
           if ($(academicQualification[index]).val() !== null) {
@@ -214,6 +191,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
             return response.json();
           })
           .then((result) => {
+            console.log(result);
             if (result.errors) {
               displayValidationError(result.errors, event.currentTarget);
               if (result.errors.academicQualifications) {
@@ -224,10 +202,12 @@ $(addModal._element).on("show.bs.modal", (event) => {
               }
               return displayToast(result);
             }
-            console.log(result);
             addModal.hide();
             dataTable(table.row.add, result.data);
-            return displayToast(result);
+            Toast.fire({
+              icon: "success",
+              title: "Successfully Added",
+            });
           });
       });
     })
@@ -237,29 +217,19 @@ $(addModal._element).on("show.bs.modal", (event) => {
 });
 
 $(editModal._element).on("show.bs.modal", (event) => {
-  let academicQualificationList,
-    experience,
-    degrees,
-    licenseIndustry,
-    academicQualification;
+  let academicQualificationList, experience, degrees, licenseIndustry, academicQualification;
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
   const facultyCode = $(event.currentTarget).find("#facultyCode");
   const email = $(event.currentTarget).find("#email");
   const facultyType = $(event.currentTarget).find("#facultyType");
-  const schedulePreference = $(event.currentTarget)
-    .find("#schedulePreference")
-    .select2({
-      multiple: true,
-      width: "100%",
-    });
-  const removeAcademicQualification = $(event.currentTarget).find(
-    "#removeAcademicQualification"
-  );
-  const newAcademicQualification = $(event.currentTarget).find(
-    "#newAcademicQualification"
-  );
+  const schedulePreference = $(event.currentTarget).find("#schedulePreference").select2({
+    multiple: true,
+    width: "100%",
+  });
+  const removeAcademicQualification = $(event.currentTarget).find("#removeAcademicQualification");
+  const newAcademicQualification = $(event.currentTarget).find("#newAcademicQualification");
   const button = $(event.currentTarget).find("#editButton");
   const card = $(event.currentTarget).find("#qaCard");
   const id = $(event.relatedTarget).attr("data-bs-id");
@@ -275,13 +245,9 @@ $(editModal._element).on("show.bs.modal", (event) => {
 
       facultyType.find("option").not(":first").remove();
       result.data.forEach((element) => {
-        facultyType.append(
-          new Option(element.facultyType.toUpperCase(), element._id)
-        );
+        facultyType.append(new Option(element.facultyType.toUpperCase(), element._id));
       });
-      academicQualification = $(event.currentTarget).find(
-        ".academic-qualification"
-      );
+      academicQualification = $(event.currentTarget).find(".academic-qualification");
       experience = $(event.currentTarget).find(".experience");
       degrees = $(event.currentTarget).find(".degree");
       licenseIndustry = $(event.currentTarget).find(".license-industry");
@@ -308,17 +274,13 @@ $(editModal._element).on("show.bs.modal", (event) => {
       facultyCode.val(result.data.userInformation.facultyCode);
       email.val(result.data.email);
       facultyType.val(result.data.userInformation.facultyType._id);
-      schedulePreference
-        .val(result.data.userInformation.schedulePreference)
-        .trigger("change");
+      schedulePreference.val(result.data.userInformation.schedulePreference).trigger("change");
       card.empty();
       result.data.userInformation.academicQualifications.forEach((element) => {
         existingAcademicQualification(card, academicQualificationList, element);
       });
       if (academicQualification) academicQualification.off("change");
-      academicQualification = $(event.currentTarget).find(
-        ".academic-qualification"
-      );
+      academicQualification = $(event.currentTarget).find(".academic-qualification");
       experience = $(event.currentTarget).find(".experience");
       degrees = $(event.currentTarget).find(".degree");
       licenseIndustry = $(event.currentTarget).find(".license-industry");
@@ -335,23 +297,21 @@ $(editModal._element).on("show.bs.modal", (event) => {
         facultyType,
         schedulePreference,
       ]);
-      removeAcademicQualification.on("click", () => {
+      removeAcademicQualification.on("click", (button) => {
         card.children().last().remove();
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
         experience = $(event.currentTarget).find(".experience");
         degrees = $(event.currentTarget).find(".degree");
         licenseIndustry = $(event.currentTarget).find(".license-industry");
         if (academicQualification.length === 1) {
-          $(event.currentTarget).addClass("disabled");
+          $(button.currentTarget).addClass("disabled");
         }
       });
       newAcademicQualification.on("click", () => {
         makeNewAcademicQualification(card, academicQualificationList);
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
+        academicQualification = $(event.currentTarget).find(".academic-qualification");
         experience = $(event.currentTarget).find(".experience");
         degrees = $(event.currentTarget).find(".degree");
         licenseIndustry = $(event.currentTarget).find(".license-industry");
@@ -401,10 +361,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
               return displayToast(result);
             }
             editModal.hide();
-            dataTable(
-              table.row($(event.relatedTarget).closest("tr")).data,
-              result.data
-            );
+            dataTable(table.row($(event.relatedTarget).closest("tr")).data, result.data);
             return displayToast(result);
           });
       });
@@ -433,12 +390,7 @@ $(addCourseModal._element).on("show.bs.modal", (event) => {
       result.data.forEach((element) => {
         course
           .append(
-            new Option(
-              element.courseCode.toUpperCase() +
-                " - " +
-                element.courseDescription.toUpperCase(),
-              element._id
-            )
+            new Option(element.courseCode.toUpperCase() + " - " + element.courseDescription.toUpperCase(), element._id)
           )
           .trigger("change");
       });
@@ -471,10 +423,7 @@ $(addCourseModal._element).on("show.bs.modal", (event) => {
           })
           .then((result) => {
             addCourseModal.hide();
-            dataTable(
-              table.row($(event.relatedTarget).closest("tr")).data,
-              result.data
-            );
+            dataTable(table.row($(event.relatedTarget).closest("tr")).data, result.data);
             return displayToast(result);
           })
           .catch((error) => {
@@ -493,10 +442,7 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
   const body = new FormData();
   button.off("click");
   button.on("click", () => {
-    body.append(
-      "spreadsheet",
-      $(event.currentTarget).find("#spreadsheet")[0].files[0]
-    );
+    body.append("spreadsheet", $(event.currentTarget).find("#spreadsheet")[0].files[0]);
     loading();
     fetch("/api/faculty/upload", {
       method: "POST",
@@ -550,18 +496,12 @@ const makeNewAcademicQualification = (card, academicQualificationList) => {
   aqRow.append(
     $("<div></div>")
       .addClass("col-12 mb-3")
-      .append(
-        $("<label></label>")
-          .addClass("col-form-label")
-          .html("Academic Qualification")
-      )
+      .append($("<label></label>").addClass("col-form-label").html("Academic Qualification"))
       .append(
         $("<select></select>")
           .addClass("form-select form-select-sm academic-qualification")
           .on("change", (event) => {
-            fetch(
-              "/api/academic-qualifications/" + $(event.currentTarget).val()
-            )
+            fetch("/api/academic-qualifications/" + $(event.currentTarget).val())
               .then((response) => {
                 return response.json();
               })
@@ -581,12 +521,9 @@ const makeNewAcademicQualification = (card, academicQualificationList) => {
                     .find(".license-industry")
                     .append(new Option(license.tag.toUpperCase(), license._id));
                 });
-                $(event.currentTarget)
-                  .closest(".academic-qualification-form")
-                  .find("select, input")
-                  .attr({
-                    disabled: false,
-                  });
+                $(event.currentTarget).closest(".academic-qualification-form").find("select, input").attr({
+                  disabled: false,
+                });
               });
           })
       )
@@ -600,11 +537,7 @@ const makeNewAcademicQualification = (card, academicQualificationList) => {
     })
   );
   academicQualificationList.forEach((element) => {
-    aqRow
-      .find("select")
-      .append(
-        new Option(element.academicQualification.toUpperCase(), element._id)
-      );
+    aqRow.find("select").append(new Option(element.academicQualification.toUpperCase(), element._id));
   });
   const numberRow = $("<div></div>");
   numberRow.addClass("row mb-2");
@@ -687,11 +620,7 @@ const makeNewAcademicQualification = (card, academicQualificationList) => {
   card.append(container);
 };
 
-const existingAcademicQualification = (
-  card,
-  academicQualificationList,
-  data
-) => {
+const existingAcademicQualification = (card, academicQualificationList, data) => {
   console.log(data);
   const container = $("<div></div>");
   container.addClass("academic-qualification-form");
@@ -701,18 +630,12 @@ const existingAcademicQualification = (
   aqRow.append(
     $("<div></div>")
       .addClass("col-12 mb-3")
-      .append(
-        $("<label></label>")
-          .addClass("col-form-label")
-          .html("Academic Qualification")
-      )
+      .append($("<label></label>").addClass("col-form-label").html("Academic Qualification"))
       .append(
         $("<select></select>")
           .addClass("form-select form-select-sm academic-qualification")
           .on("change", (event) => {
-            fetch(
-              "/api/academic-qualifications/" + $(event.currentTarget).val()
-            )
+            fetch("/api/academic-qualifications/" + $(event.currentTarget).val())
               .then((response) => {
                 return response.json();
               })
@@ -737,12 +660,9 @@ const existingAcademicQualification = (
                     )
                     .trigger("change");
                 });
-                $(event.currentTarget)
-                  .closest(".academic-qualification-form")
-                  .find("select, input")
-                  .attr({
-                    disabled: false,
-                  });
+                $(event.currentTarget).closest(".academic-qualification-form").find("select, input").attr({
+                  disabled: false,
+                });
               });
           })
       )
@@ -756,11 +676,7 @@ const existingAcademicQualification = (
     })
   );
   academicQualificationList.forEach((element) => {
-    aqRow
-      .find("select")
-      .append(
-        new Option(element.academicQualification.toUpperCase(), element._id)
-      );
+    aqRow.find("select").append(new Option(element.academicQualification.toUpperCase(), element._id));
   });
   aqRow.find("select").val(data.academicQualification._id).trigger("change");
   const numberRow = $("<div></div>");

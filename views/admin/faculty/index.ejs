@@ -102,9 +102,17 @@
 
               <div class="row">
                 <div class="container">
-                  <div class="card">
-                    <div class="card-header">
-                      Academic Qualification
+                  <div class="card border">
+                    <div class="card-header border">
+                      <div class="row">
+                        <div class="col-lg-3 col-sm-3">
+                          Academic Qualification
+                        </div>
+                        <div class="col-lg-9 col-sm-9">
+                          <button type="button" class="btn btn-primary float-end" id="newAcademicQualification">Add</button>
+                          <button type="button" class="disabled btn btn-danger me-1 float-end" id="removeAcademicQualification">Remove</button>
+                        </div>
+                      </div>
                     </div>
                     <div class="card-body" id="qaCard">
                       <div id="academicQualificationForm">
@@ -156,8 +164,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="disabled btn btn-secondary" id="removeAcademicQualification">Remove Academic Qualification</button>
-          <button type="button" class="btn btn-secondary" id="newAcademicQualification">Add Academic Qualification</button>
           <button type="button" class="btn btn-primary" id="addButton">Submit</button>
         </div>
       </div>
@@ -245,9 +251,11 @@
               </div>
               <div class="row">
                 <div class="container">
-                  <div class="card">
-                    <div class="card-header">
+                  <div class="card border">
+                    <div class="card-header border">
                       Academic Qualification
+                      <button type="button" class="btn btn-danger me-1 float-end" id="newAcademicQualification">Add</button>
+                      <button type="button" class="disabled btn btn-primary me-1 float-end" id="removeAcademicQualification">Remove</button>
                     </div>
                     <div class="card-body" id="qaCard">
                     </div>
@@ -259,8 +267,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="disabled btn btn-secondary" id="removeAcademicQualification">Remove Academic Qualification</button>
-          <button type="button" class="btn btn-secondary" id="newAcademicQualification">Add Academic Qualification</button>
           <button type="button" class="btn btn-primary" id="editButton">Edit</button>
         </div>
       </div>

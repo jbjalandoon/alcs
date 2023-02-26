@@ -2,39 +2,34 @@
 </head>
 
 <%- include('../includes/navbar.ejs') %>
-
-<div class="container-fluid mt-3">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <strong>Faculty Types</strong>
-          <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#addFacultyTypeModal">
-            Add FacultyType
-          </button>
-        </div>
-        <div class="card-body">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12">
-                <div class="table-responsive">
-                  <table id="facultyTypeTable" class="table">
-                    <thead>
-                      <tr>
-                        <th>Faculty Type</th>
-                        <th>Units Cap</th>
-                        <th>Hours Cap</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                  </table>
-                </div>
-              </div>
+<div class="content-wrapper container">
+  <div class="page-heading">
+    <span class="h3">Faculty Types</span>
+    <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#addFacultyTypeModal">
+      Add FacultyType
+    </button>
+  </div>
+  <div class="page-content">
+    <section class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="facultyTypeTable" class="table">
+                <thead>
+                  <tr>
+                    <th>Faculty Type</th>
+                    <th>Units Cap</th>
+                    <th>Hours Cap</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+              </table>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </div>
 
