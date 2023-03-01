@@ -54,7 +54,7 @@ $(".owl-carousel").owlCarousel({
 const calendar = new FullCalendar.Calendar(calendarContainer, config);
 calendar.render();
 
-fetch("/api/curriculums/active")
+fetch("/api/curriculums/semesters/active")
   .then((response) => {
     return response.json();
   })

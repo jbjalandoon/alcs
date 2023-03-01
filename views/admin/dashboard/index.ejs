@@ -3,9 +3,14 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="content-wrapper container">
+  <div class="d-flex justify-content-center" id="spinner">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <div class="content-wrapper container d-none" id="content">
     <div class="page-heading">
-      <span class="h3">Dashboard</span>
+      <span class="h3" id="contentHeader">Dashboard</span>
       <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
         Set Active Semester
       </button>

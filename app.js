@@ -21,6 +21,7 @@ const error = require("./controllers/error");
 const db_uri = process.env.DB;
 const apiRoutes = require("./routes/api");
 const curriculumRoutes = require("./routes/curriculum");
+const dashboardRoutes = require("./routes/dashboard");
 
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
@@ -122,6 +123,7 @@ app.use(
 
 app.use("/api", apiRoutes);
 app.use("/api/curriculums", curriculumRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);
 let randomString;

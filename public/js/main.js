@@ -107,6 +107,7 @@ const getActiveSemester = async () => {
 };
 
 $(changePasswordModal._element).on("show.bs.modal", (event) => {
+  const csrf = $("#csrf").val();
   const oldPassword = $(event.currentTarget).find("#oldPassword");
   const newPassword = $(event.currentTarget).find("#newPassword");
   const retypePassword = $(event.currentTarget).find("#retypePassword");

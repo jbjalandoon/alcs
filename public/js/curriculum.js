@@ -595,6 +595,7 @@ const addYearLevel = () => {
   $(addYearLevelModal._element).on("show.bs.modal", async (event) => {
     try {
       const yearLevel = $(event.currentTarget).find("#yearLevel");
+      yearLevel.empty();
       const id = $(event.relatedTarget).attr("data-bs-id");
       const button = $(event.currentTarget).find("#addYearLevelButton");
       const yearLevelRequest = await fetch(`/api/levels`);

@@ -96,12 +96,18 @@ exports.getSchedule = (req, res, next) => {
     {
       $group: {
         _id: "$section",
+        lab: { $first: "$course.lab" },
+        lecture: { $first: "$course.lecture" },
+        currentHour: { $sum: "$hour" },
         schedules: { $push: "$$ROOT" },
       },
     },
   ])
     .then((result) => {
-      res.json({ ok: true, data: result });
+      res.json({
+        ok: true,
+        data: result,
+      });
     })
     .catch((error) => {
       console.log(error);
@@ -256,10 +262,8 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
         {
           $group: {
             _id: "$semesters.programs.year.sections.schedules.course",
-            count: { $count: {} },
           },
         },
-
         {
           $lookup: {
             from: "courses",
@@ -281,6 +285,7 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
       ]);
     })
     .then((result) => {
+      console.log(result);
       let filteredResult;
       academicQualification.forEach((element) => {
         filteredResult = result.filter((course) => {
@@ -320,7 +325,8 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
           })
           .includes(element.academicQualification._id);
       });
-      res.json({ ok: true, data: filteredResult });
+      // res.json({ ok: true, data: filteredResult });
+      res.json({ ok: true, data: result });
     })
     .catch((error) => {
       console.log(error);
