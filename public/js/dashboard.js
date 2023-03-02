@@ -749,7 +749,7 @@ function downloadSpreadsheetTable(filename, events) {
   XLSX.writeFile(wb, filename);
 }
 
-const downloadFacultyCalendarXLSX = async (event) => {
+const downloadFacultyCalendarXLSX = async () => {
   let facultyCode,
     facultyName,
     facultyType,
@@ -916,7 +916,6 @@ const downloadAllFacultyCalendarXLSX = async () => {
   const wb = XLSX.utils.book_new();
   const facultySchedulesRequest = await fetch(`/api/schedules/faculty/${semester}`);
   const facultySchedules = await facultySchedulesRequest.json();
-  console.log(facultySchedules);
   facultySchedules.data.forEach((element) => {
     const times = [];
     for (let i = 7; i < 22; i++) {
@@ -1069,7 +1068,7 @@ const downloadAllFacultyCalendarXLSX = async () => {
   XLSX.writeFile(wb, `faculty.xlsx`);
 };
 
-const downloadRoomCalendarXLSX = async (event) => {
+const downloadRoomCalendarXLSX = async () => {
   const room = roomView.find(":selected").text();
   const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
   const wb = XLSX.utils.book_new();
@@ -1220,16 +1219,13 @@ const downloadRoomCalendarXLSX = async (event) => {
 };
 
 const downloadAllRoomCalendarXLSX = async () => {
-  let facultyCode,
-    facultyName,
-    facultyType,
-    unitsCount = 0;
+  let roomName;
   const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
   const wb = XLSX.utils.book_new();
-  const facultySchedulesRequest = await fetch(`/api/schedules/faculty/${semester}`);
-  const facultySchedules = await facultySchedulesRequest.json();
-  console.log(facultySchedules);
-  facultySchedules.data.forEach((element) => {
+  const roomSchedulesRequest = await fetch(`/api/schedules/room/${semester}`);
+  const roomSchedules = await roomSchedulesRequest.json();
+  console.log(roomSchedules);
+  roomSchedules.data.forEach((element) => {
     const times = [];
     for (let i = 7; i < 22; i++) {
       for (let j = 0; j < 2; j++) {
@@ -1265,14 +1261,13 @@ const downloadAllRoomCalendarXLSX = async () => {
         cellData(""),
       ];
       element.data.forEach((element, index) => {
+        roomName = element.room.roomName.toUpperCase();
         const course = element.course.courseCode.toUpperCase();
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();
         const room = element.room.roomName.toUpperCase();
         const level = element.level.display.toUpperCase();
-        const initials = element.faculty.userInformation.facultyCode.toUpperCase();
-        facultyCode = element.faculty.userInformation.facultyCode.toUpperCase();
-        facultyName = `${element.faculty.userInformation.firstName} ${element.faculty.userInformation.middleName} ${element.faculty.userInformation.lastName}`;
+        const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
         const eventTime = element.startTime;
         if (times[i].split("-")[0] === eventTime) {
           rowData[element.day * 2] = {
@@ -1293,15 +1288,15 @@ const downloadAllRoomCalendarXLSX = async () => {
             },
           };
           merges.push({
-            s: { r: i + 6, c: element.day * 2 },
+            s: { r: i + 3, c: element.day * 2 },
             e: {
-              r: i + 5 + element.hour * 2,
+              r: i + 2 + element.hour * 2,
               c: element.day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j + 5}`;
+            let singleCell = `${cols[element.day * 2]}${j + 2}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -1310,10 +1305,7 @@ const downloadAllRoomCalendarXLSX = async () => {
       data.push(rowData);
     }
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeader("Faculty Code:"), cellHeaderText(facultyCode.toUpperCase()), ""],
-      [cellHeader("Faculty Name:"), cellHeaderText(facultyName.toUpperCase()), ""],
-      [cellHeader("Faculty Type:"), cellHeaderText("FULL-TIME"), ""],
-      [cellHeader("Units Count:"), cellHeaderText("UNITS"), ""],
+      [cellHeader("ROOM:"), cellHeaderText(roomName.toUpperCase()), ""],
       [],
       [
         cellData("Time"),
@@ -1332,7 +1324,7 @@ const downloadAllRoomCalendarXLSX = async () => {
       ],
       ...data,
     ]);
-    for (let i = 0; i <= 4; i++) {
+    for (let i = 0; i <= 1; i++) {
       merges.push({
         s: { r: i, c: 1 },
         e: {
@@ -1341,7 +1333,7 @@ const downloadAllRoomCalendarXLSX = async () => {
         },
       });
     }
-    mergedCells.push(["A1", "B1", "C1"], ["A2", "B2", "C2"], ["A3", "B3", "C3"], ["A4", "B4", "C4"]);
+    mergedCells.push(["A1", "B1", "C1"]);
     ws["!merges"] = merges;
     mergedCells.forEach((element) => {
       element.forEach((element) => {
@@ -1375,10 +1367,10 @@ const downloadAllRoomCalendarXLSX = async () => {
       { wch: 3 }, // "characters"
       { wch: 20 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, facultyCode.toUpperCase());
+    XLSX.utils.book_append_sheet(wb, ws, roomName.toUpperCase());
   });
 
-  XLSX.writeFile(wb, `faculty.xlsx`);
+  XLSX.writeFile(wb, `rooms.xlsx`);
 };
 
 const cellData = (data) => {
