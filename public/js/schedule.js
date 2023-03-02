@@ -7,6 +7,125 @@ const content = $("#content");
 const spinner = $("#spinner");
 const csrf = $("#csrf").val();
 
+const createSchedule = async (info) => {
+  try {
+    const event = info.event;
+    const extendedProps = info.event.extendedProps;
+    let confirmed = true;
+
+    // check if room is not yet selected
+    if (isEmptyRoom()) {
+      Toast.fire({ icon: "warning", title: "Please select room first" });
+      return info.revert();
+    }
+
+    // filter the current schedules to currently dragged day
+    const sameDaySchedules = calendar.getEvents().filter((e) => e.start.getDay() === event.start.getDay());
+
+    // sort the filtered schedule
+    sameDaySchedules.sort(function (a, b) {
+      return a.start - b.start;
+    });
+
+    // find the index of currently added schedule
+    const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
+    // assigning the previous and next schedule
+    const previousEvent = currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
+    const nextEvent = currentIndex < sameDaySchedules.length - 1 ? sameDaySchedules[currentIndex + 1] : null;
+    // getting the time gaps between schedules
+    const previousTimeGap = previousEvent != null ? (event.start.getTime() - previousEvent.end.getTime()) / 1000 : null;
+    const nextTimeGap = nextEvent != null ? (nextEvent.start.getTime() - event.end.getTime()) / 1000 : null;
+
+    const isPreviousValid = isTimeGapValid(previousTimeGap);
+    const isNextValid = isTimeGapValid(nextTimeGap);
+
+    // check if the time gap is large or small
+    if (!isPreviousValid || !isNextValid) {
+      let previous = false;
+      let text = "";
+
+      if (!isPreviousValid) {
+        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+        previous = true;
+      }
+
+      if (!isNextValid) {
+        if (previous) text += " & ";
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+      }
+
+      text += ", Do you still want to continue?";
+
+      const alert = await Swal.fire({
+        title: "Are you sure?",
+        text: text,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Confirm",
+      });
+      confirmed = alert.isConfirmed;
+    }
+
+    if (!confirmed) return info.revert();
+
+    const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
+    const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+    const end = moment(event.endStr);
+    const start = moment(event.startStr);
+    const hour = moment.duration(end.diff(start)).asHours();
+
+    const schedule = await postSchedule({
+      courseType: extendedProps.courseType,
+      course: extendedProps.courseId,
+      day: event.start.getDay(),
+      startTime: ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
+      endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
+      room: $("#roomForm").val(),
+      hour: hour,
+      event: event,
+    });
+    if (!schedule) {
+      info.revert();
+      return Toast.fire({
+        icon: "warning",
+        title: "Something Went Wrong",
+      });
+    }
+
+    // setting the hours of schedule
+    event.setExtendedProp("hourDuration", hour);
+
+    // storing the hours for checking if the max hours already reached
+    if (extendedProps.courseType === "lecture") {
+      currentCourseHourCount[extendedProps.course].currentLecture =
+        currentCourseHourCount[extendedProps.course].maxLecture;
+    } else {
+      currentCourseHourCount[extendedProps.course].currentLab = currentCourseHourCount[extendedProps.course].maxLab;
+    }
+
+    // changing the draggable element to non draggable
+    $("#external-events")
+      .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
+      .removeClass(`${extendedProps.courseType}-event bg-primary text-light`)
+      .addClass("bg-warning text-dark")
+      .css("cursor", "")
+      .attr("hour", "0:00");
+
+    // setting the schedule id
+    event.setExtendedProp("scheduleID", schedule.id);
+    Toast.fire({
+      icon: "success",
+      title: "Schedule Successfully Created",
+    });
+  } catch (error) {
+    console.error(error);
+    info.revert();
+    Toast.fire({ icon: "warning", title: "Something went wrong" });
+  }
+};
+
 const config = {
   allDaySlot: false,
   height: "auto",
@@ -27,193 +146,7 @@ const config = {
   },
   droppable: true, // this allows things to be dropped onto the calendar
   // for adding schedule
-  eventReceive: function (info) {
-    const existingEvents = [];
-    let previousTimeGap, nextTimeGap;
-
-    // check if room is not yet selected
-    if ($("#roomForm").val() === "") {
-      Toast.fire({ icon: "warning", title: "Please select room first" });
-      return info.revert();
-    }
-
-    // filter the current schedules to currently dragged day
-    calendar.getEvents().forEach((element) => {
-      const sameDay = element.start.getDay() === info.event.start.getDay();
-      if (sameDay && element.extendedProps.current) {
-        existingEvents.push(element);
-      }
-    });
-
-    // sort the filtered schedule
-    existingEvents.sort(function (a, b) {
-      return a.start - b.start;
-    });
-
-    // find the index of currently added schedule
-    const currentIndex = existingEvents.findIndex(function (event) {
-      return event.extendedProps.new === true;
-    });
-
-    // assigning the previous and next schedule
-    previousEvent = currentIndex > 0 ? existingEvents[currentIndex - 1] : undefined;
-    nextEvent = currentIndex < existingEvents.length - 1 ? existingEvents[currentIndex + 1] : undefined;
-
-    // getting the time gaps between schedules
-    previousTimeGap = previousEvent ? (info.event.start.getTime() - previousEvent.end.getTime()) / 1000 : undefined;
-    nextTimeGap = nextEvent ? (nextEvent.start.getTime() - info.event.end.getTime()) / 1000 : undefined;
-
-    // set the schedule not new
-    info.event.setExtendedProp("new", false);
-
-    // check if the time gap is large or small
-    if (previousTimeGap >= 5400 || previousTimeGap < 1800 || nextTimeGap >= 5400 || nextTimeGap < 1800) {
-      let previous = false;
-      let text = "";
-      if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
-        previous = true;
-      }
-      if (nextTimeGap >= 5400 || nextTimeGap < 1800) {
-        if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
-      }
-      text += ", Do you still want to continue?";
-
-      Swal.fire({
-        title: "Are you sure?",
-        text: text,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        preConfirm: () => {
-          const startMinutes = info.event.start.getMinutes() == 0 ? "00" : info.event.start.getMinutes().toString();
-          const endMinutes = info.event.end.getMinutes() == 0 ? "00" : info.event.end.getMinutes().toString();
-          const end = moment(info.event.endStr);
-          const start = moment(info.event.startStr);
-          const hour = moment.duration(end.diff(start)).asHours();
-          fetch("/api/schedules/assign/" + scheduleSectionForm.val(), {
-            method: "POST",
-            headers: {
-              "csrf-token": csrf,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              courseType: info.event.extendedProps.courseType,
-              course: info.event.extendedProps.courseId,
-              day: info.event.start.getDay(),
-              startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-              endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-              room: $("#roomForm").val(),
-              hour: hour,
-              event: info.event(),
-            }),
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((result) => {
-              info.event.setExtendedProp("hourDuration", hour);
-
-              if (info.event.extendedProps.courseType === "lecture") {
-                currentCourseHourCount[info.event.extendedProps.course].currentLecture =
-                  currentCourseHourCount[info.event.extendedProps.course].maxLecture;
-              } else {
-                currentCourseHourCount[info.event.extendedProps.course].currentLab =
-                  currentCourseHourCount[info.event.extendedProps.course].maxLab;
-              }
-              $("#external-events")
-                .find(
-                  `[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`
-                )
-                .removeClass(`${info.event.extendedProps.courseType}-event bg-primary text-light`)
-                .addClass("bg-warning text-dark")
-                .css("cursor", "")
-                .attr("hour", "0:00");
-              info.event.setExtendedProp("scheduleID", result.id);
-              displayToast(result);
-            })
-            .catch((error) => {
-              info.revert();
-              console.log(error);
-              displayToast(error);
-            });
-        },
-      })
-        .then((result) => {
-          if (result.isConfirmed) {
-            Toast.fire({
-              icon: "success",
-              title: "Successfully Adjusted",
-            });
-          } else {
-            info.revert();
-          }
-        })
-        .catch((error) => {
-          info.revert();
-          console.log(error);
-        });
-    } else {
-      const startMinutes = info.event.start.getMinutes() == 0 ? "00" : info.event.start.getMinutes().toString();
-      const endMinutes = info.event.end.getMinutes() == 0 ? "00" : info.event.end.getMinutes().toString();
-      const end = moment(info.event.endStr);
-      const start = moment(info.event.startStr);
-      const hour = moment.duration(end.diff(start)).asHours();
-      fetch("/api/schedules/assign/" + scheduleSectionForm.val(), {
-        method: "POST",
-        headers: {
-          "csrf-token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          courseType: info.event.extendedProps.courseType,
-          course: info.event.extendedProps.courseId,
-          day: info.event.start.getDay(),
-          startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-          endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-          room: $("#roomForm").val(),
-          hour: hour,
-          event: info.event,
-        }),
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then((result) => {
-          // setting the hours of schedule
-          info.event.setExtendedProp("hourDuration", hour);
-
-          // storing the hours for checking if the max hours already reached
-          if (info.event.extendedProps.courseType === "lecture") {
-            currentCourseHourCount[info.event.extendedProps.course].currentLecture =
-              currentCourseHourCount[info.event.extendedProps.course].maxLecture;
-          } else {
-            currentCourseHourCount[info.event.extendedProps.course].currentLab =
-              currentCourseHourCount[info.event.extendedProps.course].maxLab;
-          }
-
-          // changing the draggable element to non draggable
-          $("#external-events")
-            .find(`[course='${info.event.extendedProps.course}'][courseType='${info.event.extendedProps.courseType}']`)
-            .removeClass(`${info.event.extendedProps.courseType}-event bg-primary text-light`)
-            .addClass("bg-warning text-dark")
-            .css("cursor", "")
-            .attr("hour", "0:00");
-
-          // setting the schedule id
-          info.event.setExtendedProp("scheduleID", result.id);
-          displayToast(result);
-        })
-        .catch((error) => {
-          console.log(error);
-          info.revert();
-          displayToast(error);
-        });
-    }
-  },
+  eventReceive: createSchedule,
   // for editing schedule
   eventDrop: function (info) {
     const id = info.event.extendedProps.scheduleID;
@@ -796,7 +729,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, config);
   calendar.render();
 })();
 
-
 scheduleProgramForm.on("change", async (event) => {
   try {
     scheduleYearLevelForm.empty();
@@ -935,8 +867,7 @@ scheduleSectionForm.on("change", async (event) => {
     }
   });
 
-  const schedulesRequest = await fetch(`/api/schedules/section/${current.val()}`);
-  const schedules = await schedulesRequest.json();
+  const schedules = await getSectionSchedule(current.val());
 
   schedules.data.forEach((element) => {
     element.schedules.forEach((schedule) => {
@@ -997,7 +928,6 @@ roomForm.on("change", async (event) => {
 
   const roomDataRequest = await fetch(`/api/rooms/${current.val()}`);
   const roomData = await roomDataRequest.json();
-  console.log(roomData);
   isLaboratorySelect = roomData.data.laboratory;
 
   const roomSchedulesRequest = await fetch(`/api/schedules/room/${semester}/${$("#roomForm").val()}`);
@@ -1121,6 +1051,53 @@ const getRooms = async () => {
   } catch (error) {
     console.error;
     return [];
+  }
+};
+
+const isEmptyRoom = () => {
+  if (roomForm.val() === null) {
+    return true;
+  }
+  return false;
+};
+
+const getSectionSchedule = async (section) => {
+  try {
+    const schedulesRequest = await fetch(`/api/schedules/section/${section}`);
+    const schedules = await schedulesRequest.json();
+
+    return schedules;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+const isTimeGapValid = (milliseconds) => {
+  if (milliseconds === null) return true;
+  if (milliseconds >= 5400 || milliseconds === 0) return false;
+  return true;
+};
+
+const postSchedule = async (body) => {
+  try {
+    const postScheduleRequest = await fetch(`/api/schedules/assign/${scheduleSectionForm.val()}`, {
+      method: "POST",
+      headers: {
+        "csrf-token": csrf,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const postScheduleResponse = await postScheduleRequest.json();
+    return postScheduleResponse;
+  } catch (error) {
+    console.error(error);
+    Toast.fire({
+      icon: "warning",
+      title: "Something went wrong in creating schedule",
+    });
+    return false;
   }
 };
 
