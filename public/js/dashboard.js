@@ -1683,7 +1683,6 @@ const downloadAllSectionCalendarXLSX = async () => {
 };
 
 const downloadFacultyTableXLSX = async () => {
-  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
   const data = [];
   const wb = XLSX.utils.book_new();
   const schedules = await getFacultySchedules(true);
@@ -1757,7 +1756,80 @@ const downloadFacultyTableXLSX = async () => {
 };
 
 const downloadAllFacultyTableXLSX = async () => {
-  alert("test");
+  const data = [];
+  const wb = XLSX.utils.book_new();
+  const schedulesRequest = await fetch(`/api/schedules/faculty/grouped/course/${semester}`);
+  const schedules = await schedulesRequest.json();
+  schedules.data.forEach((element) => {
+    let sheet;
+    element.schedule.forEach((element) => {
+      data.push([
+        cellData(element.course.courseCode.toUpperCase()),
+        cellData(element.course.courseDescription.toUpperCase()),
+        cellData(element.course.units),
+        cellData(element.course.lecture),
+        cellData(element.course.lab),
+        cellData(
+          element.data
+            .map((element) => {
+              return `${element.day} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
+            })
+            .join(" | ")
+        ),
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([
+      [cellHeader("2ND SEMESTER SY 2122")],
+      [cellHeader("BSIT 2-1")],
+      [],
+      [
+        cellData("Course Code"),
+        cellData("Course"),
+        cellData("Units"),
+        cellData("Lecture"),
+        cellData("Lab"),
+        cellData("Schedule"),
+      ],
+      ...data,
+    ]);
+    merges = [
+      {
+        s: { r: 0, c: 0 },
+        e: {
+          r: 0,
+          c: 5,
+        },
+      },
+      {
+        s: { r: 1, c: 0 },
+        e: {
+          r: 1,
+          c: 5,
+        },
+      },
+    ];
+    ws["A1"].s = {
+      alignment: {
+        horizontal: "center",
+        vertical: "top",
+        wrapText: true,
+      },
+    };
+    ws["A2"].s = {
+      alignment: {
+        horizontal: "center",
+        vertical: "top",
+        wrapText: true,
+      },
+    };
+    ws["!merges"] = merges;
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, ws, sheet);
+  });
+  XLSX.writeFile(wb, "test.xlsx");
 };
 
 const cellData = (data) => {
