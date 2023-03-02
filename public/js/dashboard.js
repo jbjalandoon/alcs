@@ -1528,13 +1528,13 @@ const downloadSectionCalendarXLSX = async () => {
 };
 
 const downloadAllSectionCalendarXLSX = async () => {
-  let roomName;
+  let sectionName;
   const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
   const wb = XLSX.utils.book_new();
-  const roomSchedulesRequest = await fetch(`/api/schedules/room/${semester}`);
-  const roomSchedules = await roomSchedulesRequest.json();
-  console.log(roomSchedules);
-  roomSchedules.data.forEach((element) => {
+  const sectionSchedulesRequest = await fetch(`/api/schedules/section/${semester}/${programView.val()}`);
+  const sectionSchedules = await sectionSchedulesRequest.json();
+  const schedules = sectionSchedules.data.map((e) => e.data);
+  schedules.forEach((element) => {
     const times = [];
     for (let i = 7; i < 22; i++) {
       for (let j = 0; j < 2; j++) {
@@ -1569,8 +1569,8 @@ const downloadAllSectionCalendarXLSX = async () => {
         cellData(""),
         cellData(""),
       ];
-      element.data.forEach((element, index) => {
-        roomName = element.room.roomName.toUpperCase();
+      element.forEach((element, index) => {
+        sectionName = `${element.program.programCode.toUpperCase()} ${element.level.display.toUpperCase()} - ${element.sectionName.toUpperCase()}`;
         const course = element.course.courseCode.toUpperCase();
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();
@@ -1614,7 +1614,7 @@ const downloadAllSectionCalendarXLSX = async () => {
       data.push(rowData);
     }
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeader("ROOM:"), cellHeaderText(roomName.toUpperCase()), ""],
+      [cellHeader("SECTION:"), cellHeaderText(sectionName), ""],
       [],
       [
         cellData("Time"),
@@ -1676,10 +1676,10 @@ const downloadAllSectionCalendarXLSX = async () => {
       { wch: 3 },
       { wch: 20 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, roomName.toUpperCase());
+    XLSX.utils.book_append_sheet(wb, ws, sectionName);
   });
 
-  XLSX.writeFile(wb, `rooms.xlsx`);
+  XLSX.writeFile(wb, `${programView.find(":selected").text()}.xlsx`);
 };
 
 const cellData = (data) => {
