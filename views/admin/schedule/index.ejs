@@ -3,7 +3,12 @@
 
 <body>
   <%- include('../../includes/navbar.ejs') %>
-  <div class="content-wrapper container">
+  <div class="d-flex justify-content-center" id="spinner">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  <div class="content-wrapper container d-none" id="content">
     <div class="page-heading">
       <span class="h3" id="card-title">No Semester Active</span>
     </div>
@@ -31,14 +36,9 @@
                       </select>
                     </div>
                   </div>
-                  <div class="row">
-                    <div class="col-1 offset-9">
-                      <button class="btn btn-primary d-none" id="submit" type="button">Submit</button>
-                    </div>
-                  </div>
                 </form>
               </div>
-              <div class="row d-none" id="scheduleContent">
+              <div class="row">
                 <div class="col-lg-3 col-md-3 col-sm-12">
                   <div class="container-fluid">
                     <div class="row">
@@ -54,7 +54,6 @@
                           Select Room:
                         </label>
                         <select class="form-control" id="roomForm">
-                          <option value=""></option>
                           <optgroup label="Lecture Room" id="optLecture">
                           </optgroup>
                           <optgroup label="Laboratory Room" id="optLab">

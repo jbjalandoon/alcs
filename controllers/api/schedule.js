@@ -1,6 +1,7 @@
 const Curriculum = require("../../models/curriculum");
 const Faculty = require("../../models/user");
 const mongoose = require("mongoose");
+const io = require("../../socket");
 
 exports.getSchedule = (req, res, next) => {
   Curriculum.aggregate([
@@ -2005,6 +2006,7 @@ exports.getFacultiesSchedule = (req, res, next) => {
 
 exports.assignSchedule = (req, res, next) => {
   const id = new mongoose.Types.ObjectId();
+  console.log(req.body);
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections._id": req.params.section,
@@ -2030,6 +2032,8 @@ exports.assignSchedule = (req, res, next) => {
       if (!result.modifiedCount) {
         return res.json({ status: 500 });
       }
+      req.body.event.extendedProps.scheduleID = id;
+      io.getIO().emit("create", { event: req.body.event });
       res.json({ status: 201, id: id });
     })
     .catch((error) => {

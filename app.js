@@ -39,8 +39,6 @@ const mailTransporter = nodemailer.createTransport({
   },
 });
 
-// app.use(helmet());
-
 app.use(compression());
 app.use(multer({ storage: multer.memoryStorage() }).single("spreadsheet"));
 app.use(express.urlencoded({ extended: true }));
@@ -89,7 +87,6 @@ app.use((req, res, next) => {
     res.redirect("/authentication/login?landing=" + req.path);
   }
 });
-
 app.use(
   "/admin",
   (req, res, next) => {
@@ -105,8 +102,6 @@ app.use(
   },
   adminRoutes
 );
-
-
 app.use(
   "/user",
   (req, res, next) => {
@@ -119,8 +114,6 @@ app.use(
   },
   userRoutes
 );
-
-
 app.use("/api", apiRoutes);
 app.use("/api/curriculums", curriculumRoutes);
 app.use("/api/dashboard", dashboardRoutes);
@@ -241,7 +234,11 @@ mongoose
     ]);
   })
   .then((result) => {
-    app.listen(process.env.PORT || 3000);
+    const server = app.listen(process.env.PORT || 3000);
+    const io = require("./socket").init(server);
+    io.on("connection", (socket) => {
+      console.log("Client Connected");
+    });
   })
   .catch((error) => {
     throw new Error(error);
