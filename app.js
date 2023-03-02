@@ -25,6 +25,7 @@ const dashboardRoutes = require("./routes/dashboard");
 
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
+const scheduleRoutes = require("./routes/schedule");
 const authenticationRoutes = require("./routes/authentication");
 const store = new mongoDBStore({
   uri: db_uri,
@@ -117,6 +118,8 @@ app.use(
 app.use("/api", apiRoutes);
 app.use("/api/curriculums", curriculumRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/schedules", scheduleRoutes);
+
 app.use("/", error.get404);
 mongoose.set("strictQuery", false);
 let randomString;
@@ -237,7 +240,26 @@ mongoose
     const server = app.listen(process.env.PORT || 3000);
     const io = require("./socket").init(server);
     io.on("connection", (socket) => {
-      console.log("Client Connected");
+      socket.on("joinRoom", (room) => {
+        console.log(`joined room - ${room} `);
+        socket.join(room);
+      });
+      socket.on("leaveRoom", (room) => {
+        if (room) {
+          console.log(`leaved room - ${room} `);
+          socket.leave(room);
+        }
+      });
+      socket.on("joinSection", (section) => {
+        console.log(`joined section - ${section} `);
+        socket.join(section);
+      });
+      socket.on("leaveSection", (section) => {
+        if (section) {
+          console.log(`leaved section - ${section} `);
+          socket.leave(section);
+        }
+      });
     });
   })
   .catch((error) => {

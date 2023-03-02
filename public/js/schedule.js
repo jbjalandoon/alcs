@@ -6,6 +6,21 @@ const roomForm = $("#roomForm");
 const content = $("#content");
 const spinner = $("#spinner");
 const csrf = $("#csrf").val();
+const socket = io("http://localhost:3000", {
+  autoConnect: false,
+});
+
+let semester;
+let isLaboratorySelect;
+let draggable;
+let previousRoom = "";
+let previousSection = "";
+
+// Buttons
+const scheduleSubmitButton = $("#schedule-form #submit");
+const currentCourseHourCount = {};
+let assignSubmitButton;
+let scheduleModal;
 
 const createSchedule = async (info) => {
   try {
@@ -75,6 +90,8 @@ const createSchedule = async (info) => {
     const end = moment(event.endStr);
     const start = moment(event.startStr);
     const hour = moment.duration(end.diff(start)).asHours();
+    // setting the hours of schedule
+    event.setExtendedProp("hourDuration", hour);
 
     const schedule = await postSchedule({
       courseType: extendedProps.courseType,
@@ -82,7 +99,7 @@ const createSchedule = async (info) => {
       day: event.start.getDay(),
       startTime: ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
       endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
-      room: $("#roomForm").val(),
+      room: roomForm.val(),
       hour: hour,
       event: event,
     });
@@ -94,27 +111,9 @@ const createSchedule = async (info) => {
       });
     }
 
-    // setting the hours of schedule
-    event.setExtendedProp("hourDuration", hour);
-
-    // storing the hours for checking if the max hours already reached
-    if (extendedProps.courseType === "lecture") {
-      currentCourseHourCount[extendedProps.course].currentLecture =
-        currentCourseHourCount[extendedProps.course].maxLecture;
-    } else {
-      currentCourseHourCount[extendedProps.course].currentLab = currentCourseHourCount[extendedProps.course].maxLab;
-    }
-
-    // changing the draggable element to non draggable
-    $("#external-events")
-      .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
-      .removeClass(`${extendedProps.courseType}-event bg-primary text-light`)
-      .addClass("bg-warning text-dark")
-      .css("cursor", "")
-      .attr("hour", "0:00");
-
     // setting the schedule id
     event.setExtendedProp("scheduleID", schedule.id);
+    info.revert();
     Toast.fire({
       icon: "success",
       title: "Schedule Successfully Created",
@@ -123,6 +122,119 @@ const createSchedule = async (info) => {
     console.error(error);
     info.revert();
     Toast.fire({ icon: "warning", title: "Something went wrong" });
+  }
+};
+
+const editSchedule = async (info) => {
+  try {
+    const event = info.event;
+    const id = event.extendedProps.scheduleID;
+    const existingEvents = [];
+    let text = "";
+    let confirmed = true;
+    // Dont accept if room is empty
+    if (isEmptyRoom()) {
+      Toast.fire({ icon: "warning", title: "Please select room first" });
+      return info.revert();
+    }
+
+    // Check if the selected room is right for each schedule
+    if (isLaboratorySelect) {
+      if (event.extendedProps.courseType === "lecture") {
+        Toast.fire({ icon: "warning", title: "Please select Lecture Room" });
+        return info.revert();
+      }
+    } else {
+      if (event.extendedProps.courseType === "lab") {
+        Toast.fire({ icon: "warning", title: "Please select Laboratory Room" });
+        return info.revert();
+      }
+    }
+
+    // Reverting if the time is below 7 AM and above 9 PM
+    if (event.start.getHours() <= 6 || event.end.getHours() >= 22) {
+      Toast.fire({
+        title: "Time Exceeds",
+        icon: "warning",
+      });
+      return info.revert();
+    }
+
+    // Filter the schedule by currently set day
+    const sameDaySchedules = calendar
+      .getEvents()
+      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+
+    // sorting the schedules
+    sameDaySchedules.sort(function (a, b) {
+      return a.start - b.start;
+    });
+
+    console.log(sameDaySchedules);
+
+    // find the index of currently added schedule
+    const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
+    // assigning the previous and next schedule
+    const previousEvent = currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
+    const nextEvent = currentIndex < sameDaySchedules.length - 1 ? sameDaySchedules[currentIndex + 1] : null;
+    // getting the time gaps between schedules
+    const previousTimeGap = previousEvent != null ? (event.start.getTime() - previousEvent.end.getTime()) / 1000 : null;
+    const nextTimeGap = nextEvent != null ? (nextEvent.start.getTime() - event.end.getTime()) / 1000 : null;
+
+    const isPreviousValid = isTimeGapValid(previousTimeGap);
+    const isNextValid = isTimeGapValid(nextTimeGap);
+
+    // Check if there is a big and small time gap between schedules
+    if (!isPreviousValid || !isNextValid) {
+      let previous = false;
+
+      if (!isPreviousValid) {
+        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+        previous = true;
+      }
+      if (!isNextValid) {
+        if (previous) text += " & ";
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+      }
+      text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
+    } else {
+      text += "This will remove the currently assigned faculty, Do you still want to continue?";
+    }
+
+    const alert = await Swal.fire({
+      title: "Are you sure?",
+      text: text,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm",
+    });
+
+    confirmed = alert.isConfirmed;
+
+    if (!confirmed) {
+      return info.revert();
+    }
+
+    const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
+    const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+
+    const schedule = await putSchedule(id, {
+      day: event.start.getDay(),
+      startTime: ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
+      endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
+      room: $("#roomForm").val(),
+      event: event,
+    });
+
+    info.event.remove();
+    Toast.fire({
+      icon: "warning",
+      title: "Schedule Successfully Edited",
+    });
+  } catch (error) {
+    console.error();
   }
 };
 
@@ -148,192 +260,7 @@ const config = {
   // for adding schedule
   eventReceive: createSchedule,
   // for editing schedule
-  eventDrop: function (info) {
-    const id = info.event.extendedProps.scheduleID;
-    const existingEvents = [];
-    let previousTimeGap, nextTimeGap;
-
-    // Dont accept if room is empty
-    if ($("#roomForm").val() === "") {
-      Toast.fire({ icon: "warning", title: "Please select room first" });
-      return info.revert();
-    }
-
-    // Check if the selected room is right for each schedule
-    if (isLaboratorySelect) {
-      if (info.event.extendedProps.courseType === "lecture") {
-        Toast.fire({ icon: "warning", title: "Please select Lecture Room" });
-        return info.revert();
-      }
-    } else {
-      if (info.event.extendedProps.courseType === "lab") {
-        Toast.fire({ icon: "warning", title: "Please select Laboratory Room" });
-        return info.revert();
-      }
-    }
-
-    // Reverting if the time is below 7 AM and above 9 PM
-    if (info.event.start.getHours() <= 6 || info.event.end.getHours() >= 22) {
-      Toast.fire({
-        title: "Time Exceeds",
-        icon: "warning",
-      });
-      return info.revert();
-    }
-
-    // Set the schedule as newly dragged schedule
-    info.event.setExtendedProp("new", true);
-
-    // Filter the schedule by currently set day
-    calendar.getEvents().forEach((element) => {
-      const sameDay = element.start.getDay() === info.event.start.getDay();
-      if (sameDay && element.extendedProps.current) {
-        existingEvents.push(element);
-      }
-    });
-
-    // Sort the filtered schedule by time
-    existingEvents.sort(function (a, b) {
-      return a.start - b.start;
-    });
-
-    // Get the index of the dragged schedule
-    const currentIndex = existingEvents.findIndex(function (event) {
-      return event.extendedProps.new === true;
-    });
-
-    // Set the next and previous schedule
-    previousEvent = currentIndex > 0 ? existingEvents[currentIndex - 1] : undefined;
-    nextEvent = currentIndex < existingEvents.length - 1 ? existingEvents[currentIndex + 1] : undefined;
-
-    // Set the time gap between schedules
-    previousTimeGap = previousEvent ? (info.event.start.getTime() - previousEvent.end.getTime()) / 1000 : undefined;
-    nextTimeGap = nextEvent ? (nextEvent.start.getTime() - info.event.end.getTime()) / 1000 : undefined;
-
-    // Set the schedule as not new anymore
-    info.event.setExtendedProp("new", false);
-
-    // Check if there is a big and small time gap between schedules
-    if (previousTimeGap >= 5400 || previousTimeGap < 1800 || nextTimeGap >= 5400 || nextTimeGap < 1800) {
-      let previous = false;
-      let text = "";
-      if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
-        previous = true;
-      }
-      if (nextTimeGap >= 5400 || nextTimeGap < 1800) {
-        if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
-      }
-      text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
-
-      Swal.fire({
-        title: "Are you sure?",
-        text: text,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        preConfirm: () => {
-          const startMinutes = info.event.start.getMinutes() == 0 ? "00" : info.event.start.getMinutes().toString();
-          const endMinutes = info.event.end.getMinutes() == 0 ? "00" : info.event.end.getMinutes().toString();
-
-          fetch(`/api/schedules/reassign/${scheduleSectionForm.val()}/${id}`, {
-            method: "PUT",
-            headers: {
-              "csrf-token": csrf,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              day: info.event.start.getDay(),
-              startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-              endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-              room: $("#roomForm").val(),
-            }),
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((result) => {
-              Toast.fire({ icon: "success", title: "Successfully Edited" });
-            })
-            .catch((error) => {
-              info.revert();
-              Toast.fire({ icon: "warning", title: "Something Went Wrong" });
-              console.log(error);
-            });
-        },
-      })
-        .then((result) => {
-          if (result.isConfirmed) {
-            Toast.fire({
-              icon: "success",
-              title: "Successfully Adjusted",
-            });
-          } else {
-            info.revert();
-          }
-        })
-        .catch((error) => {
-          info.revert();
-          console.log(error);
-        });
-    } else {
-      const startMinutes = info.event.start.getMinutes() == 0 ? "00" : info.event.start.getMinutes().toString();
-      const endMinutes = info.event.end.getMinutes() == 0 ? "00" : info.event.end.getMinutes().toString();
-      Swal.fire({
-        title: "Are you sure?",
-        text: "Assigned faculty will be remove, You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        preConfirm: () => {
-          fetch(`/api/schedules/reassign/${scheduleSectionForm.val()}/${id}`, {
-            method: "PUT",
-            headers: {
-              "csrf-token": csrf,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              day: info.event.start.getDay(),
-              startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-              endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-              room: $("#roomForm").val(),
-            }),
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((result) => {
-              Toast.fire({ icon: "success", title: "Successfully Edited" });
-            })
-            .catch((error) => {
-              info.revert();
-              Toast.fire({ icon: "warning", title: "Something Went Wrong" });
-              console.log(error);
-            });
-        },
-      })
-        .then((result) => {
-          if (result.isConfirmed) {
-            Toast.fire({
-              icon: "success",
-              title: "Successfully Edited",
-            });
-          } else {
-            info.revert();
-          }
-        })
-        .catch((error) => {
-          info.revert();
-          console.log(error);
-          displayToast(error);
-        });
-    }
-  },
+  eventDrop: editSchedule,
   // for spliting the schedule
   eventResize: function (info) {
     const existingEvents = [];
@@ -655,23 +582,6 @@ const config = {
   },
 };
 
-// const socket = io("http://localhost:3000");
-//       socket.on("create", (data) => {
-//         calendar.addEvent({
-//           ...data.event,
-//         });
-//       });
-
-let semester;
-let isLaboratorySelect;
-let draggable;
-
-// Buttons
-const scheduleSubmitButton = $("#schedule-form #submit");
-const currentCourseHourCount = {};
-let assignSubmitButton;
-let scheduleModal;
-
 // Tables
 const scheduleTable = $("#scheduleTable");
 const calendarEl = document.getElementById("calendar");
@@ -707,23 +617,6 @@ const calendar = new FullCalendar.Calendar(calendarEl, config);
 
   scheduleProgramForm.trigger("change");
 
-  const rooms = await getRooms();
-  if (rooms.length === 0) {
-    roomForm.attr("disabled", true);
-  }
-  roomForm.select2({
-    placeholder: "Select a Room",
-    width: "100%",
-  });
-
-  rooms.forEach((element) => {
-    if (element.laboratory) {
-      roomForm.find("#optLab").append(new Option(element.roomName.toUpperCase(), element._id));
-    } else {
-      roomForm.find("#optLecture").append(new Option(element.roomName.toUpperCase(), element._id));
-    }
-  });
-
   content.removeClass("d-none");
   spinner.addClass("d-none");
   calendar.render();
@@ -731,6 +624,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, config);
 
 scheduleProgramForm.on("change", async (event) => {
   try {
+    socket.disconnect();
     scheduleYearLevelForm.empty();
     scheduleSectionForm.empty();
     const levels = await getYearLevel($(event.currentTarget).val());
@@ -775,149 +669,182 @@ scheduleYearLevelForm.on("change", async (event) => {
 });
 
 scheduleSectionForm.on("change", async (event) => {
-  const current = $(event.currentTarget);
+  try {
+    socket.connect();
+    const current = $(event.currentTarget);
 
-  for (const prop of Object.getOwnPropertyNames(currentCourseHourCount)) {
-    delete currentCourseHourCount[prop];
-  }
-
-  const events = calendar.getEvents();
-  events.forEach((element) => {
-    element.remove();
-  });
-
-  roomForm.val("").trigger("change");
-
-  const coursesRequest = await fetch(`/api/curriculums/course/${scheduleYearLevelForm.val()}`);
-  const courses = await coursesRequest.json();
-  const lectureList = $("#external-events #lectureList");
-  const labList = $("#external-events #labList");
-  lectureList.empty();
-  labList.empty();
-
-  if (courses.data.length === 0) {
-    roomForm.attr("disabled", true);
-    return Toast.fire({
-      icon: "warning",
-      title: "No Courses Found",
-    });
-  }
-  roomForm.attr("disabled", false);
-  courses.data.forEach((element) => {
-    currentCourseHourCount[element.course.courseCode] = {
-      currentLecture: null,
-      maxLecture: null,
-      currentLab: null,
-      maxLab: null,
-    };
-    for (let i = 0; i < 2; i++) {
-      const card = $("<div></div>");
-      card.addClass("card mb-1");
-      const item = $("<li></li>");
-      item.addClass("list-group-item bg-success text-light fc-event");
-      item.attr({
-        course: element.course.courseCode,
-        program: scheduleProgramForm.children(":selected").text(),
-        section: scheduleSectionForm.children(":selected").text(),
-        new: true,
-        level: scheduleYearLevelForm.children(":selected").text(),
-        overlap: false,
-        durationEditable: true,
-        startEditable: true,
-        "course-id": element.course._id,
-      });
-
-      card.append(item);
-      if (element.course.lecture !== 0 && i === 0) {
-        item.html(
-          element.course.courseCode.toUpperCase() +
-            " - " +
-            element.course.courseDescription.toUpperCase() +
-            " - " +
-            element.course.lecture +
-            " HOURS"
-        );
-        item.attr("courseType", "lecture");
-        item.attr("color", "#007BFF");
-        item.attr("textColor", "white");
-        item.attr("hour", element.course.lecture);
-        item.addClass("lecture-event");
-        lectureList.append(card);
-        currentCourseHourCount[element.course.courseCode].maxLecture = element.course.lecture;
-        currentCourseHourCount[element.course.courseCode].currentLecture = 0;
-      }
-      if (element.course.lab !== 0 && i === 1) {
-        item.html(
-          element.course.courseCode.toUpperCase() +
-            " - " +
-            element.course.courseDescription.toUpperCase() +
-            " - " +
-            element.course.lab +
-            " HOURS"
-        );
-        item.attr("courseType", "lab");
-        item.attr("color", "#5AA2E8");
-        item.attr("textColor", "black");
-        item.attr("hour", element.course.lab);
-        item.addClass("lab-event");
-        labList.append(card);
-        currentCourseHourCount[element.course.courseCode].maxLab = element.course.lab;
-        currentCourseHourCount[element.course.courseCode].currentLab = 0;
-      }
+    for (const prop of Object.getOwnPropertyNames(currentCourseHourCount)) {
+      delete currentCourseHourCount[prop];
     }
-  });
 
-  const schedules = await getSectionSchedule(current.val());
+    const events = calendar.getEvents();
+    events.forEach((element) => {
+      element.remove();
+    });
 
-  schedules.data.forEach((element) => {
-    element.schedules.forEach((schedule) => {
-      let hour;
-      if (schedule.type === "lecture") {
-        currentCourseHourCount[element.course.courseCode].currentLecture += schedule.hour;
-        hour = Math.abs(
-          currentCourseHourCount[element.course.courseCode].currentLecture -
-            currentCourseHourCount[element.course.courseCode].maxLecture
-        );
-      } else {
-        currentCourseHourCount[element.course.courseCode].currentLab += schedule.hour;
-        hour = Math.abs(
-          currentCourseHourCount[element.course.courseCode].currentLab -
-            currentCourseHourCount[element.course.courseCode].maxLab
-        );
-      }
-      const hourStr = `${Math.trunc(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
-      calendar.addEvent({
-        scheduleID: schedule._id,
-        hourDuration: schedule.hour,
-        daysOfWeek: [schedule.day],
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        courseType: schedule.type,
-        overlap: false,
-        durationEditable: true,
-        color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
-        textColor: schedule.type === "lecture" ? "white" : "black",
-        startEditable: true,
-        course: element.course.courseCode,
-        program: element.program.programCode,
-        faculty: element.faculty != null ? element.faculty.userInformation.facultyCode : null,
-        section: element.sectionName,
-        room: schedule.room.roomName,
-        level: element.yearLevel.display,
-        current: true,
+    const coursesRequest = await fetch(`/api/curriculums/course/${scheduleYearLevelForm.val()}`);
+    const courses = await coursesRequest.json();
+    const lectureList = $("#external-events #lectureList");
+    const labList = $("#external-events #labList");
+    lectureList.empty();
+    labList.empty();
+
+    if (courses.data.length === 0) {
+      roomForm.attr("disabled", true);
+      return Toast.fire({
+        icon: "warning",
+        title: "No Courses Found",
       });
-      if (hour === 0) {
+    }
+    roomForm.attr("disabled", false);
+    courses.data.forEach((element) => {
+      currentCourseHourCount[element.course.courseCode] = {
+        currentLecture: null,
+        maxLecture: null,
+        currentLab: null,
+        maxLab: null,
+      };
+      for (let i = 0; i < 2; i++) {
+        const card = $("<div></div>");
+        card.addClass("card mb-1");
+        const item = $("<li></li>");
+        item.addClass("list-group-item bg-success text-light fc-event");
+        item.attr({
+          course: element.course.courseCode,
+          program: scheduleProgramForm.children(":selected").text(),
+          section: scheduleSectionForm.children(":selected").text(),
+          new: true,
+          level: scheduleYearLevelForm.children(":selected").text(),
+          overlap: false,
+          durationEditable: true,
+          startEditable: true,
+          "course-id": element.course._id,
+        });
+
+        card.append(item);
+        if (element.course.lecture !== 0 && i === 0) {
+          item.html(
+            element.course.courseCode.toUpperCase() +
+              " - " +
+              element.course.courseDescription.toUpperCase() +
+              " - " +
+              element.course.lecture +
+              " HOURS"
+          );
+          item.attr("courseType", "lecture");
+          item.attr("color", "#007BFF");
+          item.attr("textColor", "white");
+          item.attr("hour", element.course.lecture);
+          item.addClass("lecture-event");
+          lectureList.append(card);
+          currentCourseHourCount[element.course.courseCode].maxLecture = element.course.lecture;
+          currentCourseHourCount[element.course.courseCode].currentLecture = 0;
+        }
+        if (element.course.lab !== 0 && i === 1) {
+          item.html(
+            element.course.courseCode.toUpperCase() +
+              " - " +
+              element.course.courseDescription.toUpperCase() +
+              " - " +
+              element.course.lab +
+              " HOURS"
+          );
+          item.attr("courseType", "lab");
+          item.attr("color", "#5AA2E8");
+          item.attr("textColor", "black");
+          item.attr("hour", element.course.lab);
+          item.addClass("lab-event");
+          labList.append(card);
+          currentCourseHourCount[element.course.courseCode].maxLab = element.course.lab;
+          currentCourseHourCount[element.course.courseCode].currentLab = 0;
+        }
+      }
+    });
+
+    const rooms = await getRooms();
+    if (rooms.length === 0) {
+      roomForm.attr("disabled", true);
+    }
+    roomForm.select2({
+      placeholder: "Select a Room",
+      width: "100%",
+    });
+
+    rooms.forEach((element) => {
+      if (element.laboratory) {
+        roomForm.find("#optLab").append(new Option(element.roomName.toUpperCase(), element._id));
+      } else {
+        roomForm.find("#optLecture").append(new Option(element.roomName.toUpperCase(), element._id));
+      }
+    });
+
+    roomForm.trigger("change");
+
+    const schedules = await getSectionSchedule(current.val());
+
+    schedules.data.forEach((element) => {
+      element.schedules.forEach((schedule) => {
+        let hour;
+        if (schedule.type === "lecture") {
+          currentCourseHourCount[element.course.courseCode].currentLecture += schedule.hour;
+          hour = Math.abs(
+            currentCourseHourCount[element.course.courseCode].currentLecture -
+              currentCourseHourCount[element.course.courseCode].maxLecture
+          );
+        } else {
+          currentCourseHourCount[element.course.courseCode].currentLab += schedule.hour;
+          hour = Math.abs(
+            currentCourseHourCount[element.course.courseCode].currentLab -
+              currentCourseHourCount[element.course.courseCode].maxLab
+          );
+        }
+        const hourStr = `${Math.trunc(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
+        calendar.addEvent({
+          scheduleID: schedule._id,
+          hourDuration: schedule.hour,
+          daysOfWeek: [schedule.day],
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          courseType: schedule.type,
+          overlap: false,
+          durationEditable: true,
+          color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
+          textColor: schedule.type === "lecture" ? "white" : "black",
+          startEditable: true,
+          course: element.course.courseCode,
+          program: element.program.programCode,
+          faculty: element.faculty != null ? element.faculty.userInformation.facultyCode : null,
+          section: element.sectionName,
+          room: schedule.room.roomName,
+          level: element.yearLevel.display,
+          current: true,
+        });
+        if (hour === 0) {
+          $("#external-events")
+            .find(`[course='${element.course.courseCode}'][coursetype='${schedule.type}']`)
+            .removeClass(`${schedule.type}-event bg-success text-light`)
+            .addClass(`bg-warning text-dark`)
+            .css("curses", "");
+        }
         $("#external-events")
           .find(`[course='${element.course.courseCode}'][coursetype='${schedule.type}']`)
-          .removeClass(`${schedule.type}-event bg-success text-light`)
-          .addClass(`bg-warning text-dark`)
-          .css("curses", "");
-      }
-      $("#external-events")
-        .find(`[course='${element.course.courseCode}'][coursetype='${schedule.type}']`)
-        .attr("hour", hourStr);
+          .attr("hour", hourStr);
+      });
     });
-  });
+
+    socket.emit("leaveSection", previousSection);
+    socket.emit("joinSection", current.val());
+
+    previousSection = current.val();
+  } catch (error) {
+    console.error(error);
+  }
+
+  // socket.on("create", (data) => {
+  //   calendar.addEvent({
+  //     ...data.event,
+  //   });
+  // });
 });
 
 roomForm.on("change", async (event) => {
@@ -1004,6 +931,10 @@ roomForm.on("change", async (event) => {
       };
     },
   });
+
+  socket.emit("leaveRoom", previousRoom);
+  socket.emit("joinRoom", current.val());
+  previousRoom = current.val();
 });
 
 const getPrograms = async () => {
@@ -1081,7 +1012,7 @@ const isTimeGapValid = (milliseconds) => {
 
 const postSchedule = async (body) => {
   try {
-    const postScheduleRequest = await fetch(`/api/schedules/assign/${scheduleSectionForm.val()}`, {
+    const postScheduleRequest = await fetch(`/api/schedules/sections/create/${scheduleSectionForm.val()}`, {
       method: "POST",
       headers: {
         "csrf-token": csrf,
@@ -1101,6 +1032,25 @@ const postSchedule = async (body) => {
   }
 };
 
+const putSchedule = async (id, body) => {
+  try {
+    const putScheduleRequest = await fetch(`/api/schedules/sections/edit/${scheduleSectionForm.val()}/${id}`, {
+      method: "PUT",
+      headers: {
+        "csrf-token": csrf,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const putScheduleResponse = await putScheduleRequest.json();
+
+    return putScheduleResponse;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 function renderEvent(info) {
   const titleEl = info.el.querySelector(".fc-event-title");
   const timeEl = info.el.querySelector(".fc-event-time");
@@ -1116,18 +1066,49 @@ function renderEvent(info) {
   titleEl.innerHTML = `${course}<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
 }
 
-function findClosestTime(datetimes, targetDatetime) {
-  let closestDatetimeIndex = 0;
-
-  // Loop through the remaining datetimes and update the closestDatetimeIndex variable if a closer datetime is found
-  for (let i = 1; i < datetimes.length; i++) {
-    const closestTimeDiff = Math.abs(targetDatetime - datetimes[closestDatetimeIndex]);
-    const currentTimeDiff = Math.abs(targetDatetime - datetimes[i]);
-
-    if (currentTimeDiff < closestTimeDiff) {
-      closestDatetimeIndex = i;
+socket.on("createSectionSchedule", (data) => {
+  console.log(data);
+  if (data.section === scheduleSectionForm.val()) {
+    const extendedProps = data.event.extendedProps;
+    if (extendedProps.courseType === "lecture") {
+      currentCourseHourCount[extendedProps.course].currentLecture =
+        currentCourseHourCount[extendedProps.course].maxLecture;
+    } else {
+      currentCourseHourCount[extendedProps.course].currentLab = currentCourseHourCount[extendedProps.course].maxLab;
     }
-  }
 
-  return closestDatetimeIndex;
-}
+    $("#external-events")
+      .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
+      .removeClass(`${extendedProps.courseType}-event bg-primary text-light`)
+      .addClass("bg-warning text-dark")
+      .css("cursor", "")
+      .attr("hour", "0:00");
+  } else {
+    data.event.extendedProps.current = false;
+    data.event.backgroundColor = "#FFC107";
+    data.event.textColor = "black";
+  }
+  data.event.overlap = false;
+  data.event.durationEditable = true;
+  data.event.startEditable = true;
+  calendar.addEvent(data.event);
+});
+
+socket.on("editSectionSchedule", (data) => {
+  calendar.getEvents().forEach((e) => {
+    if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID) e.remove();
+  });
+  if (data.section !== scheduleSectionForm.val()) {
+    data.event.extendedProps.current = false;
+    data.event.durationEditable = false;
+    data.event.startEditable = false;
+    data.event.backgroundColor = "#FFC107";
+    data.event.textColor = "black";
+  } else {
+    data.event.durationEditable = true;
+    data.event.startEditable = true;
+  }
+  data.event.overlap = false;
+
+  calendar.addEvent(data.event);
+});

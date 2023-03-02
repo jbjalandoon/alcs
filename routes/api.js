@@ -120,9 +120,6 @@ router.get("/schedules", schedule.getSchedule);
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules);
 router.get("/schedules/assignable-schedules/:semester", schedule.getAllAssignableSchedules);
 
-router.post("/schedules/assign/:section", schedule.assignSchedule);
-router.put("/schedules/reassign/:section/:schedule", schedule.reAssignSchedule);
-
 router.put("/schedules/load/:schedule", schedule.loadSchedule);
 
 router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);

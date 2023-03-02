@@ -2004,68 +2004,6 @@ exports.getFacultiesSchedule = (req, res, next) => {
     });
 };
 
-exports.assignSchedule = (req, res, next) => {
-  const id = new mongoose.Types.ObjectId();
-  console.log(req.body);
-  Curriculum.updateOne(
-    {
-      "semesters.programs.year.sections._id": req.params.section,
-    },
-    {
-      $push: {
-        "semesters.$[].programs.$[].year.$[].sections.$[section].schedules": {
-          _id: id,
-          course: req.body.course,
-          type: req.body.courseType,
-          hour: req.body.hour,
-          startTime: req.body.startTime,
-          endTime: req.body.endTime,
-          day: req.body.day,
-          room: req.body.room,
-          faculty: null,
-        },
-      },
-    },
-    { arrayFilters: [{ "section._id": req.params.section }], upsert: true }
-  )
-    .then((result) => {
-      if (!result.modifiedCount) {
-        return res.json({ status: 500 });
-      }
-      req.body.event.extendedProps.scheduleID = id;
-      io.getIO().emit("create", { event: req.body.event });
-      res.json({ status: 201, id: id });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500 });
-    });
-};
-
-exports.reAssignSchedule = (req, res, next) => {
-  Curriculum.updateOne(
-    {
-      "semesters.programs.year.sections._id": req.params.section,
-    },
-    {
-      $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].day": req.body.day,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].startTime": req.body.startTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime": req.body.endTime,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room": req.body.room,
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
-      },
-    },
-    { arrayFilters: [{ "schedule._id": req.params.schedule }] }
-  )
-    .then((result) => {
-      res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
-
 exports.loadSchedule = (req, res, next) => {
   Curriculum.updateOne(
     {
