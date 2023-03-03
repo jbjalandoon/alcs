@@ -34,6 +34,7 @@ router.delete("/course/:year/:course", Course.deleteCourse);
 router.get("/sections/:level", Section.getSections);
 router.post("/sections/:level", Section.postSection);
 router.delete("/sections/:section", Section.deleteSection);
+router.get("/sections/units/:section", Section.getTotalUnits);
 // ---> END OF SECTION <---
 
 // ---> START OF SECTION <---

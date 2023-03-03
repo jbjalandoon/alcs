@@ -114,7 +114,6 @@ exports.deleteSection = async (req, res, next) => {
         },
       }
     );
-    console.log(update);
     if (update.modifiedCount === 0) {
       return res.status(500).json({ status: 500, error: "Error" });
     }
@@ -122,5 +121,52 @@ exports.deleteSection = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 500, error: error });
+  }
+};
+
+exports.getTotalUnits = async (req, res, next) => {
+  try {
+    const sections = await Curriculum.aggregate([
+      {
+        $match: {
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+        },
+      },
+      { $unwind: "$semesters" },
+      { $unwind: "$semesters.programs" },
+      { $unwind: "$semesters.programs.year" },
+      { $unwind: "$semesters.programs.year.sections" },
+      {
+        $match: {
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+        },
+      },
+      {
+        $project: {
+          _id: "$semesters.programs.year.sections._id",
+          courses: "$semesters.programs.year.courses",
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "courses",
+          foreignField: "_id",
+          as: "courses",
+        },
+      },
+      { $unwind: "$courses" },
+      {
+        $group: {
+          _id: "$_id",
+          totalUnits: { $sum: "$courses.units" },
+        },
+      },
+    ]);
+    if (sections.length === 0) return res.status(404).json({ status: 404, data: sections });
+    res.status(200).json({ status: 200, data: sections });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 500, data: error });
   }
 };
