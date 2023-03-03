@@ -110,10 +110,7 @@ router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 // router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
-router.get("/schedules/single/:semester/:schedule", schedule.getOneSchedule);
-
 router.put("/schedules/adjust/:semester/:schedule", schedule.adjustSchedule);
-router.delete("/schedules/single/:semester/:schedule", schedule.deleteSchedule);
 
 router.get("/schedules", schedule.getSchedule);
 

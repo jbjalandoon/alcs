@@ -24,7 +24,7 @@ $("#logout").on("click", (event) => {
   logoutForm.submit();
 });
 
-const days = ["UNDEFINED", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 const displayToast = (result) => {
   let icon, message;

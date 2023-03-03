@@ -8,6 +8,7 @@ const spinner = $("#spinner");
 const csrf = $("#csrf").val();
 const socket = io("http://localhost:3000", {
   autoConnect: false,
+  reconnection: true,
 });
 
 let semester;
@@ -238,6 +239,278 @@ const editSchedule = async (info) => {
   }
 };
 
+const splitSchedule = async (info) => {
+  if (isEmptyRoom()) {
+    Toast.fire({ icon: "warning", title: "Please select room first" });
+    return info.revert();
+  }
+  const event = info.event;
+  const extendedProps = event.extendedProps;
+
+  const id = extendedProps.scheduleID;
+
+  const end = moment(event.endStr);
+  const start = moment(event.startStr);
+
+  const course = extendedProps.course;
+  const durationHours = moment.duration(end.diff(start)).asHours();
+  const type = extendedProps.courseType;
+
+  const maxHours =
+    type === "lecture" ? currentCourseHourCount[course].maxLecture : currentCourseHourCount[course].maxLab;
+  const currentHour =
+    type === "lecture"
+      ? Math.abs(currentCourseHourCount[course].currentLecture - extendedProps.hourDuration + durationHours)
+      : Math.abs(currentCourseHourCount[course].currentLab - extendedProps.hourDuration + durationHours);
+
+  const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
+  const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+
+  if (currentHour > maxHours) {
+    Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
+    return info.revert();
+  }
+
+  // Set the schedule as newly dragged schedule
+  info.event.setExtendedProp("new", true);
+
+  // Filter the schedule by currently set day
+  calendar.getEvents().forEach((element) => {
+    const sameDay = element.start.getDay() === info.event.start.getDay();
+    if (sameDay && element.extendedProps.current) {
+      existingEvents.push(element);
+    }
+  });
+
+  // Sort the filtered schedule by time
+  existingEvents.sort(function (a, b) {
+    return a.start - b.start;
+  });
+
+  // Get the index of the dragged schedule
+  const currentIndex = existingEvents.findIndex(function (event) {
+    return event.extendedProps.new === true;
+  });
+
+  // Set the next and previous schedule
+  previousEvent = currentIndex > 0 ? existingEvents[currentIndex - 1] : undefined;
+  nextEvent = currentIndex < existingEvents.length - 1 ? existingEvents[currentIndex + 1] : undefined;
+
+  // Set the time gap between schedules
+  previousTimeGap = previousEvent ? (info.event.start.getTime() - previousEvent.end.getTime()) / 1000 : undefined;
+  nextTimeGap = nextEvent ? (nextEvent.start.getTime() - info.event.end.getTime()) / 1000 : undefined;
+
+  // Set the schedule as not new anymore
+  info.event.setExtendedProp("new", false);
+
+  if (previousTimeGap >= 5400 || previousTimeGap < 1800 || nextTimeGap >= 5400 || nextTimeGap < 1800) {
+    let previous = false;
+    let text = "";
+    if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
+      text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+      previous = true;
+    }
+    if (nextTimeGap >= 5400 || nextTimeGap < 1800) {
+      if (previous) text += " & ";
+      text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+    }
+    text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
+    Swal.fire({
+      title: "Are you sure?",
+      text: text,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm",
+      preConfirm: () => {
+        return fetch(`/api/schedules/adjust/${semester}/${id}`, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+            endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+            room: $("#roomForm").val(),
+            hour: moment.duration(end.diff(start)).asHours(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (type === "lecture") {
+              currentCourseHourCount[course].currentLecture = currentHour;
+            } else {
+              currentCourseHourCount[course].currentLab = currentHour;
+            }
+            info.event.setExtendedProp("hourDuration", durationHours);
+            if (maxHours - currentHour === 0) {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .removeClass(`${type}-event bg-primary text-light`)
+                .addClass("bg-warning text-dark")
+                .css("cursor", "");
+            } else {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .addClass(`${type}-event bg-primary text-light`)
+                .removeClass("bg-success bg-warning text-dark")
+                .css("cursor", "move");
+            }
+            $("#external-events")
+              .find(`[course='${course}'][courseType='${type}']`)
+              .attr(
+                "hour",
+                `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`
+              );
+            Toast.fire({
+              title: "Successfully Edited",
+              icon: "success",
+            });
+          });
+      },
+    })
+      .then((result) => {
+        if (result.isConfirmed) {
+          Toast.fire({
+            icon: "success",
+            title: "Successfully Adjusted",
+          });
+        } else {
+          info.revert();
+        }
+      })
+      .catch((error) => {
+        info.revert();
+        console.log(error);
+        displayToast(error);
+      });
+  } else {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Assigned faculty will be remove, You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm",
+      preConfirm: () => {
+        return fetch(`/api/schedules/adjust/${semester}/${id}`, {
+          method: "PUT",
+          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+            endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
+            room: $("#roomForm").val(),
+            hour: moment.duration(end.diff(start)).asHours(),
+          }),
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((result) => {
+            if (type === "lecture") {
+              currentCourseHourCount[course].currentLecture = currentHour;
+            } else {
+              currentCourseHourCount[course].currentLab = currentHour;
+            }
+            info.event.setExtendedProp("hourDuration", durationHours);
+            if (maxHours - currentHour === 0) {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .removeClass(`${type}-event bg-primary text-light`)
+                .addClass("bg-warning text-dark")
+                .css("cursor", "");
+            } else {
+              $("#external-events")
+                .find(`[course='${course}'][courseType='${type}']`)
+                .addClass(`${type}-event bg-primary text-light`)
+                .removeClass("bg-success bg-warning text-dark")
+                .css("cursor", "move");
+            }
+            $("#external-events")
+              .find(`[course='${course}'][courseType='${type}']`)
+              .attr(
+                "hour",
+                `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`
+              );
+            Toast.fire({
+              title: "Successfully Edited",
+              icon: "success",
+            });
+          });
+      },
+    })
+      .then((result) => {
+        if (result.isConfirmed) {
+          Toast.fire({
+            icon: "success",
+            title: "Successfully Adjusted",
+          });
+        } else {
+          info.revert();
+        }
+      })
+      .catch((error) => {
+        info.revert();
+        console.log(error);
+        displayToast(error);
+      });
+  }
+};
+
+const viewSchedule = async (info) => {
+  try {
+    const id = info.event.extendedProps.scheduleID;
+    const schedule = await getSchedule(id);
+
+    const viewSchedule = await Swal.fire({
+      icon: "info",
+      title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${
+        schedule.level.display
+      }-${schedule.sectionName})- ${schedule.type.toUpperCase()}`,
+      text: `${days[schedule.day]} ${schedule.startTime} - ${
+        schedule.endTime
+      } (${schedule.room.roomName.toUpperCase()}${
+        schedule.faculty ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase() : ""
+      })`,
+      width: "50%",
+      showCancelButton: true,
+      showDenyButton: info.event.extendedProps.current,
+      showConfirmButton: false,
+      denyButtonText: `Remove`,
+      cancelButtonText: `Close`,
+    });
+
+    if (viewSchedule.isDenied) {
+      const deleteWarning = await Swal.fire({
+        title: "Are you sure?",
+        text: "The assigned faculty will also remove, You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      });
+      console.log(info.event);
+      if (deleteWarning.isConfirmed) {
+        const course = info.event.extendedProps.course;
+        const end = moment(info.event.endStr);
+        const start = moment(info.event.startStr);
+        const type = info.event.extendedProps.courseType;
+        const durationHours = moment.duration(end.diff(start)).asHours();
+
+        const deleteSchedule = await removeSchedule(id, durationHours, course, type);
+        if (!deleteSchedule) return Toast.fire({ icon: "warning", title: "Something went wrong in deleting schedule" });
+        Toast.fire({ icon: "success", title: "Successfully Deleted" });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    Toast.fire({ icon: "warning", title: "Something Went Wrong" });
+  }
+};
+
 const config = {
   allDaySlot: false,
   height: "auto",
@@ -262,321 +535,9 @@ const config = {
   // for editing schedule
   eventDrop: editSchedule,
   // for spliting the schedule
-  eventResize: function (info) {
-    const existingEvents = [];
-    let previousTimeGap, nextTimeGap;
-    const id = info.event.extendedProps.scheduleID;
-    const end = moment(info.event.endStr);
-    const start = moment(info.event.startStr);
-    const course = info.event.extendedProps.course;
-    const durationHours = moment.duration(end.diff(start)).asHours();
-    const type = info.event.extendedProps.courseType;
-    const maxHours =
-      type === "lecture" ? currentCourseHourCount[course].maxLecture : currentCourseHourCount[course].maxLab;
-    const currentHour =
-      type === "lecture"
-        ? Math.abs(
-            currentCourseHourCount[course].currentLecture - info.event.extendedProps.hourDuration + durationHours
-          )
-        : Math.abs(currentCourseHourCount[course].currentLab - info.event.extendedProps.hourDuration + durationHours);
-
-    const startMinutes = info.event.start.getMinutes() == 0 ? "00" : info.event.start.getMinutes().toString();
-    const endMinutes = info.event.end.getMinutes() == 0 ? "00" : info.event.end.getMinutes().toString();
-
-    if ($("#roomForm").val() === "") {
-      Toast.fire({ icon: "warning", title: "Please select room first" });
-      return info.revert();
-    }
-
-    if (currentHour > maxHours) {
-      Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
-      return info.revert();
-    }
-
-    // Set the schedule as newly dragged schedule
-    info.event.setExtendedProp("new", true);
-
-    // Filter the schedule by currently set day
-    calendar.getEvents().forEach((element) => {
-      const sameDay = element.start.getDay() === info.event.start.getDay();
-      if (sameDay && element.extendedProps.current) {
-        existingEvents.push(element);
-      }
-    });
-
-    // Sort the filtered schedule by time
-    existingEvents.sort(function (a, b) {
-      return a.start - b.start;
-    });
-
-    // Get the index of the dragged schedule
-    const currentIndex = existingEvents.findIndex(function (event) {
-      return event.extendedProps.new === true;
-    });
-
-    // Set the next and previous schedule
-    previousEvent = currentIndex > 0 ? existingEvents[currentIndex - 1] : undefined;
-    nextEvent = currentIndex < existingEvents.length - 1 ? existingEvents[currentIndex + 1] : undefined;
-
-    // Set the time gap between schedules
-    previousTimeGap = previousEvent ? (info.event.start.getTime() - previousEvent.end.getTime()) / 1000 : undefined;
-    nextTimeGap = nextEvent ? (nextEvent.start.getTime() - info.event.end.getTime()) / 1000 : undefined;
-
-    // Set the schedule as not new anymore
-    info.event.setExtendedProp("new", false);
-
-    if (previousTimeGap >= 5400 || previousTimeGap < 1800 || nextTimeGap >= 5400 || nextTimeGap < 1800) {
-      let previous = false;
-      let text = "";
-      if (previousTimeGap >= 5400 || previousTimeGap < 1800) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
-        previous = true;
-      }
-      if (nextTimeGap >= 5400 || nextTimeGap < 1800) {
-        if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
-      }
-      text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
-      Swal.fire({
-        title: "Are you sure?",
-        text: text,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        preConfirm: () => {
-          return fetch(`/api/schedules/adjust/${semester}/${id}`, {
-            method: "PUT",
-            headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-              endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-              room: $("#roomForm").val(),
-              hour: moment.duration(end.diff(start)).asHours(),
-            }),
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((result) => {
-              if (type === "lecture") {
-                currentCourseHourCount[course].currentLecture = currentHour;
-              } else {
-                currentCourseHourCount[course].currentLab = currentHour;
-              }
-              info.event.setExtendedProp("hourDuration", durationHours);
-              if (maxHours - currentHour === 0) {
-                $("#external-events")
-                  .find(`[course='${course}'][courseType='${type}']`)
-                  .removeClass(`${type}-event bg-primary text-light`)
-                  .addClass("bg-warning text-dark")
-                  .css("cursor", "");
-              } else {
-                $("#external-events")
-                  .find(`[course='${course}'][courseType='${type}']`)
-                  .addClass(`${type}-event bg-primary text-light`)
-                  .removeClass("bg-success bg-warning text-dark")
-                  .css("cursor", "move");
-              }
-              $("#external-events")
-                .find(`[course='${course}'][courseType='${type}']`)
-                .attr(
-                  "hour",
-                  `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`
-                );
-              Toast.fire({
-                title: "Successfully Edited",
-                icon: "success",
-              });
-            });
-        },
-      })
-        .then((result) => {
-          if (result.isConfirmed) {
-            Toast.fire({
-              icon: "success",
-              title: "Successfully Adjusted",
-            });
-          } else {
-            info.revert();
-          }
-        })
-        .catch((error) => {
-          info.revert();
-          console.log(error);
-          displayToast(error);
-        });
-    } else {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "Assigned faculty will be remove, You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        preConfirm: () => {
-          return fetch(`/api/schedules/adjust/${semester}/${id}`, {
-            method: "PUT",
-            headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
-              endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-              room: $("#roomForm").val(),
-              hour: moment.duration(end.diff(start)).asHours(),
-            }),
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((result) => {
-              if (type === "lecture") {
-                currentCourseHourCount[course].currentLecture = currentHour;
-              } else {
-                currentCourseHourCount[course].currentLab = currentHour;
-              }
-              info.event.setExtendedProp("hourDuration", durationHours);
-              if (maxHours - currentHour === 0) {
-                $("#external-events")
-                  .find(`[course='${course}'][courseType='${type}']`)
-                  .removeClass(`${type}-event bg-primary text-light`)
-                  .addClass("bg-warning text-dark")
-                  .css("cursor", "");
-              } else {
-                $("#external-events")
-                  .find(`[course='${course}'][courseType='${type}']`)
-                  .addClass(`${type}-event bg-primary text-light`)
-                  .removeClass("bg-success bg-warning text-dark")
-                  .css("cursor", "move");
-              }
-              $("#external-events")
-                .find(`[course='${course}'][courseType='${type}']`)
-                .attr(
-                  "hour",
-                  `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`
-                );
-              Toast.fire({
-                title: "Successfully Edited",
-                icon: "success",
-              });
-            });
-        },
-      })
-        .then((result) => {
-          if (result.isConfirmed) {
-            Toast.fire({
-              icon: "success",
-              title: "Successfully Adjusted",
-            });
-          } else {
-            info.revert();
-          }
-        })
-        .catch((error) => {
-          info.revert();
-          console.log(error);
-          displayToast(error);
-        });
-    }
-  },
+  eventResize: splitSchedule,
   // for schedule information
-  eventClick: function (info) {
-    const id = info.event.extendedProps.scheduleID;
-    fetch(`/api/schedules/single/${semester}/${id}`)
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        Swal.fire({
-          icon: "info",
-          title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${
-            result.data.level.display
-          }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
-          text: `${days[result.data.day]} ${result.data.startTime} - ${
-            result.data.endTime
-          } (${result.data.room.roomName.toUpperCase()}${
-            result.data.faculty ? "/" + result.data.faculty.userInformation.facultyCode.toUpperCase() : ""
-          })`,
-          width: "50%",
-          showCancelButton: true,
-          showDenyButton: true,
-          showConfirmButton: false,
-          denyButtonText: `Remove`,
-          cancelButtonText: `Close`,
-        }).then((clicked) => {
-          if (clicked.isDenied) {
-            Swal.fire({
-              title: "Are you sure?",
-              text: "The assigned faculty will also remove, You won't be able to revert this!",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Yes, delete it!",
-              preConfirm: () => {
-                return fetch(`/api/schedules/single/${semester}/${id}`, {
-                  method: "DELETE",
-                  headers: {
-                    "csrf-token": csrf,
-                  },
-                })
-                  .then((response) => {
-                    return response.json();
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                  });
-              },
-            }).then((clicked) => {
-              if (clicked.isConfirmed) {
-                const course = info.event.extendedProps.course;
-                const end = moment(info.event.endStr);
-                const start = moment(info.event.startStr);
-                const durationHours = moment.duration(end.diff(start)).asHours();
-                let currentHour, maxHours;
-                if (info.event.extendedProps.courseType === "lecture") {
-                  currentCourseHourCount[course].currentLecture -= durationHours;
-                  maxHours = currentCourseHourCount[course].maxLecture;
-                  currentHour = currentCourseHourCount[course].currentLecture;
-                } else {
-                  currentCourseHourCount[course].currentLab -= durationHours;
-                  maxHours = currentCourseHourCount[course].maxLab;
-                  currentHour = currentCourseHourCount[course].currentLab;
-                }
-
-                if ($("#roomForm").val() === "") {
-                  $("#external-events")
-                    .find(`[course='${course}'][courseType='${info.event.extendedProps.courseType}']`)
-                    .removeClass("bg-warning text-dark")
-                    .addClass(`${info.event.extendedProps.courseType}-event bg-success text-light`);
-                } else {
-                  $("#external-events")
-                    .find(`[course='${course}'][courseType='${info.event.extendedProps.courseType}']`)
-                    .removeClass("bg-warning text-dark")
-                    .addClass(`${info.event.extendedProps.courseType}-event bg-primary text-light`)
-                    .css("cursor", "move");
-                }
-
-                $("#external-events")
-                  .find(`[course='${course}'][courseType='${info.event.extendedProps.courseType}']`)
-                  .attr(
-                    "hour",
-                    `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`
-                  );
-
-                info.event.remove();
-                Toast.fire({ icon: "success", title: "Successfully removed" });
-              }
-            });
-          }
-        });
-      })
-      .catch((error) => {
-        Toast.fire({ icon: "error", title: "Something went wrong" });
-        console.log(error);
-      });
-  },
+  eventClick: viewSchedule,
   eventDidMount: function (info) {
     renderEvent(info);
   },
@@ -992,6 +953,12 @@ const isEmptyRoom = () => {
   return false;
 };
 
+const isTimeGapValid = (milliseconds) => {
+  if (milliseconds === null) return true;
+  if (milliseconds >= 5400 || milliseconds === 0) return false;
+  return true;
+};
+
 const getSectionSchedule = async (section) => {
   try {
     const schedulesRequest = await fetch(`/api/schedules/section/${section}`);
@@ -1002,12 +969,6 @@ const getSectionSchedule = async (section) => {
     console.error(error);
     return [];
   }
-};
-
-const isTimeGapValid = (milliseconds) => {
-  if (milliseconds === null) return true;
-  if (milliseconds >= 5400 || milliseconds === 0) return false;
-  return true;
 };
 
 const postSchedule = async (body) => {
@@ -1032,6 +993,20 @@ const postSchedule = async (body) => {
   }
 };
 
+const getSchedule = async (id) => {
+  try {
+    const scheduleRequest = await fetch(`/api/schedules/sections/view/${semester}/${id}`);
+    const schedule = await scheduleRequest.json();
+
+    if (schedule.data.length === 0) return false;
+
+    return schedule.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
 const putSchedule = async (id, body) => {
   try {
     const putScheduleRequest = await fetch(`/api/schedules/sections/edit/${scheduleSectionForm.val()}/${id}`, {
@@ -1048,6 +1023,29 @@ const putSchedule = async (id, body) => {
   } catch (error) {
     console.error(error);
     return null;
+  }
+};
+
+const removeSchedule = async (id, hours, course, type, section) => {
+  try {
+    const deleteScheduleRequest = fetch(`/api/schedules/sections/delete/${semester}/${id}`, {
+      method: "DELETE",
+      headers: {
+        "csrf-token": csrf,
+        room: roomForm.val(),
+        section: scheduleSectionForm.val(),
+        hours: hours,
+        course: course,
+        type: type,
+      },
+    });
+
+    if (deleteScheduleRequest.status === 500) return false;
+
+    return deleteScheduleRequest;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 };
 
@@ -1112,3 +1110,41 @@ socket.on("editSectionSchedule", (data) => {
 
   calendar.addEvent(data.event);
 });
+
+socket.on("deleteSectionSchedule", (data) => {
+  if (data.section === scheduleSectionForm.val()) {
+    let currentHour, maxHours;
+    if (data.type === "lecture") {
+      currentCourseHourCount[data.course].currentLecture -= data.hours;
+      maxHours = currentCourseHourCount[data.course].maxLecture;
+      currentHour = currentCourseHourCount[data.course].currentLecture;
+    } else {
+      currentCourseHourCount[data.course].currentLab -= data.hours;
+      maxHours = currentCourseHourCount[data.course].maxLab;
+      currentHour = currentCourseHourCount[data.course].currentLab;
+    }
+
+    if ($("#roomForm").val() === "") {
+      $("#external-events")
+        .find(`[course='${data.course}'][courseType='${data.type}']`)
+        .removeClass("bg-warning text-dark")
+        .addClass(`${data.type}-event bg-success text-light`);
+    } else {
+      $("#external-events")
+        .find(`[course='${data.course}'][courseType='${data.type}']`)
+        .removeClass("bg-warning text-dark")
+        .addClass(`${data.type}-event bg-primary text-light`)
+        .css("cursor", "move");
+    }
+
+    $("#external-events")
+      .find(`[course='${data.course}'][courseType='${data.type}']`)
+      .attr("hour", `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`);
+  }
+
+  calendar.getEvents().forEach((e) => {
+    if (e.extendedProps.scheduleID === data.id) e.remove();
+  });
+});
+
+socket.on("splitSectionSchedule", (data) => {});
