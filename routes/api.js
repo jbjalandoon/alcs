@@ -110,8 +110,6 @@ router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 // router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
-router.put("/schedules/adjust/:semester/:schedule", schedule.adjustSchedule);
-
 router.get("/schedules", schedule.getSchedule);
 
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules);

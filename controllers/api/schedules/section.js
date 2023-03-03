@@ -173,7 +173,74 @@ exports.editSchedule = async (req, res, next) => {
   }
 };
 
-exports.splitSchedule = async (req, res, next) => {};
+exports.splitSchedule = async (req, res, next) => {
+  try {
+    let course;
+    const courseToRemoeveFaculty = await Schedule.aggregate([
+      {
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $unwind: "$semesters",
+      },
+      {
+        $unwind: "$semesters.programs",
+      },
+      {
+        $unwind: "$semesters.programs.year",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections.schedules",
+      },
+      {
+        $match: {
+          "semesters.programs.year.sections.schedules._id": mongoose.Types.ObjectId(req.params.schedule),
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $project: {
+          course: "$semesters.programs.year.sections.schedules.course",
+        },
+      },
+    ]);
+
+    const splitSchedule = await Schedule.updateOne(
+      {
+        "semesters._id": req.params.semester,
+      },
+      {
+        $set: {
+          "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].starTime": req.body.startTime,
+          "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].endTime": req.body.endTime,
+          "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].room": req.body.room,
+          "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].hour": req.body.hour,
+          "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[course].faculty": null,
+        },
+      },
+      {
+        arrayFilters: [{ "schedule._id": req.params.schedule }, { "course.course": course }],
+      }
+    );
+    if (splitSchedule.modifiedCount === 0) return res.status(500).json({ status: 500, data: false });
+    io.getIO().to(req.body.section).to(req.body.room).emit("splitSectionSchedule", {
+      event: req.body.event,
+      section: req.body.section,
+      room: req.body.room,
+      currentHour: req.body.currentHour,
+      maxHour: req.body.maxHour
+    });
+    return res.status(200).json({ status: 200, data: splitSchedule });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 500, data: false });
+  }
+};
 
 exports.deleteSchedule = async (req, res, next) => {
   try {
@@ -210,7 +277,7 @@ exports.deleteSchedule = async (req, res, next) => {
         },
       },
     ]);
-
+    console.log(courseToRemoeveFaculty);
     const deleteSchedule = await Schedule.updateOne(
       {
         "semesters._id": req.params.semester,
