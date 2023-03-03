@@ -2,6 +2,134 @@ const Schedule = require("../../../models/curriculum");
 const io = require("../../../socket");
 const mongoose = require("mongoose");
 
+exports.getSchedules = async (req, res, next) => {
+  try {
+    const schedules = await Schedule.aggregate([
+      {
+        $match: {
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+        },
+      },
+      {
+        $unwind: "$semesters",
+      },
+      {
+        $unwind: "$semesters.programs",
+      },
+      {
+        $unwind: "$semesters.programs.year",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections",
+      },
+      {
+        $match: {
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+        },
+      },
+      {
+        $project: {
+          _id: "$semesters.programs.year.sections._id",
+          program: "$semesters.programs.program",
+          yearLevel: "$semesters.programs.year.yearLevel",
+          sectionName: "$semesters.programs.year.sections.section",
+          schedules: "$semesters.programs.year.sections.schedules",
+        },
+      },
+      {
+        $lookup: {
+          from: "programs",
+          localField: "program",
+          foreignField: "_id",
+          as: "program",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "levels",
+          localField: "yearLevel",
+          foreignField: "_id",
+          as: "yearLevel",
+        },
+      },
+      { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$schedules", preserveNullAndEmptyArrays: false } },
+      {
+        $project: {
+          _id: "$schedules._id",
+          program: "$program",
+          yearLevel: "$yearLevel",
+          sectionName: "$sectionName",
+          sectionId: "$_id",
+          course: "$schedules.course",
+          type: "$schedules.type",
+          hour: "$schedules.hour",
+          startTime: "$schedules.startTime",
+          endTime: "$schedules.endTime",
+          day: "$schedules.day",
+          room: "$schedules.room",
+          faculty: "$schedules.faculty",
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "room",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "faculty",
+          foreignField: "_id",
+          as: "faculty",
+        },
+      },
+      { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: "$course._id",
+          program: { $first: "$program" },
+          yearLevel: { $first: "$yearLevel" },
+          sectionName: { $first: "$sectionName" },
+          course: { $first: "$course" },
+          faculty: { $first: "$faculty" },
+          schedules: {
+            $push: {
+              _id: "$_id",
+              type: "$type",
+              hour: "$hour",
+              startTime: "$startTime",
+              endTime: "$endTime",
+              day: "$day",
+              room: "$room",
+            },
+          },
+        },
+      },
+    ]);
+
+    return res.json({ status: 200, data: schedules });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 500, data: error });
+  }
+};
+
 exports.getSchedule = (req, res, next) => {
   Schedule.aggregate([
     {
@@ -233,7 +361,7 @@ exports.splitSchedule = async (req, res, next) => {
       section: req.body.section,
       room: req.body.room,
       currentHour: req.body.currentHour,
-      maxHour: req.body.maxHour
+      maxHour: req.body.maxHour,
     });
     return res.status(200).json({ status: 200, data: splitSchedule });
   } catch (error) {

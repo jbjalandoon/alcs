@@ -125,7 +125,6 @@ router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
 router.get("/schedules/faculty/:semester/:faculty/", schedule.getFacultySchedule);
 router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
-router.get("/schedules/section/:section/", schedule.getSectionSchedule);
 
 router.get("/schedules/section/:semester/:program", schedule.getGroupedSectionSchedule);
 

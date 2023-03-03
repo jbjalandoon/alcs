@@ -860,7 +860,7 @@ const isTimeGapValid = (milliseconds) => {
 
 const getSectionSchedule = async (section) => {
   try {
-    const schedulesRequest = await fetch(`/api/schedules/section/${section}`);
+    const schedulesRequest = await fetch(`/api/schedules/sections/${section}`);
     const schedules = await schedulesRequest.json();
 
     return schedules;
