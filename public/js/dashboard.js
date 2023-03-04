@@ -843,15 +843,15 @@ const downloadFacultyCalendarXLSX = async () => {
             },
           };
           merges.push({
-            s: { r: i + 6, c: element.day * 2 },
+            s: { r: i + 7, c: element.day * 2 },
             e: {
-              r: i + 5 + element.hour * 2,
+              r: i + 6 + element.hour * 2,
               c: element.day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j + 5}`;
+            let singleCell = `${cols[element.day * 2]}${j + 6}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -865,6 +865,7 @@ const downloadFacultyCalendarXLSX = async () => {
     facultyType = await getFacultyType(facultyID);
     unitsCount = await getFacultyUnitsCount(facultyID);
     const ws = XLSX.utils.aoa_to_sheet([
+      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [cellHeaderText(facultyCode.toUpperCase())],
       [cellHeaderText(facultyName.toUpperCase())],
       [cellHeaderText(facultyType.facultyType.toUpperCase())],
@@ -889,7 +890,7 @@ const downloadFacultyCalendarXLSX = async () => {
       ],
       ...data,
     ]);
-    for (let i = 0; i <= 4; i++) {
+    for (let i = 0; i <= 5; i++) {
       merges.push({
         s: { r: i, c: 0 },
         e: {
@@ -1018,15 +1019,15 @@ const downloadAllFacultyCalendarXLSX = async () => {
               },
             };
             merges.push({
-              s: { r: time + 6, c: element.day * 2 },
+              s: { r: time + 7, c: element.day * 2 },
               e: {
-                r: time + 5 + element.hour * 2,
+                r: time + 6 + element.hour * 2,
                 c: element.day * 2,
               },
             });
             const mergeCell = [];
             for (let j = time + 2; j <= time + 1 + element.hour * 2; j++) {
-              let singleCell = `${cols[element.day * 2]}${j + 5}`;
+              let singleCell = `${cols[element.day * 2]}${j + 6}`;
               mergeCell.push(singleCell);
             }
             mergedCells.push(mergeCell);
@@ -1040,6 +1041,7 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyType = await getFacultyType(facultyID);
       unitsCount = await getFacultyUnitsCount(facultyID);
       const ws = XLSX.utils.aoa_to_sheet([
+        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
         [cellHeaderText(facultyCode.toUpperCase())],
         [cellHeaderText(facultyName.toUpperCase())],
         [cellHeaderText(facultyType.facultyType.toUpperCase())],
@@ -1064,7 +1066,7 @@ const downloadAllFacultyCalendarXLSX = async () => {
         ],
         ...data,
       ]);
-      for (let i = 0; i <= 4; i++) {
+      for (let i = 0; i <= 5; i++) {
         merges.push({
           s: { r: i, c: 0 },
           e: {
