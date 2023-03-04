@@ -1647,13 +1647,13 @@ const downloadSectionCalendarXLSX = async () => {
 
 const downloadAllSectionCalendarXLSX = async () => {
   try {
-    let sectionName;
+    let sectionName, unitsCount, sectionID;
     const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
     const wb = XLSX.utils.book_new();
     const sectionSchedulesRequest = await fetch(`/api/schedules/section/${semester}/${programView.val()}`);
     const sectionSchedules = await sectionSchedulesRequest.json();
     const schedules = sectionSchedules.data.map((e) => e.data);
-    schedules.forEach((element) => {
+    for (scheduleIndex = 0; scheduleIndex < schedules.length; scheduleIndex++) {
       const times = [];
       for (let i = 7; i < 22; i++) {
         for (let j = 0; j < 2; j++) {
@@ -1671,7 +1671,6 @@ const downloadAllSectionCalendarXLSX = async () => {
       const data = [];
       const merges = [];
       const mergedCells = [];
-      const skipIndex = [];
       for (let i = 0; i < times.length; i++) {
         let rowData = [
           cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
@@ -1687,19 +1686,17 @@ const downloadAllSectionCalendarXLSX = async () => {
           cellData(""),
           cellData(""),
           cellData(""),
+          cellData(""),
+          cellData(""),
         ];
-        element.forEach((element, index) => {
-          sectionName = `${element.program.programCode.toUpperCase()} ${element.level.display.toUpperCase()} - ${element.sectionName.toUpperCase()}`;
+        schedules[scheduleIndex].forEach((element, index) => {
           const course = element.course.courseCode.toUpperCase();
-          const program = element.program.programCode.toUpperCase();
-          const section = element.sectionName.toUpperCase();
           const room = element.room.roomName.toUpperCase();
-          const level = element.level.display.toUpperCase();
           const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
           const eventTime = element.startTime;
           if (times[i].split("-")[0] === eventTime) {
             rowData[element.day * 2] = {
-              v: `${course}\n${program}${level}-${section}\n${room}\n${initials}`,
+              v: `${course}\n${room}\n${initials}`,
               t: "s",
               s: {
                 alignment: {
@@ -1716,15 +1713,15 @@ const downloadAllSectionCalendarXLSX = async () => {
               },
             };
             merges.push({
-              s: { r: i + 3, c: element.day * 2 },
+              s: { r: i + 5, c: element.day * 2 },
               e: {
-                r: i + 2 + element.hour * 2,
+                r: i + 4 + element.hour * 2,
                 c: element.day * 2,
               },
             });
             const mergeCell = [];
             for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-              let singleCell = `${cols[element.day * 2]}${j + 2}`;
+              let singleCell = `${cols[element.day * 2]}${j + 4}`;
               mergeCell.push(singleCell);
             }
             mergedCells.push(mergeCell);
@@ -1732,8 +1729,16 @@ const downloadAllSectionCalendarXLSX = async () => {
         });
         data.push(rowData);
       }
+      console.log(schedules[scheduleIndex]);
+      sectionName = `${schedules[scheduleIndex][0].program.programCode.toUpperCase()} ${schedules[
+        scheduleIndex
+      ][0].level.display.toUpperCase()} - ${schedules[scheduleIndex][0].sectionName.toUpperCase()}`;
+      sectionID = schedules[scheduleIndex][0].section;
+      unitsCount = await getSectionsTotalUnits(sectionID);
       const ws = XLSX.utils.aoa_to_sheet([
-        [cellHeader("SECTION:"), cellHeaderText(sectionName), ""],
+        [cellHeaderText(sectionName)],
+        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+        [cellHeaderText(`${unitsCount} UNITS`)],
         [],
         [
           cellData("Time"),
@@ -1749,19 +1754,20 @@ const downloadAllSectionCalendarXLSX = async () => {
           cellData("Friday"),
           cellData(""),
           cellData("Saturday"),
+          cellData(""),
+          cellData("Sunday"),
         ],
         ...data,
       ]);
-      for (let i = 0; i <= 1; i++) {
+      for (let i = 0; i <= 4; i++) {
         merges.push({
-          s: { r: i, c: 1 },
+          s: { r: i, c: 0 },
           e: {
             r: i,
-            c: 2,
+            c: 14,
           },
         });
       }
-      mergedCells.push(["A1", "B1", "C1"]);
       ws["!merges"] = merges;
       mergedCells.forEach((element) => {
         element.forEach((element) => {
@@ -1781,22 +1787,24 @@ const downloadAllSectionCalendarXLSX = async () => {
         });
       });
       ws["!cols"] = [
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
         { wch: 3 },
-        { wch: 20 },
+        { wch: 17 },
+        { wch: 3 },
+        { wch: 17 },
       ];
       XLSX.utils.book_append_sheet(wb, ws, sectionName);
-    });
+    }
 
     XLSX.writeFile(wb, `${programView.find(":selected").text()}.xlsx`);
   } catch (error) {
