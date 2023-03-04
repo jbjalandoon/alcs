@@ -9,6 +9,14 @@ const Crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const FacultyType = require("../../models/faculty-type");
 
+let mailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASSWORD,
+  },
+});
+
 exports.get = (req, res, next) => {
   Faculty.find({ deleted: false, role: "user" })
     .populate("userInformation.academicQualifications.academicQualification")
@@ -22,14 +30,6 @@ exports.get = (req, res, next) => {
       res.json({ status: 500, data: error });
     });
 };
-
-let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASSWORD,
-  },
-});
 
 exports.getOne = (req, res, next) => {
   Faculty.findOne({ role: "user", _id: req.params.id })
@@ -170,6 +170,26 @@ exports.put = (req, res, next) => {
     })
     .catch((error) => {
       res.status(500).json({ status: 500, data: error });
+    });
+};
+
+exports.getFacultyType = (req, res, next) => {
+  Faculty.findOne({ deleted: false, _id: req.params.id })
+    .populate("userInformation.facultyType")
+    .select("userInformation.facultyType")
+    .then((faculty) => {
+      const facultyType = faculty.userInformation.facultyType;
+      res.json({
+        status: 200,
+        data: {
+          facultyType: facultyType.facultyType,
+          maxUnits: facultyType.unitsCap,
+          maxHours: facultyType.hoursCap,
+        },
+      });
+    })
+    .catch((error) => {
+      res.json({ status: 500, data: error });
     });
 };
 

@@ -70,6 +70,7 @@ router.delete("/courses/:id", course.delete);
 
 router.get("/faculty", faculty.get);
 router.get("/faculty/:id", faculty.getOne);
+router.get("/faculty/type/:id", faculty.getFacultyType);
 router.post("/faculty", validation.faculty, faculty.post);
 router.put("/faculty/:id", validation.faculty, faculty.put);
 router.post("/faculty/course/:id", faculty.postCourse);
@@ -123,7 +124,6 @@ router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/finished/:semester/:room", schedule.getFinishedRoomSchedule);
 router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
-router.get("/schedules/faculty/:semester/:faculty/", schedule.getFacultySchedule);
 router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
 
 router.get("/schedules/section/:semester/:program", schedule.getGroupedSectionSchedule);
