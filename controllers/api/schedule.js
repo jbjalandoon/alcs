@@ -228,6 +228,7 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
     .populate("userInformation.academicQualifications.licenseIndustry")
     .populate("userInformation.courseTaken")
     .then((result) => {
+      console.log(result);
       if (result.userInformation.academicQualifications) {
         academicQualification = result.userInformation.academicQualifications;
       } else {
@@ -286,8 +287,8 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
       ]);
     })
     .then((result) => {
-      console.log(result);
       let filteredResult;
+      // console.log("test", academicQualification);
       academicQualification.forEach((element) => {
         filteredResult = result.filter((course) => {
           if (course.course.examination) {
@@ -319,15 +320,16 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
           }
         });
       });
-      const filteredAcademicQualification = academicQualification.filter((element) => {
-        return result
-          .map((element) => {
-            return element.course.qualification.academicQualification;
-          })
-          .includes(element.academicQualification._id);
-      });
-      // res.json({ ok: true, data: filteredResult });
-      res.json({ ok: true, data: result });
+      // const filteredAcademicQualification = academicQualification.filter((element) => {
+      //   return result
+      //     .map((element) => {
+      //       return element.course.qualification.academicQualification;
+      //     })
+      //     .includes(element.academicQualification._id);
+      // });
+      // console.log(filteredResult);
+      res.json({ ok: true, data: filteredResult });
+      // res.json({ ok: true, data: result });
     })
     .catch((error) => {
       console.log(error);

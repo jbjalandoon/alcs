@@ -25,7 +25,7 @@
                   <div class="row">
                     <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
                       <div class="stats-icon purple mb-2">
-                        <i class="iconly-boldShow"></i>
+                        <i class="iconly-boldProfile"></i>
                       </div>
                     </div>
                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
@@ -42,7 +42,7 @@
                   <div class="row">
                     <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
                       <div class="stats-icon blue mb-2">
-                        <i class="iconly-boldProfile"></i>
+                        <i class="iconly-boldWork"></i>
                       </div>
                     </div>
                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
@@ -59,7 +59,7 @@
                   <div class="row">
                     <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
                       <div class="stats-icon green mb-2">
-                        <i class="iconly-boldAdd-User"></i>
+                        <i class="iconly-boldTime-Circle"></i>
                       </div>
                     </div>
                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
@@ -76,7 +76,7 @@
                   <div class="row">
                     <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
                       <div class="stats-icon red mb-2">
-                        <i class="iconly-boldBookmark"></i>
+                        <i class="iconly-boldTime-Square"></i>
                       </div>
                     </div>
                     <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
@@ -139,8 +139,8 @@
                               <div class="item">
                                 <div class="row">
                                   <div class="col-12">
-                                    <button class="btn btn-primary" onClick="downloadFacultyTableXLSX()">Download</button>
-                                    <button class="btn btn-primary" onClick="downloadAllFacultyTableXLSX()">Download All</button>
+                                    <button class="btn btn-primary" onClick="downloadFacultyTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download</button>
+                                    <button class="btn btn-primary" onClick="downloadAllFacultyTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download All</button>
                                   </div>
                                 </div>
                                 <div class="row">
@@ -178,8 +178,8 @@
                           </div>
                           <div class="row">
                             <div class="col-12">
-                              <button class="btn btn-primary" onClick="downloadRoomCalendarXLSX()" id="downloadCurrentRoom">Download Current</button>
-                              <button class="btn btn-primary" onClick="downloadAllRoomCalendarXLSX()" id="downloadAllRoom">Download All</button>
+                              <button class="btn btn-primary" onClick="downloadRoomCalendarXLSX()" id="downloadCurrentRoom"><i class="bi bi-filetype-xlsx"></i>Download</button>
+                              <button class="btn btn-primary" onClick="downloadAllRoomCalendarXLSX()" id="downloadAllRoom"><i class="bi bi-filetype-xlsx"></i>Download All</button>
                             </div>
                           </div>
                           <div class="row">
@@ -209,8 +209,8 @@
 
                             <div class="row">
                               <div class="col-12">
-                                <button class="btn btn-primary" onClick="downloadSectionCalendarXLSX()" id="downloadCurrentSectionCalendar">Download</button>
-                                <button class="btn btn-primary" onClick="downloadAllSectionCalendarXLSX()" id="downloadAllSectionCalendar">Download All</button>
+                                <button class="btn btn-primary" onClick="downloadSectionCalendarXLSX()" id="downloadCurrentSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download</button>
+                                <button class="btn btn-primary" onClick="downloadAllSectionCalendarXLSX()" id="downloadAllSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download All</button>
                               </div>
                             </div>
                             <div class="row">
@@ -222,8 +222,8 @@
                           <div class="item">
                             <div class="row">
                               <div class="col-12">
-                                <button class="btn btn-primary" id="downloadCurrentSecionTable">Download</button>
-                                <button class="btn btn-primary" id="downloadAllSecionTable">Download All</button>
+                                <button class="btn btn-primary" onClick="downloadSectionTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download</button>
+                                <button class="btn btn-primary" onClick="downloadAllSectionTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download All</button>
                               </div>
                             </div>
                             <div class="row">
@@ -233,11 +233,12 @@
                                     <thead>
                                       <tr>
                                         <th width="15%">Course Code</th>
-                                        <th width="25%">Course</th>
+                                        <th width="20%">Course</th>
                                         <th width="5%">Units</th>
                                         <th width="5%">Lecture</th>
                                         <th width="5%">Lab</th>
-                                        <th width="35%">Schedule</th>
+                                        <th width="20%">Faculty</th>
+                                        <th width="20%">Schedule</th>
                                       </tr>
                                     </thead>
                                     <tbody class="table-group-divider">

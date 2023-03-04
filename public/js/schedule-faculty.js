@@ -38,7 +38,7 @@ const config = {
     Swal.showLoading();
     const deleteEvents = [];
     const eventInfo = info.event.extendedProps;
-    fetch(`/api/schedules/single/${sem}/${info.event.id}`)
+    fetch(`/api/schedules/sections/view/${sem}/${info.event.id}`)
       .then((response) => {
         return response.json();
       })
@@ -272,11 +272,10 @@ $(facultyModal._element).on("show.bs.modal", (event) => {
     });
 });
 
-faculty.on("change", () => {
+faculty.on("change", async () => {
   sameDayHours.fill(0);
   $("#courseList").empty();
   $("#contentRow").removeClass("d-none");
-  totalUnit = 0;
   unavailableTime.length = 0;
   fetch("/api/faculty/" + faculty.val())
     .then((response) => {
@@ -285,7 +284,6 @@ faculty.on("change", () => {
     .then((result) => {
       tags = [];
       $("#spanFacultyType").html(result.data.userInformation.facultyType.facultyType);
-      unitsCount = 0;
       hoursCount = 0;
       calendar.getEvents().forEach((element) => {
         element.remove();
@@ -314,9 +312,6 @@ faculty.on("change", () => {
     .then((result) => {
       result.data.forEach((element) => {
         sameDayHours[element.day - 1] += element.hour;
-        if (element.type !== "lab") {
-          unitsCount += parseInt(element.course.units);
-        }
         hoursCount += parseInt(element.hour);
         calendar.addEvent({
           id: element._id,
@@ -350,6 +345,7 @@ faculty.on("change", () => {
       return response.json();
     })
     .then((result) => {
+      console.log(result);
       courseSearch.find("option").remove();
       result.data.forEach((element) => {
         courseSearch.append(
@@ -367,6 +363,15 @@ faculty.on("change", () => {
       if (courseSearch.has("option").length !== 0) {
         courseSearch.trigger("change");
       }
+
+      return fetch(`/api/schedules/faculty/units/${sem}/${faculty.val()}`);
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((result) => {
+      unitsCount = result.data;
+      $("#spanUnits").html(unitsCount);
     })
     .catch((error) => {
       console.log(error);
