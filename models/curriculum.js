@@ -32,9 +32,7 @@ const CurriculumSchema = new Schema({
           year: [
             {
               yearLevel: { type: mongoose.Types.ObjectId, ref: "Level" },
-              courses: [
-                { type: mongoose.Types.ObjectId, ref: "Course", default: null },
-              ],
+              courses: [{ type: mongoose.Types.ObjectId, ref: "Course", default: null }],
               sections: [
                 {
                   section: { type: String, required: true },
@@ -66,6 +64,10 @@ const CurriculumSchema = new Schema({
                       faculty: {
                         type: mongoose.Types.ObjectId,
                         ref: "User",
+                      },
+                      isOverload: {
+                        type: Boolean,
+                        default: false,
                       },
                     },
                   ],

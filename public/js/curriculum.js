@@ -603,7 +603,7 @@ const addYearLevel = () => {
       const toRemove = [];
       button.removeClass("disabled");
       yearLevel.attr("disabled", false);
-
+      button.off("click");
       $("#v-pills-tab")
         .children()
         .each((index, element) => {

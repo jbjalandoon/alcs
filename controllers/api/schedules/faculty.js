@@ -43,6 +43,7 @@ exports.getSchedules = async (req, res, next) => {
           hour: "$semesters.programs.year.sections.schedules.hour",
           day: "$semesters.programs.year.sections.schedules.day",
           startTime: "$semesters.programs.year.sections.schedules.startTime",
+          isOverload: "$semesters.programs.year.sections.schedules.isOverload",
           endTime: "$semesters.programs.year.sections.schedules.endTime",
           room: "$semesters.programs.year.sections.schedules.room",
           faculty: "$semesters.programs.year.sections.schedules.faculty",

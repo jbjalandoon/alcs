@@ -87,6 +87,7 @@ const config = {
                   method: "DELETE",
                   headers: {
                     "csrf-token": csrf,
+                    isOverload: unitsCount - info.event.extendedProps.units >= maxUnits,
                   },
                 })
                   .then((response) => {
@@ -341,7 +342,6 @@ faculty.on("change", async (e) => {
 
     unitsCount = facultyUnits;
     $("#spanUnits").html(unitsCount);
-    console.log(facultyInformation);
     const information = facultyInformation.userInformation;
     $("#spanFacultyType").html(information.facultyType.facultyType.toUpperCase());
     calendar.getEvents().forEach((e) => e.remove());
@@ -360,7 +360,11 @@ faculty.on("change", async (e) => {
     maxUnits = information.facultyType.unitsCap;
     $("#spanMaxUnits").html(maxUnits);
     facultySchedules.forEach((element) => {
-      sameDayHours[element.day - 1] += element.hour;
+      if (element.isOverload) {
+        color = "#DC3545";
+      } else {
+        color = element.type === "lecture" ? "#007BFF" : "#3399FF";
+      }
       calendar.addEvent({
         id: element._id,
         hourDuration: element.hour,
@@ -372,8 +376,7 @@ faculty.on("change", async (e) => {
         units: element.course.units,
         course: element.course.courseCode,
         type: element.type,
-        color: element.type === "lecture" ? "#007BFF" : "#3399FF",
-        textColor: element.type === "lecture" ? "white" : "black",
+        color: color,
         program: element.program.programCode,
         section: element.sectionName,
         room: element.room.roomName,
@@ -381,13 +384,15 @@ faculty.on("change", async (e) => {
         faculty: element.faculty,
       });
     });
-
     courseSearch.find("option").remove();
-    loadableSchedules.forEach((e) => {
-      courseSearch.append(
-        new Option(`${e.course.courseCode.toUpperCase()} - ${e.course.courseDescription.toUpperCase()}`, e._id)
-      );
-    });
+    if (loadableSchedules) {
+      loadableSchedules.forEach((e) => {
+        courseSearch.append(
+          new Option(`${e.course.courseCode.toUpperCase()} - ${e.course.courseDescription.toUpperCase()}`, e._id)
+        );
+      });
+    }
+
     courseSearch.select2({
       width: "100%",
     });
@@ -403,7 +408,6 @@ faculty.on("change", async (e) => {
 courseSearch.on("change", async (e) => {
   try {
     const schedules = await getCourseSchedule(e.currentTarget.value);
-    console.log(schedules);
     $("#courseList").empty();
 
     schedules.forEach((element) => {
@@ -570,8 +574,8 @@ const assignFaculty = (eventArgs) => {
       }
     }
   });
+
   const aboveMax = parseInt(courseList.eq(0).attr("units")) + unitsCount > maxUnits;
-  console.log(sameDayHours);
 
   if (conflictSchedules.length !== 0) {
     return Swal.fire({
@@ -631,13 +635,19 @@ const assignFaculty = (eventArgs) => {
             "csrf-token": csrf,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ faculty: faculty.val() }),
+          body: JSON.stringify({ faculty: faculty.val(), isOverload: aboveMax }),
         })
           .then((response) => {
             return response.json();
           })
           .then((result) => {
             courseList.each(function (i, obj) {
+              let color;
+              if (!aboveMax) {
+                color = button.attr("type") === "lecture" ? "#007BFF" : "#3399FF";
+              } else {
+                color = "#DC3545";
+              }
               const button = $(obj);
               calendar.addEvent({
                 id: button.attr("id"),
@@ -646,7 +656,7 @@ const assignFaculty = (eventArgs) => {
                 startTime: button.attr("startTime"),
                 endTime: button.attr("endTime"),
                 type: button.attr("type"),
-                color: button.attr("type") === "lecture" ? "#007BFF" : "#3399FF",
+                color: color,
                 overlap: false,
                 durationEditable: false,
                 startEditable: false,

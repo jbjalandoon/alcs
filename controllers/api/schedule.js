@@ -1790,6 +1790,7 @@ exports.loadSchedule = (req, res, next) => {
     {
       $set: {
         "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": req.body.faculty,
+        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].isOverload": req.body.isOverload,
       },
     },
     {
@@ -1812,6 +1813,19 @@ exports.loadSchedule = (req, res, next) => {
 };
 
 exports.unassignSchedule = (req, res, next) => {
+  let set;
+  if (req.headers.isOverload) {
+    set = {
+      "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
+      "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].isOverload": false,
+    };
+  } else {
+    set = {
+      "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
+      "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[].isOverload": false,
+    };
+  }
+
   Curriculum.updateOne(
     {
       "semesters.programs.year.sections.schedules._id": {
@@ -1819,9 +1833,7 @@ exports.unassignSchedule = (req, res, next) => {
       },
     },
     {
-      $set: {
-        "semesters.$[].programs.$[].year.$[].sections.$[].schedules.$[schedule].faculty": null,
-      },
+      $set: set,
     },
     {
       arrayFilters: [{ "schedule._id": { $in: req.params.schedule.split(",") } }],
