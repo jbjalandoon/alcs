@@ -409,7 +409,9 @@ courseSearch.on("change", async (e) => {
   try {
     const schedules = await getCourseSchedule(e.currentTarget.value);
     $("#courseList").empty();
-
+    if (schedules.length === 0) {
+      $("#courseList").html("No Available Schedule");
+    }
     schedules.forEach((element) => {
       const currentTimeRange = [];
       let buttonBg = "bg-primary";

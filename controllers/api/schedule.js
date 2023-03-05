@@ -105,13 +105,13 @@ exports.getSchedule = (req, res, next) => {
     },
   ])
     .then((result) => {
+      const filteredResult = result.filter((e) => e.currentHour === e.lab + e.lecture);
       res.json({
         ok: true,
-        data: result,
+        data: filteredResult,
       });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ ok: false });
     });
 };
@@ -228,7 +228,6 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
     .populate("userInformation.academicQualifications.licenseIndustry")
     .populate("userInformation.courseTaken")
     .then((result) => {
-      console.log(result);
       if (result.userInformation.academicQualifications) {
         academicQualification = result.userInformation.academicQualifications;
       } else {
@@ -288,7 +287,6 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
     })
     .then((result) => {
       let filteredResult;
-      // console.log("test", academicQualification);
       academicQualification.forEach((element) => {
         filteredResult = result.filter((course) => {
           if (course.course.examination) {
