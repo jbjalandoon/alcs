@@ -646,7 +646,9 @@ function downloadSpreadsheet(filename, events, type) {
           const room = element.room.roomName.toUpperCase();
           const level = element.level.display.toUpperCase();
           const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
-          rowData[element.day * 2] = {
+          const day = element.day === 0 ? 7 : element.day;
+
+          rowData[day * 2] = {
             v: `${course}\n${program}${level}-${section}\n${room}\n${initials}`,
             t: "s",
             s: {
@@ -664,15 +666,15 @@ function downloadSpreadsheet(filename, events, type) {
             },
           };
           merges.push({
-            s: { r: i + 1, c: element.day * 2 },
+            s: { r: i + 1, c: day * 2 },
             e: {
               r: i + element.hour * 2,
-              c: element.day * 2,
+              c: day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j}`;
+            let singleCell = `${cols[day * 2]}${j}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -831,8 +833,10 @@ const downloadFacultyCalendarXLSX = async () => {
         const room = element.room.roomName.toUpperCase();
         const level = element.level.display.toUpperCase();
         const eventTime = element.startTime;
+        const day = element.day === 0 ? 7 : element.day;
+
         if (times[i].split("-")[0] === eventTime) {
-          rowData[element.day * 2] = {
+          rowData[day * 2] = {
             v: `${course}\n${program}${level}-${section}\n${room}`,
             t: "s",
             s: {
@@ -850,15 +854,15 @@ const downloadFacultyCalendarXLSX = async () => {
             },
           };
           merges.push({
-            s: { r: i + 7, c: element.day * 2 },
+            s: { r: i + 7, c: day * 2 },
             e: {
               r: i + 6 + element.hour * 2,
-              c: element.day * 2,
+              c: day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j + 6}`;
+            let singleCell = `${cols[day * 2]}${j + 6}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -1007,8 +1011,9 @@ const downloadAllFacultyCalendarXLSX = async () => {
           const room = element.room.roomName.toUpperCase();
           const level = element.level.display.toUpperCase();
           const eventTime = element.startTime;
+          const day = element.day === 0 ? 7 : element.day;
           if (times[time].split("-")[0] === eventTime) {
-            rowData[element.day * 2] = {
+            rowData[day * 2] = {
               v: `${course}\n${program}${level}-${section}\n${room}`,
               t: "s",
               s: {
@@ -1026,15 +1031,15 @@ const downloadAllFacultyCalendarXLSX = async () => {
               },
             };
             merges.push({
-              s: { r: time + 7, c: element.day * 2 },
+              s: { r: time + 7, c: day * 2 },
               e: {
                 r: time + 6 + element.hour * 2,
-                c: element.day * 2,
+                c: day * 2,
               },
             });
             const mergeCell = [];
             for (let j = time + 2; j <= time + 1 + element.hour * 2; j++) {
-              let singleCell = `${cols[element.day * 2]}${j + 6}`;
+              let singleCell = `${cols[day * 2]}${j + 6}`;
               mergeCell.push(singleCell);
             }
             mergedCells.push(mergeCell);
@@ -1175,8 +1180,10 @@ const downloadRoomCalendarXLSX = async () => {
         const level = element.level.display.toUpperCase();
         const initials = element.faculty.userInformation.facultyCode.toUpperCase();
         const eventTime = element.startTime;
+        const day = element.day === 0 ? 7 : element.day;
+
         if (times[i].split("-")[0] === eventTime) {
-          rowData[element.day * 2] = {
+          rowData[day * 2] = {
             v: `${course}\n${program}${level}-${section}\n${initials}`,
             t: "s",
             s: {
@@ -1194,15 +1201,15 @@ const downloadRoomCalendarXLSX = async () => {
             },
           };
           merges.push({
-            s: { r: i + 4, c: element.day * 2 },
+            s: { r: i + 4, c: day * 2 },
             e: {
               r: i + 3 + element.hour * 2,
-              c: element.day * 2,
+              c: day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j + 3}`;
+            let singleCell = `${cols[day * 2]}${j + 3}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -1338,8 +1345,10 @@ const downloadAllRoomCalendarXLSX = async () => {
           const level = element.level.display.toUpperCase();
           const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
           const eventTime = element.startTime;
+          const day = element.day === 0 ? 7 : element.day;
+
           if (times[i].split("-")[0] === eventTime) {
-            rowData[element.day * 2] = {
+            rowData[day * 2] = {
               v: `${course}\n${program}${level}-${section}\n${initials}`,
               t: "s",
               s: {
@@ -1357,15 +1366,15 @@ const downloadAllRoomCalendarXLSX = async () => {
               },
             };
             merges.push({
-              s: { r: i + 4, c: element.day * 2 },
+              s: { r: i + 4, c: day * 2 },
               e: {
                 r: i + 3 + element.hour * 2,
-                c: element.day * 2,
+                c: day * 2,
               },
             });
             const mergeCell = [];
             for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-              let singleCell = `${cols[element.day * 2]}${j + 3}`;
+              let singleCell = `${cols[day * 2]}${j + 3}`;
               mergeCell.push(singleCell);
             }
             mergedCells.push(mergeCell);
@@ -1506,8 +1515,9 @@ const downloadSectionCalendarXLSX = async () => {
         const room = element.room ? element.room.roomName.toUpperCase() : "";
         const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
         const eventTime = element.startTime;
+        const day = element.day === 0 ? 7 : element.day;
         if (times[i].split("-")[0] === eventTime) {
-          rowData[element.day * 2] = {
+          rowData[day * 2] = {
             v: `${course}\n${room}\n${initials}`,
             t: "s",
             s: {
@@ -1525,15 +1535,15 @@ const downloadSectionCalendarXLSX = async () => {
             },
           };
           merges.push({
-            s: { r: i + 5, c: element.day * 2 },
+            s: { r: i + 5, c: day * 2 },
             e: {
               r: i + 4 + element.hour * 2,
-              c: element.day * 2,
+              c: day * 2,
             },
           });
           const mergeCell = [];
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-            let singleCell = `${cols[element.day * 2]}${j + 4}`;
+            let singleCell = `${cols[day * 2]}${j + 4}`;
             mergeCell.push(singleCell);
           }
           mergedCells.push(mergeCell);
@@ -1703,8 +1713,9 @@ const downloadAllSectionCalendarXLSX = async () => {
           const room = element.room.roomName.toUpperCase();
           const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
           const eventTime = element.startTime;
+          const day = element.day === 0 ? 7 : element.day;
           if (times[i].split("-")[0] === eventTime) {
-            rowData[element.day * 2] = {
+            rowData[day * 2] = {
               v: `${course}\n${room}\n${initials}`,
               t: "s",
               s: {
@@ -1722,15 +1733,15 @@ const downloadAllSectionCalendarXLSX = async () => {
               },
             };
             merges.push({
-              s: { r: i + 5, c: element.day * 2 },
+              s: { r: i + 5, c: day * 2 },
               e: {
                 r: i + 4 + element.hour * 2,
-                c: element.day * 2,
+                c: day * 2,
               },
             });
             const mergeCell = [];
             for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
-              let singleCell = `${cols[element.day * 2]}${j + 4}`;
+              let singleCell = `${cols[day * 2]}${j + 4}`;
               mergeCell.push(singleCell);
             }
             mergedCells.push(mergeCell);
