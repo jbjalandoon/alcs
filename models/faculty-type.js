@@ -12,10 +12,6 @@ const FacultyTypeSchema = new Schema({
     type: Number,
     required: true,
   },
-  hoursCap: {
-    type: Number,
-    required: true,
-  },
   deleted: {
     type: Boolean,
     required: true,

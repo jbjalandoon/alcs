@@ -22,7 +22,6 @@ fetch("/api/faculty-types")
         .add([
           element.facultyType.toUpperCase(),
           element.unitsCap,
-          element.hoursCap,
           `
         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editFacultyTypeModal" data-bs-id="${element._id}">Edit</button>
         <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${element._id}', this)">Delete</button>
@@ -40,11 +39,9 @@ $(addModal._element).on("show.bs.modal", (event) => {
   addButton.off("click");
   facultyType = $(event.currentTarget).find("#facultyType");
   unitsCap = $(event.currentTarget).find("#unitsCap");
-  hoursCap = $(event.currentTarget).find("#hoursCap");
-  removeValidationError([facultyType, unitsCap, hoursCap]);
+  removeValidationError([facultyType, unitsCap]);
   facultyType.val("");
   unitsCap.val(0);
-  hoursCap.val(0);
   addButton.on("click", () => {
     fetch("/api/faculty-types", {
       method: "POST",
@@ -52,14 +49,13 @@ $(addModal._element).on("show.bs.modal", (event) => {
       body: JSON.stringify({
         facultyType: facultyType.val().toLowerCase(),
         unitsCap: unitsCap.val(),
-        hoursCap: hoursCap.val(),
       }),
     })
       .then((response) => {
         return response.json();
       })
       .then((result) => {
-        removeValidationError([facultyType, unitsCap, hoursCap]);
+        removeValidationError([facultyType, unitsCap]);
         if (result.errors) {
           displayValidationError(result.errors, event.currentTarget);
           return displayToast(result);
@@ -69,7 +65,6 @@ $(addModal._element).on("show.bs.modal", (event) => {
           .add([
             result.data.facultyType.toUpperCase(),
             result.data.unitsCap,
-            result.data.hoursCap,
             `
         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editFacultyTypeModal" data-bs-id="${result.data._id}">Edit</button>
         <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
@@ -90,8 +85,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
   editButton.off("click");
   facultyType = $(event.currentTarget).find("#facultyType");
   unitsCap = $(event.currentTarget).find("#unitsCap");
-  hoursCap = $(event.currentTarget).find("#hoursCap");
-  removeValidationError([facultyType, unitsCap, hoursCap]);
+  removeValidationError([facultyType, unitsCap]);
   fetch("/api/faculty-types/" + id)
     .then((response) => {
       return response.json();
@@ -99,7 +93,6 @@ $(editModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       facultyType.val(result.data.facultyType);
       unitsCap.val(result.data.unitsCap);
-      hoursCap.val(result.data.hoursCap);
       editButton.on("click", () => {
         fetch("/api/faculty-types/" + id, {
           method: "PUT",
@@ -110,7 +103,6 @@ $(editModal._element).on("show.bs.modal", (event) => {
           body: JSON.stringify({
             facultyType: facultyType.val().toLowerCase(),
             unitsCap: unitsCap.val(),
-            hoursCap: hoursCap.val(),
           }),
         })
           .then((response) => {
@@ -118,7 +110,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
           })
           .then((result) => {
             console.log(result);
-            removeValidationError([facultyType, unitsCap, hoursCap]);
+            removeValidationError([facultyType, unitsCap]);
             if (result.errors) {
               displayValidationError(result.errors, event.currentTarget);
               return displayToast(result);
@@ -126,7 +118,6 @@ $(editModal._element).on("show.bs.modal", (event) => {
             table.row($(event.relatedTarget).closest("tr")).data([
               result.data.facultyType.toUpperCase(),
               result.data.unitsCap,
-              result.data.hoursCap,
               `
                 <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editFacultyTypeModal" data-bs-id="${result.data._id}">Edit</button>
                 <button class="btn text-light btn-sm btn-danger" onClick="deleteData('${result.data._id}', this)">Delete</button>
