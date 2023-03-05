@@ -463,7 +463,9 @@ const renderSectionTable = async () => {
         .append($("<td></td>").html(element.course.lab))
         .append(
           $("<td></td>").html(
-            `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
+            element.data[0].faculty
+              ? `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
+              : "NA"
           )
         )
         .append(
@@ -1044,6 +1046,7 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyID = facultySchedules.data[i].data[0].faculty._id;
       facultyName = `${facultySchedules.data[i].data[0].faculty.userInformation.firstName} ${facultySchedules.data[i].data[0].faculty.userInformation.middleName} ${facultySchedules.data[i].data[0].faculty.userInformation.lastName}`;
       facultyType = await getFacultyType(facultyID);
+      console.log(facultyType);
       unitsCount = await getFacultyUnitsCount(facultyID);
       const ws = XLSX.utils.aoa_to_sheet([
         [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
@@ -1970,6 +1973,7 @@ const downloadSectionTableXLSX = async () => {
     const wb = XLSX.utils.book_new();
     const schedules = await getSectionSchedules(true);
     schedules.forEach((element) => {
+      console.log(element);
       data.push([
         cellData(element.course.courseCode.toUpperCase()),
         cellData(element.course.courseDescription.toUpperCase()),
@@ -1977,7 +1981,9 @@ const downloadSectionTableXLSX = async () => {
         cellData(element.course.lecture),
         cellData(element.course.lab),
         cellData(
-          `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
+          element.data[0].faculty
+            ? `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
+            : "N/A"
         ),
         cellData(
           element.data

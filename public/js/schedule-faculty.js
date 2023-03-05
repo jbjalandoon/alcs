@@ -187,11 +187,12 @@ fetch("/api/curriculums/semesters/active")
     return response.json();
   })
   .then((result) => {
+    console.log(result);
     let regular, fullTime, partTime;
     result.data.forEach((element) => {
-      if (element.facultyType.facultyType === "regular") {
+      if (element.facultyType.facultyType === "regular full-time") {
         regular = element.count;
-      } else if (element.facultyType.facultyType === "full-time") {
+      } else if (element.facultyType.facultyType === "part-time full-load") {
         fullTime = element.count;
       } else {
         partTime = element.count;
@@ -230,7 +231,7 @@ fetch("/api/curriculums/semesters/active")
     console.log(error);
   });
 
-$(facultyModal._element).on("show.bs.modal", (event) => {
+$(facultyModal._element).on("show.bs.modal", async (event) => {
   $(event.currentTarget)
     .find("#modalLabel")
     .html($(event.relatedTarget).attr("data-bs-type").toUpperCase() + " FACULTY MEMBERS");
@@ -242,25 +243,22 @@ $(facultyModal._element).on("show.bs.modal", (event) => {
     })
     .then((result) => {
       tbody.empty();
-      result.data.forEach((element) => {
+      result.data.forEach(async (element) => {
+        const unitsCount = await fetch(`/api/schedules/faculty/units/${sem}/${element._id}`);
+        const units = await unitsCount.json();
+        console.log(units);
         const tr = $("<tr></tr>");
         tbody.append(
           tr
             .append($("<td></td>").attr("id", element._id).html(element.facultyInformation.facultyCode.toUpperCase()))
             .append($("<td></td>").attr("id", element._id).html(element.facultyInformation.lastName.toUpperCase()))
-          // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
+            .append(
+              $("<td></td>")
+                .attr("id", element._id)
+                .html(units.status === 200 ? units.data : 0)
+            )
           // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
         );
-        fetch(`/api/schedules/faculty/unit-hour/${element._id}/${sem}`)
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            if (result.data.length !== 0) {
-              return tr.append($("<td></td>").html(result.data[0].hours));
-            }
-            return tr.append($("<td></td>").html(0));
-          });
         tr.on("click", () => {
           faculty.val(element._id).trigger("change");
           facultyModal.hide();
@@ -345,7 +343,6 @@ faculty.on("change", async () => {
       return response.json();
     })
     .then((result) => {
-      console.log(result);
       courseSearch.find("option").remove();
       result.data.forEach((element) => {
         courseSearch.append(

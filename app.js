@@ -159,22 +159,18 @@ mongoose
     return FacultyType.bulkWrite([
       {
         updateOne: {
-          filter: { facultyType: "regular" },
+          filter: { facultyType: "regular full-time" },
           update: {
-            facultyType: "regular",
-            unitsCap: 15,
-            hoursCap: 35,
+            facultyType: "regular full-time",
           },
           upsert: true,
         },
       },
       {
         updateOne: {
-          filter: { facultyType: "full-time" },
+          filter: { facultyType: "part-time full-load" },
           update: {
-            facultyType: "full-time",
-            unitsCap: 15,
-            hoursCap: 35,
+            facultyType: "part-time full-load",
           },
           upsert: true,
         },
@@ -184,8 +180,6 @@ mongoose
           filter: { facultyType: "part-time" },
           update: {
             facultyType: "part-time",
-            unitsCap: 15,
-            hoursCap: 35,
           },
           upsert: true,
         },
