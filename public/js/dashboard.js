@@ -196,10 +196,20 @@ const getRoomSchedules = async () => {
 const renderFacultyCalendar = async () => {
   try {
     const facultySchedules = await getFacultySchedules(false);
+    const facultyType = await getFacultyType(facultyView.val());
+    $("#facultyUnits").html(await getFacultyUnitsCount(facultyView.val()));
+    $("#facultyHours").html(facultySchedules.map((e) => e.hour).reduce((a, b) => a + b));
+    $("#facultyTypes").html(facultyType.facultyType.toUpperCase());
     facultyCalendar.getEvents().forEach((element) => {
       element.remove();
     });
     facultySchedules.forEach((element) => {
+      let color;
+      if (element.isOverload) {
+        color = "#DC3545";
+      } else {
+        color = element.type === "lecture" ? "#007BFF" : "#0DCAF0";
+      }
       facultyCalendar.addEvent({
         scheduleID: element._id,
         hourDuration: element.hour,
@@ -209,7 +219,7 @@ const renderFacultyCalendar = async () => {
         courseType: element.type,
         overlap: false,
         durationEditable: false,
-        color: "#007BFF",
+        color: color,
         startEditable: false,
         course: element.course.courseCode,
         program: element.program.programCode,
@@ -808,6 +818,9 @@ const downloadFacultyCalendarXLSX = async () => {
     const data = [];
     const merges = [];
     const mergedCells = [];
+    const overLoadCells = [];
+    const labCells = [];
+    const lectureCell = [];
     for (let i = 0; i < times.length; i++) {
       let rowData = [
         cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
@@ -827,6 +840,7 @@ const downloadFacultyCalendarXLSX = async () => {
         cellData(""),
       ];
       schedules.forEach((element, index) => {
+        console.log(element);
         const course = element.course.courseCode.toUpperCase();
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();
@@ -864,6 +878,16 @@ const downloadFacultyCalendarXLSX = async () => {
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
             let singleCell = `${cols[day * 2]}${j + 6}`;
             mergeCell.push(singleCell);
+            if (element.isOverload) {
+              overLoadCells.push(singleCell);
+            }
+            if (element.type === "lecture" && !element.isOverload) {
+              lectureCell.push(singleCell);
+            }
+
+            if (element.type === "lab" && !element.isOverload) {
+              labCells.push(singleCell);
+            }
           }
           mergedCells.push(mergeCell);
         }
@@ -925,8 +949,20 @@ const downloadFacultyCalendarXLSX = async () => {
             left: { style: "thick", color: { rgb: "#000000" } },
             right: { style: "thick", color: { rgb: "#000000" } },
           },
+          font: {
+            color: { rgb: "FFFFFF" },
+          },
         };
       });
+    });
+    lectureCell.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+    });
+    labCells.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "3399FF" } };
+    });
+    overLoadCells.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "DC3545" } };
     });
     ws["!cols"] = [
       { wch: 20 },
