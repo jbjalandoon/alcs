@@ -884,7 +884,6 @@ const downloadFacultyCalendarXLSX = async () => {
             if (element.type === "lecture" && !element.isOverload) {
               lectureCell.push(singleCell);
             }
-
             if (element.type === "lab" && !element.isOverload) {
               labCells.push(singleCell);
             }
@@ -1023,6 +1022,9 @@ const downloadAllFacultyCalendarXLSX = async () => {
       const data = [];
       const merges = [];
       const mergedCells = [];
+      const labCells = [];
+      const lectureCell = [];
+      const overLoadCells = [];
       for (let time = 0; time < times.length; time++) {
         let rowData = [
           cellData(times[time].split("-")[0] + " - " + times[time].split("-")[1]),
@@ -1078,6 +1080,15 @@ const downloadAllFacultyCalendarXLSX = async () => {
             for (let j = time + 2; j <= time + 1 + element.hour * 2; j++) {
               let singleCell = `${cols[day * 2]}${j + 6}`;
               mergeCell.push(singleCell);
+              if (element.isOverload) {
+                overLoadCells.push(singleCell);
+              }
+              if (element.type === "lecture" && !element.isOverload) {
+                lectureCell.push(singleCell);
+              }
+              if (element.type === "lab" && !element.isOverload) {
+                labCells.push(singleCell);
+              }
             }
             mergedCells.push(mergeCell);
           }
@@ -1088,14 +1099,14 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyID = facultySchedules.data[i].data[0].faculty._id;
       facultyName = `${facultySchedules.data[i].data[0].faculty.userInformation.firstName} ${facultySchedules.data[i].data[0].faculty.userInformation.middleName} ${facultySchedules.data[i].data[0].faculty.userInformation.lastName}`;
       facultyType = await getFacultyType(facultyID);
-      console.log(facultyType);
+      const hoursCount = facultySchedules.data[i].data.map((e) => e.hour).reduce((a, b) => a + b);
       unitsCount = await getFacultyUnitsCount(facultyID);
       const ws = XLSX.utils.aoa_to_sheet([
         [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
         [cellHeaderText(facultyCode.toUpperCase())],
         [cellHeaderText(facultyName.toUpperCase())],
         [cellHeaderText(facultyType.facultyType.toUpperCase())],
-        [cellHeaderText(unitsCount)],
+        [cellHeaderText(`${unitsCount} UNITS / ${hoursCount} HOURS`)],
         [],
         [
           cellData("Time"),
@@ -1142,6 +1153,15 @@ const downloadAllFacultyCalendarXLSX = async () => {
             },
           };
         });
+      });
+      lectureCell.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+      });
+      labCells.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
+      });
+      overLoadCells.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "DC3545" } };
       });
       ws["!cols"] = [
         { wch: 17 },
