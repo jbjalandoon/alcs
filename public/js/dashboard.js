@@ -53,6 +53,23 @@ let semester, activeYear, activeSemester;
 let schoolYearName, semesterName;
 let activeFaculty, activeRoom, scheduleWithoutFaculty, scheduleWithoutTimeslot;
 
+const triggerTabList = document.querySelectorAll("#myTab button");
+triggerTabList.forEach((triggerEl) => {
+  const tabTrigger = new bootstrap.Tab(triggerEl);
+
+  triggerEl.addEventListener("click", (event) => {
+    event.preventDefault();
+    tabTrigger.show();
+    facultyCalendar.render();
+    roomCalendar.render();
+    sectionCalendar.render();
+  });
+});
+
+const addModal = new bootstrap.Modal($("#addModal"));
+const facultyModal = new bootstrap.Modal($("#activeFacultyModal"));
+const activeFacultyCard = $("#activeFacultyCard");
+
 (async () => {
   const activeSemester = await getActiveSemester();
   semester = activeSemester.id;
@@ -108,20 +125,38 @@ let activeFaculty, activeRoom, scheduleWithoutFaculty, scheduleWithoutTimeslot;
   content.removeClass("d-none");
 })();
 
-const triggerTabList = document.querySelectorAll("#myTab button");
-triggerTabList.forEach((triggerEl) => {
-  const tabTrigger = new bootstrap.Tab(triggerEl);
-
-  triggerEl.addEventListener("click", (event) => {
-    event.preventDefault();
-    tabTrigger.show();
-    facultyCalendar.render();
-    roomCalendar.render();
-    sectionCalendar.render();
-  });
+activeFacultyCard.on("click", (event) => {
+  facultyModal.show();
 });
 
-const addModal = new bootstrap.Modal($("#addModal"));
+$(facultyModal._element).on("show.bs.modal", async (event) => {
+  const facultyRequest = await fetch(`/api/curriculums/faculty/${semester}`);
+  const faculty = await facultyRequest.json();
+  const table = $(event.currentTarget).find("table");
+  table.find("tbody").empty();
+  faculty.data.sort((a, b) => {
+    if (a.userInformation.facultyType.facultyType > b.userInformation.facultyType.facultyType) {
+      return -1;
+    }
+
+    if (a.userInformation.facultyType.facultyType < b.userInformation.facultyType.facultyType) {
+      return 1;
+    }
+
+    return 0;
+  });
+  faculty.data.forEach(async (element) => {
+    const faculty = element.userInformation;
+    table.find("tbody").append(`
+      <tr>
+        <td>${faculty.facultyCode.toUpperCase()}</td>
+        <td>${faculty.firstName.toUpperCase()} ${faculty.lastName.toUpperCase()}</td>
+        <td>${faculty.facultyType.facultyType.toUpperCase()}</td>
+        <td>${await getFacultyUnitsCount(element._id)}</td>
+      </tr>
+    `);
+  });
+});
 
 const getActiveFaculty = async () => {
   try {
