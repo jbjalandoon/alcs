@@ -1664,6 +1664,109 @@ const downloadSectionCalendarXLSX = async () => {
   }
 };
 
+const downloadFacultyCalendarPDF = async () => {
+  try {
+    const schedules = await getFacultySchedules(false);
+
+    // Create a new jsPDF instance
+    const doc = new jsPDF("l");
+
+    // Define the table headers
+    const headers = [["Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]];
+
+    // Define the table rows
+    const rows = [];
+
+    // Define the times for the first column with 30 minute intervals
+    for (let i = 7; i <= 21; i++) {
+      rows.push([i + ":00"]);
+      rows.push([i + ":30"]);
+    }
+
+    // Add the activities for random 3 hours for each day
+    for (let i = 0; i < 7; i++) {
+      const activities = [];
+      for (let j = 0; j < 6; j++) {
+        activities.push("");
+      }
+      // Generate 3 random activities for random days
+      schedules.forEach((element, j) => {
+        const day = element.day !== 0 ? element.day - 1 : 6; // Random day index
+        const hour = parseInt(element.startTime.split(":")[0]); // Random hour between 7-9
+        const minute = parseInt(element.startTime.split(":")[1]); // Random minute 0 or 30
+        const course = element.course.courseCode.toUpperCase();
+        const program = element.program.programCode.toUpperCase();
+        const section = element.sectionName.toUpperCase();
+        const room = element.room.roomName.toUpperCase();
+        const level = element.level.display.toUpperCase();
+        const activity = `${course}\n${program}${level}-${section}\n${room}`;
+        const index = (hour - 7) * 2 + minute / 30; // Calculate the row index
+        // Set the activity for 3 consecutive rows
+        activities[index] = {
+          content: activity,
+          colSpan: 1,
+          rowSpan: element.hour * 2,
+          styles: { halign: "center", border: { top: 6, right: 6, bottom: 6, left: 6 } },
+        };
+        rows[index][day + 1] = {
+          content: activity,
+          colSpan: 1,
+          rowSpan: element.hour * 2,
+          styles: { halign: "center", border: { top: 6, right: 6, bottom: 6, left: 6 } },
+        };
+        rows[index + 1][day + 1] = "";
+        rows[index + 2][day + 1] = "";
+      });
+      rows.forEach(function (row) {
+        if (row.length === 1) {
+          // Add the activities to the row
+          row.push({
+            content: "",
+            colSpan: 1,
+            rowSpan: 1,
+            styles: { halign: "center" },
+          });
+        }
+      });
+    }
+
+    facultyCode = schedules[0].faculty.userInformation.facultyCode.toUpperCase();
+    facultyName = `${schedules[0].faculty.userInformation.firstName} ${schedules[0].faculty.userInformation.middleName} ${schedules[0].faculty.userInformation.lastName}`;
+    facultyID = schedules[0].faculty._id;
+    facultyType = await getFacultyType(facultyID);
+    unitsCount = await getFacultyUnitsCount(facultyID);
+    console.log(unitsCount);
+    doc.setFontSize(10);
+    doc.text(
+      `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM\n${facultyName.toUpperCase()}\n${facultyType.facultyType.toUpperCase()}\n${unitsCount} UNITS`,
+      14,
+      15
+    );
+    // Generate the table using jsPDF autotable
+    doc.autoTable({
+      theme: "grid",
+      headStyles: {
+        halign: "center",
+        cellWidth: 33,
+        border: { top: 1, bottom: 1, left: 1, right: 1 },
+      },
+      bodyStyles: { halign: "center", fontSize: 8, cellPadding: 0.5 },
+      head: headers,
+      body: rows,
+      margin: { top: 30 },
+    });
+
+    // Save the PDF document
+    doc.save("table.pdf");
+  } catch (error) {
+    console.error(error);
+    Toast.fire({ icon: "warning", title: "Something went wrong" });
+  }
+};
+const downloadAllFacultyCalendarPDF = async () => {
+  alert("test");
+};
+
 const downloadAllSectionCalendarXLSX = async () => {
   try {
     let sectionName, unitsCount, sectionID;
