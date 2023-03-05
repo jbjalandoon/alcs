@@ -5,20 +5,24 @@
   <%- include('../includes/navbar.ejs') %>
   <div class="content-wrapper container">
     <div class="page-heading">
-      <span class="h3">My Schedule</span>
+      <span class="h3" id="pageTitle">My Schedule</span>
     </div>
     <div class="page-content">
       <section class="row">
         <div class="col-12">
           <div class="card">
             <div class="card-body">
+              <div class="row mb-3">
+                <div class="col-12">Units: <span id="unitsCount">0</span></div>
+                <div class="col-12">Hours: <span id="hoursCount">0</span></div>
+              </div>
               <div class="row">
                 <div class="col-12">
                   <div class="owl-carousel owl-theme">
                     <div class="item">
                       <div class="row">
                         <div class="col-12">
-                          <button class="btn btn-primary" id="downloadSpreadsheetCalendar">Download</button>
+                          <button class="btn btn-primary" onClick="downloadFacultyCalendarXLSX()">Download</button>
                         </div>
                       </div>
                       <div class="row">
@@ -30,7 +34,7 @@
                     <div class="item">
                       <div class="row">
                         <div class="col-12">
-                          <button class="btn btn-primary" id="downloadSpreadsheetTable">Download</button>
+                          <button class="btn btn-primary" onClick="downloadFacultyTableXLSX()">Download</button>
                         </div>
                       </div>
                       <div class="row">
@@ -56,7 +60,6 @@
                       </div>
                     </div>
                   </div>
-                 
                 </div>
               </div>
             </div>
