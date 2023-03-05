@@ -7,7 +7,7 @@ let totalUnit,
   hoursCount = 0;
 let maxUnits, maxHours;
 let unavailableTime = [];
-
+let courseValue;
 const courseSearch = $("#courseSearch");
 const calendarContainer = document.querySelector("#calendarContainer");
 const config = {
@@ -28,7 +28,6 @@ const config = {
     start: "7:00:00",
     end: "22:00:00",
   },
-
   eventClick: (info) => {
     if (info.event.display === "background") {
       return;
@@ -99,6 +98,7 @@ const config = {
               },
             }).then((clicked) => {
               if (clicked.isConfirmed) {
+                courseValue = courseSearch.val();
                 faculty.trigger("change");
                 // let notFound = true;
                 // courseSearch.children().each((element) => {
@@ -339,9 +339,11 @@ faculty.on("change", async (e) => {
     const facultySchedules = await getFacultySchedule(e.currentTarget.value);
     const loadableSchedules = await getLoadableSchedules(e.currentTarget.value);
     const facultyUnits = await getFacultyUnits(e.currentTarget.value);
-
+    hoursCount = facultySchedules.length !== 0 ? facultySchedules.map((e) => e.hour).reduce((a, b) => a + b) : 0;
     unitsCount = facultyUnits;
+
     $("#spanUnits").html(unitsCount);
+    $("#spanHours").html(hoursCount);
     const information = facultyInformation.userInformation;
     $("#spanFacultyType").html(information.facultyType.facultyType.toUpperCase());
     calendar.getEvents().forEach((e) => e.remove());
@@ -396,6 +398,7 @@ faculty.on("change", async (e) => {
     courseSearch.select2({
       width: "100%",
     });
+    if (courseValue) courseSearch.val(courseValue);
     if (courseSearch.has("option").length !== 0) {
       courseSearch.trigger("change");
     }
@@ -729,6 +732,7 @@ const assignFaculty = (eventArgs) => {
       unitsCount += units;
 
       $("#spanUnits").html(unitsCount);
+      $("#spanHours").html(hoursCount);
       calendar.getEvents().forEach((element) => {
         if (element.extendedProps.preview) {
           element.remove();
