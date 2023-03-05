@@ -39,7 +39,13 @@ const createSchedule = async (info) => {
     }
 
     // filter the current schedules to currently dragged day
-    const sameDaySchedules = calendar.getEvents().filter((e) => e.start.getDay() === event.start.getDay());
+    const sameDaySchedules = calendar
+      .getEvents()
+      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+
+    const sameDayHours = sameDaySchedules
+      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .reduce((a, b) => a + b);
 
     // sort the filtered schedule
     sameDaySchedules.sort(function (a, b) {
@@ -57,23 +63,28 @@ const createSchedule = async (info) => {
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
+    const dayHoursExceeds = sameDayHours > 8;
 
     // check if the time gap is large or small
-    if (!isPreviousValid || !isNextValid) {
+    if (!isPreviousValid || !isNextValid || dayHoursExceeds) {
       let previous = false;
       let text = "";
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
         previous = true;
       }
 
       if (!isNextValid) {
         if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule. `;
       }
 
-      text += ", Do you still want to continue?";
+      if (dayHoursExceeds) {
+        text += `${days[event.start.getDay()]} already exceeds 8 hours. `;
+      }
+
+      text += "Do you still want to continue?";
 
       const alert = await Swal.fire({
         title: "Are you sure?",
@@ -169,12 +180,14 @@ const editSchedule = async (info) => {
       .getEvents()
       .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
 
+    const sameDayHours = sameDaySchedules
+      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .reduce((a, b) => a + b);
+
     // sorting the schedules
     sameDaySchedules.sort(function (a, b) {
       return a.start - b.start;
     });
-
-    console.log(sameDaySchedules);
 
     // find the index of currently added schedule
     const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
@@ -187,20 +200,25 @@ const editSchedule = async (info) => {
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
-
+    const dayHoursExceeds = sameDayHours > 8;
+    console.log(dayHoursExceeds);
     // Check if there is a big and small time gap between schedules
-    if (!isPreviousValid || !isNextValid) {
+    if (!isPreviousValid || !isNextValid || dayHoursExceeds) {
       let previous = false;
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
         previous = true;
       }
       if (!isNextValid) {
-        if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule. `;
       }
-      text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
+
+      if (dayHoursExceeds) {
+        text += `${days[event.start.getDay()]} already exceeds 8 hours. `;
+      }
+
+      text += "This will also remove the currently assigned faculty, Do you still want to continue?";
     } else {
       text += "This will remove the currently assigned faculty, Do you still want to continue?";
     }
@@ -242,7 +260,8 @@ const editSchedule = async (info) => {
       title: "Schedule Successfully Edited",
     });
   } catch (error) {
-    console.error();
+    console.error(error);
+    Toast.fire({ icon: "warning", title: "Something Went Wrong" });
   }
 };
 
@@ -280,7 +299,13 @@ const splitSchedule = async (info) => {
       return info.revert();
     }
 
-    const sameDaySchedules = calendar.getEvents().filter((e) => e.start.getDay() === event.start.getDay());
+    const sameDaySchedules = calendar
+      .getEvents()
+      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+
+    const sameDayHours = sameDaySchedules
+      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .reduce((a, b) => a + b);
 
     // sort the filtered schedule
     sameDaySchedules.sort(function (a, b) {
@@ -298,20 +323,24 @@ const splitSchedule = async (info) => {
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
+    const dayHoursExceeds = sameDayHours > 8;
 
-    if (!isPreviousValid || !isNextValid) {
+    if (!isPreviousValid || !isNextValid || dayHoursExceeds) {
       let previous = false;
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule`;
+        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
         previous = true;
       }
       if (!isNextValid) {
-        if (previous) text += " & ";
-        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule`;
+        text += `${nextTimeGap / 60 / 60} hour/s of gap from next schedule . `;
       }
 
-      text += ". This will also remove the currently assigned faculty, Do you still want to continue?";
+      if (dayHoursExceeds) {
+        text += `${days[event.start.getDay()]} already exceeds 8 hours. `;
+      }
+
+      text += "This will also remove the currently assigned faculty, Do you still want to continue?";
     }
 
     text += "This will remove the currently assigned faculty, Do you still want to continue?";
@@ -1089,8 +1118,8 @@ socket.on("splitSectionSchedule", (data) => {
         "hour",
         `${Math.trunc(data.maxHour - data.currentHour)}:${(data.maxHour - data.currentHour) % 1 === 0 ? "00" : "30"}`
       );
-      data.event.durationEditable = true;
-      data.event.startEditable = true;
+    data.event.durationEditable = true;
+    data.event.startEditable = true;
   } else {
     data.event.extendedProps.current = false;
     data.event.backgroundColor = "#FFC107";
@@ -1099,6 +1128,6 @@ socket.on("splitSectionSchedule", (data) => {
     data.event.startEditable = false;
   }
   data.event.overlap = false;
- 
+
   calendar.addEvent(data.event);
 });
