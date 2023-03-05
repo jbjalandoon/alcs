@@ -1235,7 +1235,7 @@ const downloadRoomCalendarXLSX = async () => {
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();
         const level = element.level.display.toUpperCase();
-        const initials = element.faculty.userInformation.facultyCode.toUpperCase();
+        const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
         const eventTime = element.startTime;
         const day = element.day === 0 ? 7 : element.day;
 
@@ -1321,6 +1321,10 @@ const downloadRoomCalendarXLSX = async () => {
             left: { style: "thick", color: { rgb: "#000000" } },
             right: { style: "thick", color: { rgb: "#000000" } },
           },
+          fill: { fgColor: { rgb: "007BFF" } },
+          font: {
+            color: { rgb: "FFFFFF" },
+          },
         };
       });
     });
@@ -1375,7 +1379,6 @@ const downloadAllRoomCalendarXLSX = async () => {
       const data = [];
       const merges = [];
       const mergedCells = [];
-      const skipIndex = [];
       for (let i = 0; i < times.length; i++) {
         let rowData = [
           cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
@@ -1486,6 +1489,10 @@ const downloadAllRoomCalendarXLSX = async () => {
               left: { style: "thick", color: { rgb: "#000000" } },
               right: { style: "thick", color: { rgb: "#000000" } },
             },
+            fill: { fgColor: { rgb: "007BFF" } },
+            font: {
+              color: { rgb: "FFFFFF" },
+            },
           };
         });
       });
@@ -1549,6 +1556,8 @@ const downloadSectionCalendarXLSX = async () => {
     const data = [];
     const merges = [];
     const mergedCells = [];
+    const labCells = [];
+    const lectureCell = [];
     for (let i = 0; i < times.length; i++) {
       let rowData = [
         cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
@@ -1602,6 +1611,12 @@ const downloadSectionCalendarXLSX = async () => {
           for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
             let singleCell = `${cols[day * 2]}${j + 4}`;
             mergeCell.push(singleCell);
+            if (element.type === "lecture") {
+              lectureCell.push(singleCell);
+            }
+            if (element.type === "lab") {
+              labCells.push(singleCell);
+            }
           }
           mergedCells.push(mergeCell);
         }
@@ -1681,8 +1696,17 @@ const downloadSectionCalendarXLSX = async () => {
             left: { style: "thick", color: { rgb: "#000000" } },
             right: { style: "thick", color: { rgb: "#000000" } },
           },
+          font: {
+            color: { rgb: "FFFFFF" },
+          },
         };
       });
+    });
+    lectureCell.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+    });
+    labCells.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
     });
     ws["!cols"] = [
       { wch: 17 },
@@ -1820,6 +1844,7 @@ const downloadFacultyCalendarPDF = async () => {
     Toast.fire({ icon: "warning", title: "Something went wrong" });
   }
 };
+
 const downloadAllFacultyCalendarPDF = async () => {
   alert("test");
 };
@@ -1850,6 +1875,8 @@ const downloadAllSectionCalendarXLSX = async () => {
       const data = [];
       const merges = [];
       const mergedCells = [];
+      const lectureCell = [];
+      const labCells = [];
       for (let i = 0; i < times.length; i++) {
         let rowData = [
           cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
@@ -1903,13 +1930,18 @@ const downloadAllSectionCalendarXLSX = async () => {
             for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
               let singleCell = `${cols[day * 2]}${j + 4}`;
               mergeCell.push(singleCell);
+              if (element.type === "lecture") {
+                lectureCell.push(singleCell);
+              }
+              if (element.type === "lab") {
+                labCells.push(singleCell);
+              }
             }
             mergedCells.push(mergeCell);
           }
         });
         data.push(rowData);
       }
-      console.log(schedules[scheduleIndex]);
       sectionName = `${schedules[scheduleIndex][0].program.programCode.toUpperCase()} ${schedules[
         scheduleIndex
       ][0].level.display.toUpperCase()} - ${schedules[scheduleIndex][0].sectionName.toUpperCase()}`;
@@ -1963,8 +1995,17 @@ const downloadAllSectionCalendarXLSX = async () => {
               left: { style: "thick", color: { rgb: "#000000" } },
               right: { style: "thick", color: { rgb: "#000000" } },
             },
+            font: {
+              color: { rgb: "FFFFFF" },
+            },
           };
         });
+      });
+      lectureCell.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+      });
+      labCells.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
       });
       ws["!cols"] = [
         { wch: 17 },
