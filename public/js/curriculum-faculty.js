@@ -7,12 +7,8 @@ const table = $("#facultyTable").DataTable({
 });
 
 const dataTable = (operation, data) => {
-  console.log(data);
   const firstName = data.userInformation.firstName.toUpperCase();
-  const middleName =
-    data.userInformation.middleName != null
-      ? data.userInformation.middleName.toUpperCase()
-      : "";
+  const middleName = data.userInformation.middleName != null ? data.userInformation.middleName.toUpperCase() : "";
   const lastName = data.userInformation.lastName.toUpperCase();
   operation([
     data.userInformation.facultyCode.toUpperCase(),
@@ -55,12 +51,7 @@ const csrf = $("#csrf").val();
 
 let semester;
 
-const degreeEquivalent = [
-  "Associate Degree",
-  "Bachelor Degree",
-  "Master Degree",
-  "Doctoral",
-];
+const degreeEquivalent = ["Associate Degree", "Bachelor Degree", "Master Degree", "Doctoral"];
 
 const addModal = new bootstrap.Modal($("#addModal"));
 const existing = [];
@@ -103,9 +94,7 @@ fetch(`/api/curriculums/semesters/active`)
       result.data.forEach((element) => {
         if (existing.indexOf(element._id) === -1) {
           const firstName = element.userInformation.firstName.toUpperCase();
-          const middleName = element.userInformation.middleName
-            ? element.userInformation.middleName.toUpperCase()
-            : "";
+          const middleName = element.userInformation.middleName ? element.userInformation.middleName.toUpperCase() : "";
           const lastName = element.userInformation.lastName.toUpperCase();
           const name = `${firstName} ${middleName} ${lastName}`;
           faculty.append(new Option(name, element._id));

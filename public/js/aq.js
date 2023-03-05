@@ -45,16 +45,12 @@ let editModal = new bootstrap.Modal($("#editModal"));
 let addModal = new bootstrap.Modal($("#addModal"));
 
 $(addModal._element).on("show.bs.modal", (event) => {
-  const academicQualification = $(event.currentTarget).find(
-    "#academicQualification"
-  );
-  const licenseIndustry = $(event.currentTarget)
-    .find("#licenseIndustry")
-    .select2({
-      multiple: true,
-      tags: true,
-      width: "100%",
-    });
+  const academicQualification = $(event.currentTarget).find("#academicQualification");
+  const licenseIndustry = $(event.currentTarget).find("#licenseIndustry").select2({
+    multiple: true,
+    tags: true,
+    width: "100%",
+  });
   const button = $(event.currentTarget).find("#addButton");
   console.log(licenseIndustry);
   button.off("click");
@@ -67,9 +63,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
     })
     .then((result) => {
       result.data.forEach((element) => {
-        licenseIndustry.append(
-          new Option(element.tag.toUpperCase(), element.tag)
-        );
+        licenseIndustry.append(new Option(element.tag.toUpperCase(), element.tag));
       });
     })
     .catch((error) => {
@@ -106,16 +100,12 @@ $(addModal._element).on("show.bs.modal", (event) => {
 });
 
 $(editModal._element).on("show.bs.modal", (event) => {
-  const academicQualification = $(event.currentTarget).find(
-    "#academicQualification"
-  );
-  const licenseIndustry = $(event.currentTarget)
-    .find("#licenseIndustry")
-    .select2({
-      tags: true,
-      multiple: true,
-      width: "100%",
-    });
+  const academicQualification = $(event.currentTarget).find("#academicQualification");
+  const licenseIndustry = $(event.currentTarget).find("#licenseIndustry").select2({
+    tags: true,
+    multiple: true,
+    width: "100%",
+  });
   const id = $(event.relatedTarget).attr("data-bs-id");
   const button = $(event.currentTarget).find("#editButton");
   button.off("click");
@@ -127,9 +117,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       result.data.forEach((element) => {
         console.log(element);
-        licenseIndustry.append(
-          new Option(element.tag.toUpperCase(), element.tag)
-        );
+        licenseIndustry.append(new Option(element.tag.toUpperCase(), element.tag));
       });
       return fetch("/api/academic-qualifications/" + id);
     })
@@ -139,9 +127,7 @@ $(editModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       console.log(result);
       academicQualification.val(result.data.academicQualification);
-      licenseIndustry
-        .val(result.data.licenseIndustry.map((e) => e.tag))
-        .trigger("change");
+      licenseIndustry.val(result.data.licenseIndustry.map((e) => e.tag)).trigger("change");
     })
     .catch((error) => {
       console.log(error);
@@ -217,12 +203,6 @@ const deleteData = (id, element) => {
     .then((result) => {
       console.log(result);
       if (result.isConfirmed) {
-        if (!result.value.ok) {
-          return Toast.fire({
-            icon: "warning",
-            title: "Something Went Wrong!",
-          });
-        }
         table.row(element.closest("tr")).remove().draw();
         Toast.fire({
           icon: "success",
