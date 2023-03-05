@@ -157,11 +157,14 @@ exports.getUnits = async (req, res, next) => {
       },
       {
         $group: {
-          _id: '$faculty',
+          _id: "$faculty",
           units: { $sum: "$units" },
         },
       },
     ]);
+    if (schedules.length === 0) {
+      return res.json({ status: 200, data: 0 });
+    }
     return res.json({ status: 200, data: schedules[0].units });
   } catch (error) {
     console.error(error);

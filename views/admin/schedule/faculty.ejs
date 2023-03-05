@@ -5,58 +5,18 @@
   <%- include('../../includes/navbar.ejs') %>
   <div class="content-wrapper container">
     <div class="page-heading">
-      <span class="h3">Faculty Loading</span>
+      <span class="h3" id="pageTitle">Faculty Loading</span>
     </div>
     <div class="page-content">
       <section class="row">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-sm-4 col-lg-4">
-              <div class="card mb-4 text-white bg-primary">
-                <div class="card-body pb-4 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="regular">0</span>
-                      <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="regular full-time">Regular</a></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-4 col-lg-4">
-              <div class="card mb-4 text-white bg-primary">
-                <div class="card-body pb-4 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="fullTime">0</span>
-                      <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="part-time full-load">Part-Time Full-Time</a></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-4 col-lg-4">
-              <div class="card mb-4 text-white bg-primary">
-                <div class="card-body pb-4 d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="fs-4 fw-semibold"><span id="partTime">0</span>
-                      <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="part-time">Part-Time</a></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="d-flex justify-content-between flex-sm-column flex-lg-row" id="facultyTypeLists">
         </div>
         <div class="col-12">
           <div class="card">
             <div class="card-body">
               <div class="row">
                 <div class="col-12">
-                  <div class="d-flex justify-content-center mt-2" id="firstLoading">
-                    <div class="spinner-border" role="status">
-                      <span class="visually-hidden">Loading...</span>
-                    </div>
-                  </div>
-                  <div class="d-none" id="facultySelect">
+                  <div id="facultySelect">
                     <label for="faculty" class="form-label">
                       Faculty:
                     </label>
@@ -88,12 +48,7 @@
                     </div>
                     <div class="row">
                       <div class="col-12">
-                        <strong>Units: </strong><span id="spanUnits">25</span> / <span id="spanMaxUnits">40</span>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-12">
-                        <strong>Hours: </strong><span id="spanHours">25</span> / <span id="spanMaxHours">40</span>
+                        <strong>Units: </strong><span id="spanUnits">0</span> / <span id="spanMaxUnits">0</span>
                       </div>
                     </div>
                     <div class="row">
