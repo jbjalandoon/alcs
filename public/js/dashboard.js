@@ -899,12 +899,13 @@ const downloadFacultyCalendarXLSX = async () => {
     facultyID = schedules[0].faculty._id;
     facultyType = await getFacultyType(facultyID);
     unitsCount = await getFacultyUnitsCount(facultyID);
+    const hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
     const ws = XLSX.utils.aoa_to_sheet([
       [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [cellHeaderText(facultyCode.toUpperCase())],
       [cellHeaderText(facultyName.toUpperCase())],
       [cellHeaderText(facultyType.facultyType.toUpperCase())],
-      [cellHeaderText(`${unitsCount} UNITS`)],
+      [cellHeaderText(`${unitsCount} UNITS / ${hoursCount} HOURS`)],
       [],
       [
         cellData("Time"),
@@ -959,7 +960,7 @@ const downloadFacultyCalendarXLSX = async () => {
       ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
     });
     labCells.forEach((element) => {
-      ws[element].s.fill = { fgColor: { rgb: "3399FF" } };
+      ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
     });
     overLoadCells.forEach((element) => {
       ws[element].s.fill = { fgColor: { rgb: "DC3545" } };
