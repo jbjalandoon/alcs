@@ -64,7 +64,7 @@ calendar.render();
   const calendarSchedules = await getFacultySchedules(false);
   const tableSchedules = await getFacultySchedules(true);
   const unitsCount = await getFacultyUnitsCount(userId);
-  const hoursCount = calendarSchedules.map((e) => e.hour).reduce((a, b) => a + b);
+  const hoursCount = calendarSchedules.length !== 0 ? calendarSchedules.map((e) => e.hour).reduce((a, b) => a + b) : 0;
   $("#unitsCount").html(unitsCount);
   $("#hoursCount").html(hoursCount);
   calendarSchedules.forEach((element) => {
@@ -254,7 +254,7 @@ const downloadFacultyCalendarXLSX = async () => {
     facultyID = schedules[0].faculty._id;
     facultyType = await getFacultyType(facultyID);
     unitsCount = await getFacultyUnitsCount(facultyID);
-    const hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
+    const hoursCount = schedules.length !== 0 ? schedules.map((e) => e.hour).reduce((a, b) => a + b) : 0;
     const ws = XLSX.utils.aoa_to_sheet([
       [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [cellHeaderText(facultyCode.toUpperCase())],

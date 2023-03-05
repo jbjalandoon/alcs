@@ -198,7 +198,8 @@ const renderFacultyCalendar = async () => {
     const facultySchedules = await getFacultySchedules(false);
     const facultyType = await getFacultyType(facultyView.val());
     $("#facultyUnits").html(await getFacultyUnitsCount(facultyView.val()));
-    $("#facultyHours").html(facultySchedules.map((e) => e.hour).reduce((a, b) => a + b));
+    if (facultySchedules.length !== 0)
+      $("#facultyHours").html(facultySchedules.map((e) => e.hour).reduce((a, b) => a + b));
     $("#facultyTypes").html(facultyType.facultyType.toUpperCase());
     facultyCalendar.getEvents().forEach((element) => {
       element.remove();
@@ -797,7 +798,8 @@ const downloadFacultyCalendarXLSX = async () => {
       facultyName,
       facultyType,
       facultyID,
-      unitsCount = 0;
+      unitsCount = 0,
+      hoursCount = 0;
     const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
     const wb = XLSX.utils.book_new();
     const schedules = await getFacultySchedules(false);
@@ -898,7 +900,8 @@ const downloadFacultyCalendarXLSX = async () => {
     facultyID = schedules[0].faculty._id;
     facultyType = await getFacultyType(facultyID);
     unitsCount = await getFacultyUnitsCount(facultyID);
-    const hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
+    if (schedules.length !== 0) hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
+
     const ws = XLSX.utils.aoa_to_sheet([
       [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [cellHeaderText(facultyCode.toUpperCase())],
@@ -1000,11 +1003,13 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyID,
       facultyType,
       unitsCount = 0;
+    hoursCount = 0;
     const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
     const wb = XLSX.utils.book_new();
     const facultySchedulesRequest = await fetch(`/api/schedules/faculty/${semester}`);
     const facultySchedules = await facultySchedulesRequest.json();
     for (let i = 0; i < facultySchedules.data.length; i++) {
+      hoursCount = 0;
       const times = [];
       for (let i = 7; i < 22; i++) {
         for (let j = 0; j < 2; j++) {
@@ -1099,7 +1104,8 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyID = facultySchedules.data[i].data[0].faculty._id;
       facultyName = `${facultySchedules.data[i].data[0].faculty.userInformation.firstName} ${facultySchedules.data[i].data[0].faculty.userInformation.middleName} ${facultySchedules.data[i].data[0].faculty.userInformation.lastName}`;
       facultyType = await getFacultyType(facultyID);
-      const hoursCount = facultySchedules.data[i].data.map((e) => e.hour).reduce((a, b) => a + b);
+      if (facultySchedules.data[i].data.length !== 0)
+        hoursCount = facultySchedules.data[i].data.map((e) => e.hour).reduce((a, b) => a + b);
       unitsCount = await getFacultyUnitsCount(facultyID);
       const ws = XLSX.utils.aoa_to_sheet([
         [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
