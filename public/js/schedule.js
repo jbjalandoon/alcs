@@ -6,7 +6,8 @@ const roomForm = $("#roomForm");
 const content = $("#content");
 const spinner = $("#spinner");
 const csrf = $("#csrf").val();
-const socket = io("http://localhost:3000", {
+const urlHost = window.location.hostname
+const socket = io(`http://${urlHost}:3000`, {
   autoConnect: false,
   reconnection: true,
   reconnectionDelay: 0,

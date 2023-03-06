@@ -157,6 +157,7 @@ const downloadFacultyCalendarXLSX = async () => {
     const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
     const wb = XLSX.utils.book_new();
     const schedules = await getFacultySchedules(false);
+    if (schedules.length === 0) return Toast.fire({ icon: "warning", title: "Schedule is empty" });
     const times = [];
     for (let i = 7; i < 22; i++) {
       for (let j = 0; j < 2; j++) {
@@ -355,6 +356,7 @@ const downloadFacultyTableXLSX = async () => {
     const data = [];
     const wb = XLSX.utils.book_new();
     const schedules = await getFacultySchedules(true);
+    if (schedules.length === 0) return Toast.fire({ icon: "warning", title: "Schedule is empty" });
     schedules.forEach((element) => {
       data.push([
         cellData(element.course.courseCode.toUpperCase()),

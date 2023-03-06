@@ -290,12 +290,16 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
       academicQualification.forEach((element) => {
         filteredResult = result.filter((course) => {
           if (course.course.examination) {
+            let licenseIndustryBool = false;
+            if (course.course.qualification.licenseIndustry) {
+              licenseIndustryBool = course.course.qualification.licenseIndustry.some((r) =>
+                element.academicQualification.licenseIndustry.includes(r)
+              );
+            }
             if (
               (course.course.qualification.degree <= element.degree ||
                 course.course.qualification.experience <= element.experience ||
-                course.course.qualification.licenseIndustry.some((r) => {
-                  element.academicQualification.licenseIndustry.includes(r);
-                })) &&
+                licenseIndustryBool) &&
               courseTaken.map((element) => element._id.toString()).includes(course._id.toString())
             ) {
               return true;
@@ -303,12 +307,16 @@ exports.getFacultyLoadableSchedules = (req, res, next) => {
               return false;
             }
           } else {
+            let licenseIndustryBool = false;
+            if (course.course.qualification.licenseIndustry) {
+              licenseIndustryBool = course.course.qualification.licenseIndustry.some((r) =>
+                element.academicQualification.licenseIndustry.includes(r)
+              );
+            }
             if (
               course.course.qualification.degree <= element.degree ||
               course.course.qualification.experience <= element.experience ||
-              course.course.qualification.licenseIndustry.some((r) =>
-                element.academicQualification.licenseIndustry.includes(r)
-              ) ||
+              licenseIndustryBool ||
               courseTaken.map((e) => e._id.toString()).includes(course._id.toString())
             ) {
               return true;
