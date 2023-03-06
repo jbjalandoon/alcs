@@ -647,13 +647,14 @@ const assignFaculty = (eventArgs) => {
           })
           .then((result) => {
             courseList.each(function (i, obj) {
+              const button = $(obj);
+
               let color;
               if (!aboveMax) {
                 color = button.attr("type") === "lecture" ? "#007BFF" : "#3399FF";
               } else {
                 color = "#DC3545";
               }
-              const button = $(obj);
               calendar.addEvent({
                 id: button.attr("id"),
                 hourDuration: button.attr("hourDuration"),
