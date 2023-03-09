@@ -1,9 +1,4 @@
 const table = $("#programTable").DataTable({
-  oLanguage: {
-    sEmptyTable: `<div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-       </div>`,
-  },
 });
 const csrf = $("#csrf").val();
 const uploadModal = new bootstrap.Modal($("#uploadModal"));

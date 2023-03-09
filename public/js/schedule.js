@@ -395,14 +395,11 @@ const viewSchedule = async (info) => {
 
     const viewSchedule = await Swal.fire({
       icon: "info",
-      title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${
-        schedule.level.display
-      }-${schedule.sectionName})- ${schedule.type.toUpperCase()}`,
-      text: `${days[schedule.day]} ${schedule.startTime} - ${
-        schedule.endTime
-      } (${schedule.room.roomName.toUpperCase()}${
-        schedule.faculty ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase() : ""
-      })`,
+      title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${schedule.level.display
+        }-${schedule.sectionName})- ${schedule.type.toUpperCase()}`,
+      text: `${days[schedule.day]} ${schedule.startTime} - ${schedule.endTime
+        } (${schedule.room.roomName.toUpperCase()}${schedule.faculty ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase() : ""
+        })`,
       width: "50%",
       showCancelButton: true,
       showDenyButton: info.event.extendedProps.current,
@@ -480,15 +477,21 @@ const calendar = new FullCalendar.Calendar(calendarEl, config);
 (async () => {
   const semesterData = await getActiveSemester();
   if (semesterData === null) {
+    scheduleProgramForm.attr('disabled', true)
+    scheduleYearLevelForm.attr('disabled', true)
+    scheduleSectionForm.attr('disabled', true)
+    roomForm.attr('disabled', true)
+    content.removeClass("d-none");
+    spinner.addClass("d-none");
+    calendar.render();
     return Toast.fire({
       icon: "warning",
       title: "No Active Semester",
     });
   }
   semester = semesterData.id;
-  document.querySelector("#card-title").innerHTML = `S.Y. ${
-    semesterData.year
-  } (${semesterData.sem.toUpperCase()} SEMESTER)`;
+  document.querySelector("#card-title").innerHTML = `S.Y. ${semesterData.year
+    } (${semesterData.sem.toUpperCase()} SEMESTER)`;
 
   const programs = await getPrograms();
   if (programs.length === 0) {
@@ -615,11 +618,11 @@ scheduleSectionForm.on("change", async (event) => {
         if (element.course.lecture !== 0 && i === 0) {
           item.html(
             element.course.courseCode.toUpperCase() +
-              " - " +
-              element.course.courseDescription.toUpperCase() +
-              " - " +
-              element.course.lecture +
-              " HOURS"
+            " - " +
+            element.course.courseDescription.toUpperCase() +
+            " - " +
+            element.course.lecture +
+            " HOURS"
           );
           item.attr("courseType", "lecture");
           item.attr("color", "#007BFF");
@@ -633,11 +636,11 @@ scheduleSectionForm.on("change", async (event) => {
         if (element.course.lab !== 0 && i === 1) {
           item.html(
             element.course.courseCode.toUpperCase() +
-              " - " +
-              element.course.courseDescription.toUpperCase() +
-              " - " +
-              element.course.lab +
-              " HOURS"
+            " - " +
+            element.course.courseDescription.toUpperCase() +
+            " - " +
+            element.course.lab +
+            " HOURS"
           );
           item.attr("courseType", "lab");
           item.attr("color", "#5AA2E8");
@@ -679,13 +682,13 @@ scheduleSectionForm.on("change", async (event) => {
           currentCourseHourCount[element.course.courseCode].currentLecture += schedule.hour;
           hour = Math.abs(
             currentCourseHourCount[element.course.courseCode].currentLecture -
-              currentCourseHourCount[element.course.courseCode].maxLecture
+            currentCourseHourCount[element.course.courseCode].maxLecture
           );
         } else {
           currentCourseHourCount[element.course.courseCode].currentLab += schedule.hour;
           hour = Math.abs(
             currentCourseHourCount[element.course.courseCode].currentLab -
-              currentCourseHourCount[element.course.courseCode].maxLab
+            currentCourseHourCount[element.course.courseCode].maxLab
           );
         }
         const hourStr = `${Math.trunc(hour)}:${hour % 1 === 0 ? "00" : "30"}`;

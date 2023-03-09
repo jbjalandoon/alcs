@@ -57,14 +57,11 @@ const config = {
         });
         Swal.fire({
           icon: "info",
-          title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${
-            result.data.level.display
-          }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
-          text: `${days[result.data.day]} ${result.data.startTime} - ${
-            result.data.endTime
-          } (${result.data.room.roomName.toUpperCase()}${
-            result.data.faculty ? "/" + result.data.faculty.userInformation.facultyCode.toUpperCase() : ""
-          })`,
+          title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${result.data.level.display
+            }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
+          text: `${days[result.data.day]} ${result.data.startTime} - ${result.data.endTime
+            } (${result.data.room.roomName.toUpperCase()}${result.data.faculty ? "/" + result.data.faculty.userInformation.facultyCode.toUpperCase() : ""
+            })`,
           width: "50%",
           showCancelButton: true,
           showDenyButton: true,
@@ -100,32 +97,6 @@ const config = {
               if (clicked.isConfirmed) {
                 courseValue = courseSearch.val();
                 faculty.trigger("change");
-                // let notFound = true;
-                // courseSearch.children().each((element) => {
-                //   if (result.data.course._id === $(courseSearch.children()[element]).val()) {
-                //     notFound = false;
-                //   }
-                // });
-                // if (notFound) {
-                //   courseSearch.append(
-                //     new Option(
-                //       `${result.data.course.courseCode.toUpperCase()} - ${result.data.course.courseDescription.toUpperCase()}`,
-                //       result.data.course._id
-                //     )
-                //   );
-                // }
-                // if (result.data.course._id == courseSearch.val()) {
-                //   courseSearch.trigger("change");
-                // }
-                // deleteEvents.forEach((element) => {
-                //   hoursCount -= parseInt(element.extendedProps.hourDuration);
-                //   sameDayHours[element.start.getDay() - 1] -= element.extendedProps.hourDuration;
-                //   element.remove();
-                // });
-
-                // unitsCount -= parseInt(result.data.course.units);
-                // $("#spanUnits").html(unitsCount);
-                // $("#spanHours").html(hoursCount);
                 Toast.fire({
                   icon: "success",
                   title: "Successfully Removed",
@@ -168,6 +139,12 @@ const calendar = new FullCalendar.Calendar(calendarContainer, config);
 
 (async () => {
   const activeSemester = await getActiveSemester();
+  if (activeSemester === null) {
+    courseSearch.attr('disabled', true)
+    faculty.attr('disabled', true)
+    calendar.render();
+    return Toast.fire({ icon: 'warning', title: 'No active Semester' })
+  }
   semester = activeSemester.id;
   const semesterName = activeSemester.sem;
   const activeYear = activeSemester.year;
@@ -180,9 +157,8 @@ const calendar = new FullCalendar.Calendar(calendarContainer, config);
         <div class="card-body pb-4 d-flex justify-content-between align-items-start">
           <div>
             <div class="fs-4 fw-semibold"><span id="${e.facultyType.facultyType}">${e.count}</span>
-              <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="${
-                e.facultyType.facultyType
-              }">${e.facultyType.facultyType.toUpperCase()}</a></div>
+              <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="${e.facultyType.facultyType
+      }">${e.facultyType.facultyType.toUpperCase()}</a></div>
             </div>
           </div>
         </div>
@@ -429,8 +405,7 @@ courseSearch.on("change", async (e) => {
             $("<div></div>")
               .addClass("col-12 fw-bold")
               .html(
-                `${element.schedules[0].course.courseCode.toUpperCase()} ${element.schedules[0].program.programCode.toUpperCase()} ${element.schedules[0].level.display.toUpperCase()}-${
-                  element.schedules[0].sectionName
+                `${element.schedules[0].course.courseCode.toUpperCase()} ${element.schedules[0].program.programCode.toUpperCase()} ${element.schedules[0].level.display.toUpperCase()}-${element.schedules[0].sectionName
                 }`
               )
           )
@@ -468,8 +443,7 @@ courseSearch.on("change", async (e) => {
           current: false,
         });
         scheduleListItem.html(
-          `${days[element.day]} - [${element.startTime} - ${
-            element.endTime
+          `${days[element.day]} - [${element.startTime} - ${element.endTime
           } ${element.room.roomName.toUpperCase()}]  (${element.type.toUpperCase()})`
         );
         scheduleUl.append(scheduleListItem);
@@ -601,9 +575,9 @@ const assignFaculty = (eventArgs) => {
           header.addClass("fw-bold");
           header.html(
             element.extendedProps.course.toUpperCase() +
-              ` ${days[element.start.getDay()].toUpperCase()} [${startTime.format("hh:mm A")} - ${endTime.format(
-                "hh:mm A"
-              )}]`
+            ` ${days[element.start.getDay()].toUpperCase()} [${startTime.format("hh:mm A")} - ${endTime.format(
+              "hh:mm A"
+            )}]`
           );
           content.append(header);
           listItem.append(content);

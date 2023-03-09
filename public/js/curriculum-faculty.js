@@ -1,9 +1,4 @@
 const table = $("#facultyTable").DataTable({
-  oLanguage: {
-    sEmptyTable: `<div class="spinner-border" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>`,
-  },
 });
 
 const dataTable = (operation, data) => {
@@ -17,29 +12,29 @@ const dataTable = (operation, data) => {
     data.email,
     data.userInformation.academicQualifications.length !== 0
       ? data.userInformation.academicQualifications
-          .map((element) => {
-            return `
+        .map((element) => {
+          return `
               <div>
                 <h6>${element.academicQualification.academicQualification}</h6>
                 <ul>
                   <li>${element.experience} year/s of experience.</li>
                   <li>${degreeEquivalent[element.degree - 1]}</li>
                   ${element.licenseIndustry
-                    .map((element) => {
-                      return "<li>" + element.tag.toUpperCase() + "</li>";
-                    })
-                    .join("")}
+              .map((element) => {
+                return "<li>" + element.tag.toUpperCase() + "</li>";
+              })
+              .join("")}
                 </ul>
               </div>`;
-          })
-          .join("")
+        })
+        .join("")
       : "N/A",
     data.userInformation.courseTaken.length !== 0
       ? data.userInformation.courseTaken
-          .map((element) => {
-            return element.courseCode.toUpperCase();
-          })
-          .join(", ")
+        .map((element) => {
+          return element.courseCode.toUpperCase();
+        })
+        .join(", ")
       : "N/A",
     ` 
     <button class="btn text-light btn-sm btn-danger mb-1" onClick="deleteData('${data._id}', this)">Delete</button>
@@ -64,8 +59,7 @@ fetch(`/api/curriculums/semesters/active`)
     console.log(result.data[0]);
     semester = result.data[0].semesters._id;
     $("#cardLabel").html(
-      `LIST OF ACTIVE FACULTY MEMBERS - S.Y ${
-        result.data[0].schoolYear[0].year
+      `LIST OF ACTIVE FACULTY MEMBERS - S.Y ${result.data[0].schoolYear[0].year
       } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
     );
     return fetch(`/api/curriculums/faculty/${semester}`);

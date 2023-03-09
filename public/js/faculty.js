@@ -1,9 +1,5 @@
 const table = $("#facultyTable").DataTable({
-  oLanguage: {
-    sEmptyTable: `<div class="spinner-border" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>`,
-  },
+  
 });
 
 const degreeEquivalent = ["Associate Degree", "Bachelor Degree", "Master Degree", "Doctoral"];
