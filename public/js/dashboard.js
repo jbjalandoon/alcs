@@ -66,63 +66,78 @@ triggerTabList.forEach((triggerEl) => {
   });
 });
 
+
+
 const addModal = new bootstrap.Modal($("#addModal"));
 const facultyModal = new bootstrap.Modal($("#activeFacultyModal"));
 const activeFacultyCard = $("#activeFacultyCard");
-
 (async () => {
-  const activeSemester = await getActiveSemester();
-  semester = activeSemester.id;
-  schoolYearName = activeSemester.year;
-  semesterName = activeSemester.sem;
-
-  $("#contentHeader").html(`Dasboard (SY ${schoolYearName} - ${semesterName.toUpperCase()} SEMESTER)`);
-  const unassignedScheduleCount = await getUnassignedScheduleCount(semester);
-  const unloadedScheduleCount = await getUnloadedScheduleCount(semester);
-  const activeFaculty = await getActiveFaculty(semester);
-  const activeRoom = await getActiveRoom(semester);
-
-  if (activeFaculty.length !== 0) {
-    activeFaculty.forEach((element) => {
-      const information = element.userInformation;
-      facultyView.append(
-        new Option(information.firstName.toUpperCase() + " " + information.lastName.toUpperCase(), element._id)
-      );
+  try {
+    $(".owl-carousel").owlCarousel({
+      nav: true,
+      items: 1,
+      margin: 10,
     });
+    const activeSemester = await getActiveSemester();
+    if (!activeSemester) {
+      spinner.addClass("d-none");
+      content.removeClass("d-none");
+      content.find('.btn-download').addClass('disabled');
+      facultyCalendar.render();
+      roomCalendar.render();
+      sectionCalendar.render();
+      return Toast.fire({ icon: 'warning', title: 'There is no active semester' })
+    }
 
-    facultyView.on("change", renderFacultyCalendar);
-    facultyView.on("change", renderFacultyTable);
-    facultyView.trigger("change");
-  } else {
-    facultyView.attr("disabled", true);
+    semester = activeSemester.id;
+    schoolYearName = activeSemester.year;
+    semesterName = activeSemester.sem;
+
+    $("#contentHeader").html(`Dasboard (SY ${schoolYearName} - ${semesterName.toUpperCase()} SEMESTER)`);
+    const unassignedScheduleCount = await getUnassignedScheduleCount(semester);
+    const unloadedScheduleCount = await getUnloadedScheduleCount(semester);
+    const activeFaculty = await getActiveFaculty(semester);
+    const activeRoom = await getActiveRoom(semester);
+    $("#activeFaculty").html(activeFaculty.length);
+    $("#activeRoom").html(activeRoom.length);
+    $("#unloadedSchedules").html(unloadedScheduleCount);
+    $("#unassignedSchedule").html(unassignedScheduleCount);
+
+    if (activeFaculty.length !== 0) {
+      activeFaculty.forEach((element) => {
+        const information = element.userInformation;
+        facultyView.append(
+          new Option(information.firstName.toUpperCase() + " " + information.lastName.toUpperCase(), element._id)
+        );
+      });
+
+      facultyView.on("change", renderFacultyCalendar);
+      facultyView.on("change", renderFacultyTable);
+      facultyView.trigger("change");
+    } else {
+      facultyView.attr("disabled", true);
+    }
+    if (activeRoom.length !== 0) {
+      activeRoom.forEach((element) => {
+        roomView.append(new Option(element.room.roomName.toUpperCase(), element._id));
+      });
+      roomView.on("change", renderRoomCalendar);
+      roomView.trigger("change");
+    } else {
+      roomView.attr("disabled", true);
+      roomCalendar.render();
+    }
+
+    // renderSectionForm();
+    // sectionView.on("change", renderSectionCalendar);
+    // sectionView.on("change", renderSectionTable);    
+
+    spinner.addClass("d-none");
+    content.removeClass("d-none");
+  } catch (error) {
+    console.error(error)
   }
-  if (activeRoom.length !== 0) {
-    activeRoom.forEach((element) => {
-      roomView.append(new Option(element.room.roomName.toUpperCase(), element._id));
-    });
-    roomView.on("change", renderRoomCalendar);
-    roomView.trigger("change");
-  } else {
-    roomView.attr("disabled", true);
-    roomCalendar.render();
-  }
 
-  renderSectionForm();
-  sectionView.on("change", renderSectionCalendar);
-  sectionView.on("change", renderSectionTable);
-  $("#activeFaculty").html(activeFaculty.length);
-  $("#activeRoom").html(activeRoom.length);
-  $("#unloadedSchedules").html(unloadedScheduleCount);
-  $("#unassignedSchedule").html(unassignedScheduleCount);
-
-  $(".owl-carousel").owlCarousel({
-    nav: true,
-    items: 1,
-    margin: 10,
-  });
-
-  spinner.addClass("d-none");
-  content.removeClass("d-none");
 })();
 
 activeFacultyCard.on("click", (event) => {
@@ -295,15 +310,14 @@ const renderFacultyTable = async () => {
         .append(
           $("<td></td>").html(
             "<ul>" +
-              element.data
-                .map((e) => {
-                  facultyCode = e.faculty.userInformation.facultyCode;
-                  return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${
-                    e.level.display
+            element.data
+              .map((e) => {
+                facultyCode = e.faculty.userInformation.facultyCode;
+                return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${e.level.display
                   }-${e.sectionName})</li>`;
-                })
-                .join("") +
-              "</ul>"
+              })
+              .join("") +
+            "</ul>"
           )
         );
       tBody.append(tRow);
@@ -517,14 +531,13 @@ const renderSectionTable = async () => {
         .append(
           $("<td></td>").html(
             "<ul>" +
-              element.data
-                .map((e) => {
-                  return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${
-                    e.level.display
+            element.data
+              .map((e) => {
+                return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${e.level.display
                   }-${e.sectionName})</li>`;
-                })
-                .join("") +
-              "</ul>"
+              })
+              .join("") +
+            "</ul>"
           )
         );
       tBody.append(tRow);
@@ -800,9 +813,8 @@ function downloadSpreadsheetTable(filename, events) {
         cellData(
           element.data
             .map((element) => {
-              return `${element.day} ${element.startTime} - ${
-                element.endTime
-              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
+              return `${element.day} ${element.startTime} - ${element.endTime
+                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
             })
             .join(" | ")
         ),
@@ -1558,7 +1570,7 @@ const downloadAllRoomCalendarXLSX = async () => {
     });
 
     XLSX.writeFile(wb, `ROOMS SCHEDULES.xlsx`);
-  } catch (error) {}
+  } catch (error) { }
 };
 
 const downloadSectionCalendarXLSX = async () => {
@@ -2092,11 +2104,9 @@ const downloadFacultyTableXLSX = async () => {
         cellData(
           element.data
             .map((element) => {
-              return `${days[element.day]} ${element.startTime} - ${
-                element.endTime
-              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${
-                element.room.roomName
-              }) `;
+              return `${days[element.day]} ${element.startTime} - ${element.endTime
+                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
+                }) `;
             })
             .join("\n")
         ),
@@ -2164,11 +2174,9 @@ const downloadAllFacultyTableXLSX = async () => {
           cellData(
             element.data
               .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${
-                  element.endTime
-                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${
-                  element.room.roomName
-                }) `;
+                return `${days[element.day]} ${element.startTime} - ${element.endTime
+                  } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
+                  }) `;
               })
               .join("\n")
           ),
@@ -2241,11 +2249,9 @@ const downloadSectionTableXLSX = async () => {
         cellData(
           element.data
             .map((element) => {
-              return `${days[element.day]} ${element.startTime} - ${
-                element.endTime
-              } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${
-                element.room.roomName
-              }) `;
+              return `${days[element.day]} ${element.startTime} - ${element.endTime
+                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
+                }) `;
             })
             .join("\n")
         ),
@@ -2330,11 +2336,9 @@ const downloadAllSectionTableXLSX = async () => {
           cellData(
             element.data
               .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${
-                  element.endTime
-                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${
-                  element.room.roomName
-                }) `;
+                return `${days[element.day]} ${element.startTime} - ${element.endTime
+                  } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
+                  }) `;
               })
               .join("\n")
           ),

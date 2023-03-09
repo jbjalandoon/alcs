@@ -1,181 +1,288 @@
 <%- include('../../includes/header.ejs') %>
-</head>
+  </head>
 
-<body>
-  <%- include('../../includes/navbar.ejs') %>
-  <div class="d-flex justify-content-center" id="spinner">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-  <div class="content-wrapper container d-none" id="content">
-    <div class="page-heading">
-      <span class="h3" id="contentHeader">Dashboard</span>
-      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
-        Set Active Semester
-      </button>
-    </div>
-    <div class="page-content">
-      <section class="row">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-6 col-lg-3 col-md-6">
-              <div class="card" id="activeFacultyCard">
-                <div class="card-body px-4 py-4-5">
-                  <div class="row">
-                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                      <div class="stats-icon purple mb-2">
-                        <i class="iconly-boldProfile"></i>
-                      </div>
-                    </div>
-                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                      <h6 class="text-muted font-semibold">Active Faculty</h6>
-                      <h6 class="font-extrabold mb-0" id="activeFaculty">0</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-6 col-lg-3 col-md-6">
-              <div class="card">
-                <div class="card-body px-4 py-4-5">
-                  <div class="row">
-                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                      <div class="stats-icon blue mb-2">
-                        <i class="iconly-boldWork"></i>
-                      </div>
-                    </div>
-                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                      <h6 class="text-muted font-semibold">Active Room</h6>
-                      <h6 class="font-extrabold mb-0" id="activeRoom">0</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-6 col-lg-3 col-md-6">
-              <div class="card">
-                <div class="card-body px-4 py-4-5">
-                  <div class="row">
-                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                      <div class="stats-icon green mb-2">
-                        <i class="iconly-boldTime-Circle"></i>
-                      </div>
-                    </div>
-                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                      <h6 class="text-muted font-semibold">Unloaded Sched</h6>
-                      <h6 class="font-extrabold mb-0" id="unloadedSchedules">0</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-6 col-lg-3 col-md-6">
-              <div class="card">
-                <div class="card-body px-4 py-4-5">
-                  <div class="row">
-                    <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
-                      <div class="stats-icon red mb-2">
-                        <i class="iconly-boldTime-Square"></i>
-                      </div>
-                    </div>
-                    <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
-                      <h6 class="text-muted font-semibold">Unassigned Sched</h6>
-                      <h6 class="font-extrabold mb-0" id="unassignedSchedule">0</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+  <body>
+    <%- include('../../includes/navbar.ejs') %>
+      <div class="d-flex justify-content-center" id="spinner">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="container">
-                <div class="row">
-                  <div class="col-12">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="faculty-tab" data-bs-toggle="tab" data-bs-target="#faculty-tab-pane" type="button" role="tab" aria-controls="faculty-tab-pane" aria-selected="true">Faculty</button>
-                      </li>
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="section-tab" data-bs-toggle="tab" data-bs-target="#section-tab-pane" type="button" role="tab" aria-controls="section-tab-pane" aria-selected="false">
-                          Room
-                      </li>
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="room-tab" data-bs-toggle="tab" data-bs-target="#room-tab-pane" type="button" role="tab" aria-controls="room-tab-pane" aria-selected="false">Section</button>
-                      </li>
-                    </ul>
-
+      </div>
+      <div class="content-wrapper container d-none" id="content">
+        <div class="page-heading">
+          <span class="h3" id="contentHeader">Dashboard</span>
+          <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal"
+            data-bs-target="#addModal">
+            Set Active Semester
+          </button>
+        </div>
+        <div class="page-content">
+          <section class="row">
+            <div class="col-12">
+              <div class="row">
+                <div class="col-6 col-lg-3 col-md-6">
+                  <div class="card" id="activeFacultyCard">
+                    <div class="card-body px-4 py-4-5">
+                      <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                          <div class="stats-icon purple mb-2">
+                            <i class="iconly-boldProfile"></i>
+                          </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                          <h6 class="text-muted font-semibold">Active Faculty</h6>
+                          <h6 class="font-extrabold mb-0" id="activeFaculty">0</h6>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-12">
-                    <div class="tab-content" id="myTabContent">
-                      <div class="tab-pane fade show active" id="faculty-tab-pane" role="tabpanel" aria-labelledby="faculty-tab" tabindex="0">
-                        <div class="container mt-3">
-                          <div class="row mb-3">
-                            <div class="col-12">
-                              <select name="" class="form-select" id="facultyView">
-                              </select>
+                <div class="col-6 col-lg-3 col-md-6">
+                  <div class="card">
+                    <div class="card-body px-4 py-4-5">
+                      <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                          <div class="stats-icon blue mb-2">
+                            <i class="iconly-boldWork"></i>
+                          </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                          <h6 class="text-muted font-semibold">Active Room</h6>
+                          <h6 class="font-extrabold mb-0" id="activeRoom">0</h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-lg-3 col-md-6">
+                  <div class="card">
+                    <div class="card-body px-4 py-4-5">
+                      <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                          <div class="stats-icon green mb-2">
+                            <i class="iconly-boldTime-Circle"></i>
+                          </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                          <h6 class="text-muted font-semibold">Unloaded Sched</h6>
+                          <h6 class="font-extrabold mb-0" id="unloadedSchedules">0</h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-lg-3 col-md-6">
+                  <div class="card">
+                    <div class="card-body px-4 py-4-5">
+                      <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start ">
+                          <div class="stats-icon red mb-2">
+                            <i class="iconly-boldTime-Square"></i>
+                          </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                          <h6 class="text-muted font-semibold">Unassigned Sched</h6>
+                          <h6 class="font-extrabold mb-0" id="unassignedSchedule">0</h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="container">
+                    <div class="row">
+                      <div class="col-12">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="faculty-tab" data-bs-toggle="tab"
+                              data-bs-target="#faculty-tab-pane" type="button" role="tab"
+                              aria-controls="faculty-tab-pane" aria-selected="true">Faculty</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="section-tab" data-bs-toggle="tab"
+                              data-bs-target="#section-tab-pane" type="button" role="tab"
+                              aria-controls="section-tab-pane" aria-selected="false">
+                              Room
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="room-tab" data-bs-toggle="tab" data-bs-target="#room-tab-pane"
+                              type="button" role="tab" aria-controls="room-tab-pane"
+                              aria-selected="false">Section</button>
+                          </li>
+                        </ul>
+
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12">
+                        <div class="tab-content" id="myTabContent">
+                          <div class="tab-pane fade show active" id="faculty-tab-pane" role="tabpanel"
+                            aria-labelledby="faculty-tab" tabindex="0">
+                            <div class="container mt-3">
+                              <div class="row mb-3">
+                                <div class="col-12">
+                                  <select name="" class="form-select" id="facultyView">
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="row mb-3">
+                                <div class="col-12">
+                                  Units: <span id="facultyUnits">0</span>
+                                </div>
+                                <div class="col-12">
+                                  Hours: <span id="facultyHours">0</span>
+                                </div>
+                                <div class="col-12">
+                                  Faculty Type: <span id="facultyTypes"></span>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="owl-carousel owl-theme">
+                                  <div class="item">
+                                    <div class="row mb-3">
+                                      <div class="col-12">
+                                        <button class="btn btn-primary btn-download download-xlsx" onClick="downloadFacultyCalendarXLSX()"><i
+                                            class="bi bi-filetype-xlsx"></i>Download Current</button>
+                                        <button class="btn btn-primary btn-download download-xlsx" onClick="downloadAllFacultyCalendarXLSX()"><i
+                                            class="bi bi-filetype-xlsx"></i> Download All</button>
+                                        <!-- <button class="btn btn-danger" onClick="downloadFacultyCalendarPDF()"><i class="bi bi-filetype-pdf"></i> Download (PDF)</button> -->
+                                        <!-- <button class="btn btn-danger" onClick="downloadAllFacultyCalendarPDF()"><i class="bi bi-filetype-pdf"></i> Download All (PDF)</button> -->
+                                      </div>
+                                    </div>
+
+                                    <div class="row">
+                                      <div class="col-12">
+                                        <span class="badge text-bg-primary">Lecture Schedule</span>
+                                        <span class="badge text-bg-info">Lab Schedule</span>
+                                        <span class="badge text-bg-danger">Overload Schedule</span>
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-12">
+                                        <div id="facultyCalendar"></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="item">
+                                    <div class="row">
+                                      <div class="col-12">
+                                        <button class="btn btn-primary btn-download download-xlsx" onClick="downloadFacultyTableXLSX()"><i
+                                            class="bi bi-filetype-xlsx"></i> Download</button>
+                                        <button class="btn btn-primary btn-download download-xlsx" onClick="downloadAllFacultyTableXLSX()"><i
+                                            class="bi bi-filetype-xlsx"></i> Download All</button>
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-12">
+                                        <div class="table-responsive">
+                                          <table class="table table-bordered table-stripe mt-3"
+                                            id="facultyScheduleTable">
+                                            <thead>
+                                              <tr>
+                                                <th width="15%">Course Code</th>
+                                                <th width="25%">Course</th>
+                                                <th width="5%">Units</th>
+                                                <th width="5%">Lecture</th>
+                                                <th width="5%">Lab</th>
+                                                <th width="35%">Schedule</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider">
+
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div class="row mb-3">
-                            <div class="col-12">
-                              Units: <span id="facultyUnits">0</span>
-                            </div>
-                            <div class="col-12">
-                              Hours: <span id="facultyHours">0</span>
-                            </div>
-                            <div class="col-12">
-                              Faculty Type: <span id="facultyTypes"></span>
+                          <div class="tab-pane fade" id="section-tab-pane" role="tabpanel" aria-labelledby="section-tab"
+                            tabindex="0">
+                            <div class="container mt-3">
+                              <div class="row mb-3">
+                                <div class="col-12">
+                                  <select id="roomView"></select>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-12">
+                                  <button class="btn btn-primary btn-download download-xlsx" onClick="downloadRoomCalendarXLSX()"
+                                    id="downloadCurrentRoom"><i class="bi bi-filetype-xlsx"></i> Download
+                                    Current</button>
+                                  <button class="btn btn-primary btn-download download-xlsx" onClick="downloadAllRoomCalendarXLSX()"
+                                    id="downloadAllRoom"><i class="bi bi-filetype-xlsx"></i> Download All</button>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-12">
+                                  <div id="roomCalendar">
+
+                                  </div>
+                                </div>
+
+                              </div>
                             </div>
                           </div>
-                          <div class="row">
+                          <div class="tab-pane fade mt-3" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab"
+                            tabindex="0">
+                            <div class="row">
+                              <div class="col-md-4 col-sm-12 mb-3 ">
+                                <select name="" class="form-select" id="programView"></select>
+                              </div>
+                              <div class="col-md-4 col-sm-12 mb-3 ">
+                                <select name="" class="form-select" id="yearView"></select>
+                              </div>
+                              <div class="col-md-4 col-sm-12 mb-3 ">
+                                <select name="" class="form-select" id="sectionView"></select>
+                              </div>
+                            </div>
                             <div class="owl-carousel owl-theme">
                               <div class="item">
-                                <div class="row mb-3">
-                                  <div class="col-12">
-                                    <button class="btn btn-primary" onClick="downloadFacultyCalendarXLSX()"><i class="bi bi-filetype-xlsx"></i >Download Current</button>
-                                    <button class="btn btn-primary" onClick="downloadAllFacultyCalendarXLSX()"><i class="bi bi-filetype-xlsx"></i> Download All</button>
-                                    <!-- <button class="btn btn-danger" onClick="downloadFacultyCalendarPDF()"><i class="bi bi-filetype-pdf"></i> Download (PDF)</button> -->
-                                    <!-- <button class="btn btn-danger" onClick="downloadAllFacultyCalendarPDF()"><i class="bi bi-filetype-pdf"></i> Download All (PDF)</button> -->
-                                  </div>
-                                </div>
-
                                 <div class="row">
                                   <div class="col-12">
-                                    <span class="badge text-bg-primary">Lecture Schedule</span>
-                                    <span class="badge text-bg-info">Lab Schedule</span>
-                                    <span class="badge text-bg-danger">Overload Schedule</span>
+                                    <button class="btn btn-primary btn-download download-xlsx" onClick="downloadSectionCalendarXLSX()"
+                                      id="downloadCurrentSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download
+                                      Current</button>
+                                    <button class="btn btn-primary btn-download download-xlsx" onClick="downloadAllSectionCalendarXLSX()"
+                                      id="downloadAllSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download
+                                      All</button>
                                   </div>
                                 </div>
                                 <div class="row">
                                   <div class="col-12">
-                                    <div id="facultyCalendar"></div>
+                                    <div id="sectionCalendar"></div>
                                   </div>
                                 </div>
                               </div>
                               <div class="item">
                                 <div class="row">
                                   <div class="col-12">
-                                    <button class="btn btn-primary" onClick="downloadFacultyTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download</button>
-                                    <button class="btn btn-primary" onClick="downloadAllFacultyTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download All</button>
+                                    <button class="btn btn-primary btn-download download-xlsx" onClick="downloadSectionTableXLSX()"><i
+                                        class="bi bi-filetype-xlsx"></i> Download</button>
+                                    <button class="btn btn-primary btn-download download-xlsx" onClick="downloadAllSectionTableXLSX()"><i
+                                        class="bi bi-filetype-xlsx"></i> Download All</button>
                                   </div>
                                 </div>
                                 <div class="row">
                                   <div class="col-12">
                                     <div class="table-responsive">
-                                      <table class="table table-bordered table-stripe mt-3" id="facultyScheduleTable">
+                                      <table class="table table-bordered table-stripe mt-3" id="sectionScheduleTable">
                                         <thead>
                                           <tr>
                                             <th width="15%">Course Code</th>
-                                            <th width="25%">Course</th>
+                                            <th width="20%">Course</th>
                                             <th width="5%">Units</th>
                                             <th width="5%">Lecture</th>
                                             <th width="5%">Lab</th>
-                                            <th width="35%">Schedule</th>
+                                            <th width="20%">Faculty</th>
+                                            <th width="20%">Schedule</th>
                                           </tr>
                                         </thead>
                                         <tbody class="table-group-divider">
@@ -190,168 +297,86 @@
                           </div>
                         </div>
                       </div>
-                      <div class="tab-pane fade" id="section-tab-pane" role="tabpanel" aria-labelledby="section-tab" tabindex="0">
-                        <div class="container mt-3">
-                          <div class="row mb-3">
-                            <div class="col-12">
-                              <select id="roomView"></select>
-                            </div>
-                          </div>
-                          <div class="row">
-                            <div class="col-12">
-                              <button class="btn btn-primary" onClick="downloadRoomCalendarXLSX()" id="downloadCurrentRoom"><i class="bi bi-filetype-xlsx"></i> Download Current</button>
-                              <button class="btn btn-primary" onClick="downloadAllRoomCalendarXLSX()" id="downloadAllRoom"><i class="bi bi-filetype-xlsx"></i> Download All</button>
-                            </div>
-                          </div>
-                          <div class="row">
-                            <div class="col-12">
-                              <div id="roomCalendar">
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </section>
+        </div>
+      </div>
 
-                              </div>
-                            </div>
+      <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="activeSemesterForm" class="needs-validation" novalidate>
+                <div class="mb-3">
+                  <label for="year" class="col-form-label">School Year:</label>
+                  <select class="form-select" id="year">
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="semester" class="col-form-label">Semester:</label>
+                  <select class="form-select" id="semester" disabled>
+                  </select>
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                          </div>
-                        </div>
-                      </div>
-                      <div class="tab-pane fade mt-3" id="room-tab-pane" role="tabpanel" aria-labelledby="room-tab" tabindex="0">
-                        <div class="row">
-                          <div class="col-md-4 col-sm-12 mb-3 ">
-                            <select name="" class="form-select" id="programView"></select>
-                          </div>
-                          <div class="col-md-4 col-sm-12 mb-3 ">
-                            <select name="" class="form-select" id="yearView"></select>
-                          </div>
-                          <div class="col-md-4 col-sm-12 mb-3 ">
-                            <select name="" class="form-select" id="sectionView"></select>
-                          </div>
-                        </div>
-                        <div class="owl-carousel owl-theme">
-                          <div class="item">
-                            <div class="row">
-                              <div class="col-12">
-                                <button class="btn btn-primary" onClick="downloadSectionCalendarXLSX()" id="downloadCurrentSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download Current</button>
-                                <button class="btn btn-primary" onClick="downloadAllSectionCalendarXLSX()" id="downloadAllSectionCalendar"><i class="bi bi-filetype-xlsx"></i> Download All</button>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-12">
-                                <div id="sectionCalendar"></div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="item">
-                            <div class="row">
-                              <div class="col-12">
-                                <button class="btn btn-primary" onClick="downloadSectionTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download</button>
-                                <button class="btn btn-primary" onClick="downloadAllSectionTableXLSX()"><i class="bi bi-filetype-xlsx"></i> Download All</button>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-12">
-                                <div class="table-responsive">
-                                  <table class="table table-bordered table-stripe mt-3" id="sectionScheduleTable">
-                                    <thead>
-                                      <tr>
-                                        <th width="15%">Course Code</th>
-                                        <th width="20%">Course</th>
-                                        <th width="5%">Units</th>
-                                        <th width="5%">Lecture</th>
-                                        <th width="5%">Lab</th>
-                                        <th width="20%">Faculty</th>
-                                        <th width="20%">Schedule</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider">
+      <div class="modal fade" id="activeFacultyModal" tabindex="-1" aria-labelledby="activeFacultyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="activeFacultyModalLabel">Active Faculty</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col-12">
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <th>Faculty Code</th>
+                          <th>Faculty Name</th>
+                          <th>Faculty Type</th>
+                          <th>Units</th>
+                        </thead>
+                        <tbody>
 
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-      </section>
-    </div>
-  </div>
-
-  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="activeSemesterForm" class="needs-validation" novalidate>
-            <div class="mb-3">
-              <label for="year" class="col-form-label">School Year:</label>
-              <select class="form-select" id="year">
-              </select>
-              <div class="invalid-feedback">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="semester" class="col-form-label">Semester:</label>
-              <select class="form-select" id="semester" disabled>
-              </select>
-              <div class="invalid-feedback">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="activeFacultyModal" tabindex="-1" aria-labelledby="activeFacultyModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="activeFacultyModalLabel">Active Faculty</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12">
-                <div class="table-responsive">
-                  <table class="table">
-                    <thead>
-                      <th>Faculty Code</th>
-                      <th>Faculty Name</th>
-                      <th>Faculty Type</th>
-                      <th>Units</th>
-                    </thead>
-                    <tbody>
-                      
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
       </div>
-    </div>
-  </div>
 
-  <input type="hidden" value="<%= csrf %>" id="csrf">
-  <%- include('../../includes/footer.ejs') %>
-  <script src="/js/dashboard.js"></script>
-</body>
+      <input type="hidden" value="<%= csrf %>" id="csrf">
+      <%- include('../../includes/footer.ejs') %>
+        <script src="/js/dashboard.js"></script>
+  </body>
 
-</html>
+  </html>
