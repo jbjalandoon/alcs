@@ -46,9 +46,18 @@ const programView = $("#programView");
 const yearView = $("#yearView");
 const sectionView = $("#sectionView");
 
-const facultyCalendar = new FullCalendar.Calendar(document.querySelector("#facultyCalendar"), config);
-const roomCalendar = new FullCalendar.Calendar(document.querySelector("#roomCalendar"), config);
-const sectionCalendar = new FullCalendar.Calendar(document.querySelector("#sectionCalendar"), config);
+const facultyCalendar = new FullCalendar.Calendar(
+  document.querySelector("#facultyCalendar"),
+  config
+);
+const roomCalendar = new FullCalendar.Calendar(
+  document.querySelector("#roomCalendar"),
+  config
+);
+const sectionCalendar = new FullCalendar.Calendar(
+  document.querySelector("#sectionCalendar"),
+  config
+);
 let semester, activeYear, activeSemester;
 let schoolYearName, semesterName;
 let activeFaculty, activeRoom, scheduleWithoutFaculty, scheduleWithoutTimeslot;
@@ -66,34 +75,37 @@ triggerTabList.forEach((triggerEl) => {
   });
 });
 
-
-
 const addModal = new bootstrap.Modal($("#addModal"));
 const facultyModal = new bootstrap.Modal($("#activeFacultyModal"));
 const activeFacultyCard = $("#activeFacultyCard");
 (async () => {
   try {
-    $(".owl-carousel").owlCarousel({
-      nav: true,
-      items: 1,
-      margin: 10,
-    });
+    // $(".owl-carousel").owlCarousel({
+    //   nav: true,
+    //   items: 1,
+    //   margin: 10,
+    // });
     const activeSemester = await getActiveSemester();
     if (!activeSemester) {
       spinner.addClass("d-none");
       content.removeClass("d-none");
-      content.find('.btn-download').addClass('disabled');
+      content.find(".btn-download").addClass("disabled");
       facultyCalendar.render();
       roomCalendar.render();
       sectionCalendar.render();
-      return Toast.fire({ icon: 'warning', title: 'There is no active semester' })
+      return Toast.fire({
+        icon: "warning",
+        title: "There is no active semester",
+      });
     }
 
     semester = activeSemester.id;
     schoolYearName = activeSemester.year;
     semesterName = activeSemester.sem;
 
-    $("#contentHeader").html(`Dasboard (SY ${schoolYearName} - ${semesterName.toUpperCase()} SEMESTER)`);
+    $("#contentHeader").html(
+      `Dasboard (SY ${schoolYearName} - ${semesterName.toUpperCase()} SEMESTER)`
+    );
     const unassignedScheduleCount = await getUnassignedScheduleCount(semester);
     const unloadedScheduleCount = await getUnloadedScheduleCount(semester);
     const activeFaculty = await getActiveFaculty(semester);
@@ -107,7 +119,12 @@ const activeFacultyCard = $("#activeFacultyCard");
       activeFaculty.forEach((element) => {
         const information = element.userInformation;
         facultyView.append(
-          new Option(information.firstName.toUpperCase() + " " + information.lastName.toUpperCase(), element._id)
+          new Option(
+            information.firstName.toUpperCase() +
+              " " +
+              information.lastName.toUpperCase(),
+            element._id
+          )
         );
       });
 
@@ -119,7 +136,9 @@ const activeFacultyCard = $("#activeFacultyCard");
     }
     if (activeRoom.length !== 0) {
       activeRoom.forEach((element) => {
-        roomView.append(new Option(element.room.roomName.toUpperCase(), element._id));
+        roomView.append(
+          new Option(element.room.roomName.toUpperCase(), element._id)
+        );
       });
       roomView.on("change", renderRoomCalendar);
       roomView.trigger("change");
@@ -130,14 +149,13 @@ const activeFacultyCard = $("#activeFacultyCard");
 
     // renderSectionForm();
     // sectionView.on("change", renderSectionCalendar);
-    // sectionView.on("change", renderSectionTable);    
+    // sectionView.on("change", renderSectionTable);
 
     spinner.addClass("d-none");
     content.removeClass("d-none");
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-
 })();
 
 activeFacultyCard.on("click", (event) => {
@@ -150,11 +168,17 @@ $(facultyModal._element).on("show.bs.modal", async (event) => {
   const table = $(event.currentTarget).find("table");
   table.find("tbody").empty();
   faculty.data.sort((a, b) => {
-    if (a.userInformation.facultyType.facultyType > b.userInformation.facultyType.facultyType) {
+    if (
+      a.userInformation.facultyType.facultyType >
+      b.userInformation.facultyType.facultyType
+    ) {
       return -1;
     }
 
-    if (a.userInformation.facultyType.facultyType < b.userInformation.facultyType.facultyType) {
+    if (
+      a.userInformation.facultyType.facultyType <
+      b.userInformation.facultyType.facultyType
+    ) {
       return 1;
     }
 
@@ -175,12 +199,15 @@ $(facultyModal._element).on("show.bs.modal", async (event) => {
 
 const getActiveFaculty = async () => {
   try {
-    const request = await fetch(`/api/curriculums/faculty/${semester}`);
-    const response = await request.json();
-    return response.data;
+    const activeFaculty = await axios.get(
+      `/api/curriculums/faculty/${semester}`
+    );
+
+    console.log("test");
+    return activeFaculty;
   } catch (error) {
-    console.error(error);
-    return [];
+    console.log("test");
+    return error;
   }
 };
 
@@ -198,7 +225,9 @@ const getActiveRoom = async () => {
 
 const getUnloadedScheduleCount = async () => {
   try {
-    const request = await fetch(`/api/dashboard/analytics/unloaded-schedule/${semester}`);
+    const request = await fetch(
+      `/api/dashboard/analytics/unloaded-schedule/${semester}`
+    );
     const response = await request.json();
     return response.data;
   } catch (error) {
@@ -209,7 +238,9 @@ const getUnloadedScheduleCount = async () => {
 
 const getUnassignedScheduleCount = async () => {
   try {
-    const request = await fetch(`/api/dashboard/analytics/unassigned-schedule/${semester}`);
+    const request = await fetch(
+      `/api/dashboard/analytics/unassigned-schedule/${semester}`
+    );
     const response = await request.json();
     return response.data;
   } catch (error) {
@@ -234,7 +265,9 @@ const getFacultySchedules = async (grouped) => {
 
 const getRoomSchedules = async () => {
   try {
-    const request = await fetch(`/api/schedules/room/${semester}/${roomView.val()}`);
+    const request = await fetch(
+      `/api/schedules/room/${semester}/${roomView.val()}`
+    );
     const response = await request.json();
     return response.data;
   } catch (error) {
@@ -249,7 +282,9 @@ const renderFacultyCalendar = async () => {
     const facultyType = await getFacultyType(facultyView.val());
     $("#facultyUnits").html(await getFacultyUnitsCount(facultyView.val()));
     if (facultySchedules.length !== 0)
-      $("#facultyHours").html(facultySchedules.map((e) => e.hour).reduce((a, b) => a + b));
+      $("#facultyHours").html(
+        facultySchedules.map((e) => e.hour).reduce((a, b) => a + b)
+      );
     $("#facultyTypes").html(facultyType.facultyType.toUpperCase());
     facultyCalendar.getEvents().forEach((element) => {
       element.remove();
@@ -274,7 +309,9 @@ const renderFacultyCalendar = async () => {
         startEditable: false,
         course: element.course.courseCode,
         program: element.program.programCode,
-        faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
+        faculty: element.faculty
+          ? element.faculty.userInformation.facultyCode
+          : "",
         section: element.sectionName,
         room: element.room.roomName,
         level: element.level.display,
@@ -303,21 +340,26 @@ const renderFacultyTable = async () => {
       const tRow = $("<tr></tr>");
       tRow
         .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
-        .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
+        .append(
+          $("<td></td>").html(element.course.courseDescription.toUpperCase())
+        )
         .append($("<td></td>").html(element.course.units))
         .append($("<td></td>").html(element.course.lecture))
         .append($("<td></td>").html(element.course.lab))
         .append(
           $("<td></td>").html(
             "<ul>" +
-            element.data
-              .map((e) => {
-                facultyCode = e.faculty.userInformation.facultyCode;
-                return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${e.level.display
-                  }-${e.sectionName})</li>`;
-              })
-              .join("") +
-            "</ul>"
+              element.data
+                .map((e) => {
+                  facultyCode = e.faculty.userInformation.facultyCode;
+                  return `<li>${days[e.day]} ${e.startTime} - ${
+                    e.endTime
+                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
+                    e.sectionName
+                  })</li>`;
+                })
+                .join("") +
+              "</ul>"
           )
         );
       tBody.append(tRow);
@@ -352,7 +394,9 @@ const renderRoomCalendar = async () => {
         startEditable: false,
         course: element.course.courseCode,
         program: element.program.programCode,
-        faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
+        faculty: element.faculty
+          ? element.faculty.userInformation.facultyCode
+          : "",
         section: element.sectionName,
         room: element.room.roomName,
         level: element.level.display,
@@ -404,7 +448,9 @@ const getSections = async (yearLevel) => {
 
 const getSectionsTotalUnits = async (section) => {
   try {
-    const sectionUnitsRequest = await fetch(`/api/curriculums/sections/units/${section}`);
+    const sectionUnitsRequest = await fetch(
+      `/api/curriculums/sections/units/${section}`
+    );
     const sectionUnits = await sectionUnitsRequest.json();
     return sectionUnits.data[0].totalUnits;
   } catch (error) {
@@ -416,7 +462,9 @@ const getSectionsTotalUnits = async (section) => {
 const renderSectionForm = async () => {
   const programs = await getPrograms(semester);
   programs.forEach((element) => {
-    programView.append(new Option(element.program.programCode.toUpperCase(), element._id));
+    programView.append(
+      new Option(element.program.programCode.toUpperCase(), element._id)
+    );
   });
 
   programView.on("change", async () => {
@@ -430,7 +478,9 @@ const renderSectionForm = async () => {
     yearView.attr("disabled", false);
     sectionView.attr("disabled", false);
     yearLevels.forEach((element) => {
-      yearView.append(new Option(element.level.display.toUpperCase(), element._id));
+      yearView.append(
+        new Option(element.level.display.toUpperCase(), element._id)
+      );
     });
     yearView.trigger("change");
   });
@@ -448,7 +498,9 @@ const renderSectionForm = async () => {
     }
     sectionView.attr("disabled", false);
     sections.forEach((element) => {
-      sectionView.append(new Option(element.section.toUpperCase(), element._id));
+      sectionView.append(
+        new Option(element.section.toUpperCase(), element._id)
+      );
     });
     sectionView.trigger("change");
   });
@@ -490,7 +542,9 @@ const renderSectionCalendar = async () => {
           startEditable: false,
           course: element.course.courseCode,
           program: element.program.programCode,
-          faculty: element.faculty ? element.faculty.userInformation.facultyCode : "",
+          faculty: element.faculty
+            ? element.faculty.userInformation.facultyCode
+            : "",
           section: element.sectionName,
           room: schedule.room.roomName,
           level: element.yearLevel.display,
@@ -517,7 +571,9 @@ const renderSectionTable = async () => {
       const tRow = $("<tr></tr>");
       tRow
         .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
-        .append($("<td></td>").html(element.course.courseDescription.toUpperCase()))
+        .append(
+          $("<td></td>").html(element.course.courseDescription.toUpperCase())
+        )
         .append($("<td></td>").html(element.course.units))
         .append($("<td></td>").html(element.course.lecture))
         .append($("<td></td>").html(element.course.lab))
@@ -531,13 +587,16 @@ const renderSectionTable = async () => {
         .append(
           $("<td></td>").html(
             "<ul>" +
-            element.data
-              .map((e) => {
-                return `<li>${days[e.day]} ${e.startTime} - ${e.endTime} (${e.program.programCode.toUpperCase()}${e.level.display
-                  }-${e.sectionName})</li>`;
-              })
-              .join("") +
-            "</ul>"
+              element.data
+                .map((e) => {
+                  return `<li>${days[e.day]} ${e.startTime} - ${
+                    e.endTime
+                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
+                    e.sectionName
+                  })</li>`;
+                })
+                .join("") +
+              "</ul>"
           )
         );
       tBody.append(tRow);
@@ -553,7 +612,9 @@ const renderSectionTable = async () => {
 
 const getFacultyUnitsCount = async (faculty) => {
   try {
-    const unitsRequest = await fetch(`/api/schedules/faculty/units/${semester}/${faculty}`);
+    const unitsRequest = await fetch(
+      `/api/schedules/faculty/units/${semester}/${faculty}`
+    );
     const units = await unitsRequest.json();
     return units.data;
   } catch (error) {
@@ -599,7 +660,9 @@ $(addModal._element).on("show.bs.modal", (event) => {
         })
       );
       result.data.forEach((element) => {
-        activeYear.append(new Option(element.schoolYear.toUpperCase(), element._id));
+        activeYear.append(
+          new Option(element.schoolYear.toUpperCase(), element._id)
+        );
       });
       activeYear.on("change", (event) => {
         fetch("/api/curriculums/semesters/" + activeYear.val())
@@ -616,7 +679,9 @@ $(addModal._element).on("show.bs.modal", (event) => {
               })
             );
             result.data.forEach((element) => {
-              activeSemester.append(new Option(element.sem.toUpperCase(), element._id));
+              activeSemester.append(
+                new Option(element.sem.toUpperCase(), element._id)
+              );
             });
             activeSemester.removeAttr("disabled");
           })
@@ -658,7 +723,26 @@ $("#addButton").on("click", () => {
 });
 
 function downloadSpreadsheet(filename, events, type) {
-  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+  const cols = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+  ];
 
   const wb = XLSX.utils.book_new();
   events.forEach((element) => {
@@ -704,7 +788,9 @@ function downloadSpreadsheet(filename, events, type) {
           const section = element.sectionName.toUpperCase();
           const room = element.room.roomName.toUpperCase();
           const level = element.level.display.toUpperCase();
-          const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
+          const initials = element.faculty
+            ? element.faculty.userInformation.facultyCode.toUpperCase()
+            : "";
           const day = element.day === 0 ? 7 : element.day;
 
           rowData[day * 2] = {
@@ -798,7 +884,26 @@ function downloadSpreadsheet(filename, events, type) {
 }
 
 function downloadSpreadsheetTable(filename, events) {
-  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+  const cols = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+  ];
 
   const wb = XLSX.utils.book_new();
   events.forEach((element) => {
@@ -813,8 +918,11 @@ function downloadSpreadsheetTable(filename, events) {
         cellData(
           element.data
             .map((element) => {
-              return `${element.day} ${element.startTime} - ${element.endTime
-                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName})`;
+              return `${element.day} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${
+                element.level.display
+              }-${element.sectionName})`;
             })
             .join(" | ")
         ),
@@ -833,7 +941,14 @@ function downloadSpreadsheetTable(filename, events) {
       ...data,
     ]);
 
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
+    ws["!cols"] = [
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 40 },
+    ];
     XLSX.utils.book_append_sheet(wb, ws, sheet);
   });
   XLSX.writeFile(wb, filename);
@@ -847,7 +962,26 @@ const downloadFacultyCalendarXLSX = async () => {
       facultyID,
       unitsCount = 0,
       hoursCount = 0;
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
     const schedules = await getFacultySchedules(false);
     const times = [];
@@ -942,15 +1076,21 @@ const downloadFacultyCalendarXLSX = async () => {
       });
       data.push(rowData);
     }
-    facultyCode = schedules[0].faculty.userInformation.facultyCode.toUpperCase();
+    facultyCode =
+      schedules[0].faculty.userInformation.facultyCode.toUpperCase();
     facultyName = `${schedules[0].faculty.userInformation.firstName} ${schedules[0].faculty.userInformation.middleName} ${schedules[0].faculty.userInformation.lastName}`;
     facultyID = schedules[0].faculty._id;
     facultyType = await getFacultyType(facultyID);
     unitsCount = await getFacultyUnitsCount(facultyID);
-    if (schedules.length !== 0) hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
+    if (schedules.length !== 0)
+      hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
 
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+      [
+        cellHeaderText(
+          `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+        ),
+      ],
       [cellHeaderText(facultyCode.toUpperCase())],
       [cellHeaderText(facultyName.toUpperCase())],
       [cellHeaderText(facultyType.facultyType.toUpperCase())],
@@ -1051,9 +1191,30 @@ const downloadAllFacultyCalendarXLSX = async () => {
       facultyType,
       unitsCount = 0;
     hoursCount = 0;
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
-    const facultySchedulesRequest = await fetch(`/api/schedules/faculty/${semester}`);
+    const facultySchedulesRequest = await fetch(
+      `/api/schedules/faculty/${semester}`
+    );
     const facultySchedules = await facultySchedulesRequest.json();
     for (let i = 0; i < facultySchedules.data.length; i++) {
       hoursCount = 0;
@@ -1079,7 +1240,9 @@ const downloadAllFacultyCalendarXLSX = async () => {
       const overLoadCells = [];
       for (let time = 0; time < times.length; time++) {
         let rowData = [
-          cellData(times[time].split("-")[0] + " - " + times[time].split("-")[1]),
+          cellData(
+            times[time].split("-")[0] + " - " + times[time].split("-")[1]
+          ),
           cellData(""),
           cellData(""),
           cellData(""),
@@ -1147,15 +1310,24 @@ const downloadAllFacultyCalendarXLSX = async () => {
         });
         data.push(rowData);
       }
-      facultyCode = facultySchedules.data[i].data[0].faculty.userInformation.facultyCode.toUpperCase();
+      facultyCode =
+        facultySchedules.data[
+          i
+        ].data[0].faculty.userInformation.facultyCode.toUpperCase();
       facultyID = facultySchedules.data[i].data[0].faculty._id;
       facultyName = `${facultySchedules.data[i].data[0].faculty.userInformation.firstName} ${facultySchedules.data[i].data[0].faculty.userInformation.middleName} ${facultySchedules.data[i].data[0].faculty.userInformation.lastName}`;
       facultyType = await getFacultyType(facultyID);
       if (facultySchedules.data[i].data.length !== 0)
-        hoursCount = facultySchedules.data[i].data.map((e) => e.hour).reduce((a, b) => a + b);
+        hoursCount = facultySchedules.data[i].data
+          .map((e) => e.hour)
+          .reduce((a, b) => a + b);
       unitsCount = await getFacultyUnitsCount(facultyID);
       const ws = XLSX.utils.aoa_to_sheet([
-        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+        [
+          cellHeaderText(
+            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+          ),
+        ],
         [cellHeaderText(facultyCode.toUpperCase())],
         [cellHeaderText(facultyName.toUpperCase())],
         [cellHeaderText(facultyType.facultyType.toUpperCase())],
@@ -1245,7 +1417,26 @@ const downloadAllFacultyCalendarXLSX = async () => {
 const downloadRoomCalendarXLSX = async () => {
   try {
     const room = roomView.find(":selected").text();
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
     const schedules = await getRoomSchedules();
     const times = [];
@@ -1288,7 +1479,9 @@ const downloadRoomCalendarXLSX = async () => {
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();
         const level = element.level.display.toUpperCase();
-        const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
+        const initials = element.faculty
+          ? element.faculty.userInformation.facultyCode.toUpperCase()
+          : "";
         const eventTime = element.startTime;
         const day = element.day === 0 ? 7 : element.day;
 
@@ -1328,7 +1521,11 @@ const downloadRoomCalendarXLSX = async () => {
       data.push(rowData);
     }
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+      [
+        cellHeaderText(
+          `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+        ),
+      ],
       [cellHeaderText(room)],
       [],
       [
@@ -1410,7 +1607,26 @@ const downloadRoomCalendarXLSX = async () => {
 const downloadAllRoomCalendarXLSX = async () => {
   try {
     let roomName;
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
     const roomSchedulesRequest = await fetch(`/api/schedules/room/${semester}`);
     const roomSchedules = await roomSchedulesRequest.json();
@@ -1456,7 +1672,9 @@ const downloadAllRoomCalendarXLSX = async () => {
           const program = element.program.programCode.toUpperCase();
           const section = element.sectionName.toUpperCase();
           const level = element.level.display.toUpperCase();
-          const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
+          const initials = element.faculty
+            ? element.faculty.userInformation.facultyCode.toUpperCase()
+            : "";
           const eventTime = element.startTime;
           const day = element.day === 0 ? 7 : element.day;
 
@@ -1496,7 +1714,11 @@ const downloadAllRoomCalendarXLSX = async () => {
         data.push(rowData);
       }
       const ws = XLSX.utils.aoa_to_sheet([
-        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+        [
+          cellHeaderText(
+            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+          ),
+        ],
         [cellHeaderText(roomName.toUpperCase())],
         [],
         [
@@ -1570,12 +1792,31 @@ const downloadAllRoomCalendarXLSX = async () => {
     });
 
     XLSX.writeFile(wb, `ROOMS SCHEDULES.xlsx`);
-  } catch (error) { }
+  } catch (error) {}
 };
 
 const downloadSectionCalendarXLSX = async () => {
   try {
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
     const schedules = await getSectionSchedules(false);
     const unitsCount = await getSectionsTotalUnits(sectionView.val());
@@ -1632,7 +1873,9 @@ const downloadSectionCalendarXLSX = async () => {
       scheduleData.forEach((element, index) => {
         const course = element.course.courseCode.toUpperCase();
         const room = element.room ? element.room.roomName.toUpperCase() : "";
-        const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
+        const initials = element.faculty
+          ? element.faculty.userInformation.facultyCode.toUpperCase()
+          : "";
         const eventTime = element.startTime;
         const day = element.day === 0 ? 7 : element.day;
         if (times[i].split("-")[0] === eventTime) {
@@ -1677,12 +1920,16 @@ const downloadSectionCalendarXLSX = async () => {
       data.push(rowData);
     }
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [
         cellHeaderText(
-          `${programView.find(":selected").text()} ${yearView.find(":selected").text()} - ${sectionView
+          `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+        ),
+      ],
+      [
+        cellHeaderText(
+          `${programView.find(":selected").text()} ${yearView
             .find(":selected")
-            .text()}`
+            .text()} - ${sectionView.find(":selected").text()}`
         ),
       ],
       [cellHeaderText(`${unitsCount} UNITS`)],
@@ -1781,20 +2028,23 @@ const downloadSectionCalendarXLSX = async () => {
     XLSX.utils.book_append_sheet(
       wb,
       ws,
-      `${programView.find(":selected").text()} ${yearView.find(":selected").text()} - ${sectionView
+      `${programView.find(":selected").text()} ${yearView
         .find(":selected")
-        .text()}`
+        .text()} - ${sectionView.find(":selected").text()}`
     );
 
     XLSX.writeFile(
       wb,
-      `${programView.find(":selected").text()}${yearView.find(":selected").text()}-${sectionView
+      `${programView.find(":selected").text()}${yearView
         .find(":selected")
-        .text()} - SCHEDULES.xlsx`
+        .text()}-${sectionView.find(":selected").text()} - SCHEDULES.xlsx`
     );
   } catch (error) {
     console.error(error);
-    Toast.fire({ icon: "warning", title: "Can't Generate XLSX, Something went wrong" });
+    Toast.fire({
+      icon: "warning",
+      title: "Can't Generate XLSX, Something went wrong",
+    });
   }
 };
 
@@ -1806,7 +2056,18 @@ const downloadFacultyCalendarPDF = async () => {
     const doc = new jsPDF("l");
 
     // Define the table headers
-    const headers = [["Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]];
+    const headers = [
+      [
+        "Time",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+    ];
 
     // Define the table rows
     const rows = [];
@@ -1840,13 +2101,19 @@ const downloadFacultyCalendarPDF = async () => {
           content: activity,
           colSpan: 1,
           rowSpan: element.hour * 2,
-          styles: { halign: "center", border: { top: 6, right: 6, bottom: 6, left: 6 } },
+          styles: {
+            halign: "center",
+            border: { top: 6, right: 6, bottom: 6, left: 6 },
+          },
         };
         rows[index][day + 1] = {
           content: activity,
           colSpan: 1,
           rowSpan: element.hour * 2,
-          styles: { halign: "center", border: { top: 6, right: 6, bottom: 6, left: 6 } },
+          styles: {
+            halign: "center",
+            border: { top: 6, right: 6, bottom: 6, left: 6 },
+          },
         };
         rows[index + 1][day + 1] = "";
         rows[index + 2][day + 1] = "";
@@ -1864,7 +2131,8 @@ const downloadFacultyCalendarPDF = async () => {
       });
     }
 
-    facultyCode = schedules[0].faculty.userInformation.facultyCode.toUpperCase();
+    facultyCode =
+      schedules[0].faculty.userInformation.facultyCode.toUpperCase();
     facultyName = `${schedules[0].faculty.userInformation.firstName} ${schedules[0].faculty.userInformation.middleName} ${schedules[0].faculty.userInformation.lastName}`;
     facultyID = schedules[0].faculty._id;
     facultyType = await getFacultyType(facultyID);
@@ -1905,9 +2173,30 @@ const downloadAllFacultyCalendarPDF = async () => {
 const downloadAllSectionCalendarXLSX = async () => {
   try {
     let sectionName, unitsCount, sectionID;
-    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R"];
+    const cols = [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+    ];
     const wb = XLSX.utils.book_new();
-    const sectionSchedulesRequest = await fetch(`/api/schedules/section/${semester}/${programView.val()}`);
+    const sectionSchedulesRequest = await fetch(
+      `/api/schedules/section/${semester}/${programView.val()}`
+    );
     const sectionSchedules = await sectionSchedulesRequest.json();
     const schedules = sectionSchedules.data.map((e) => e.data);
     for (scheduleIndex = 0; scheduleIndex < schedules.length; scheduleIndex++) {
@@ -1951,7 +2240,9 @@ const downloadAllSectionCalendarXLSX = async () => {
         schedules[scheduleIndex].forEach((element, index) => {
           const course = element.course.courseCode.toUpperCase();
           const room = element.room.roomName.toUpperCase();
-          const initials = element.faculty ? element.faculty.userInformation.facultyCode.toUpperCase() : "";
+          const initials = element.faculty
+            ? element.faculty.userInformation.facultyCode.toUpperCase()
+            : "";
           const eventTime = element.startTime;
           const day = element.day === 0 ? 7 : element.day;
           if (times[i].split("-")[0] === eventTime) {
@@ -1995,14 +2286,22 @@ const downloadAllSectionCalendarXLSX = async () => {
         });
         data.push(rowData);
       }
-      sectionName = `${schedules[scheduleIndex][0].program.programCode.toUpperCase()} ${schedules[
+      sectionName = `${schedules[
         scheduleIndex
-      ][0].level.display.toUpperCase()} - ${schedules[scheduleIndex][0].sectionName.toUpperCase()}`;
+      ][0].program.programCode.toUpperCase()} ${schedules[
+        scheduleIndex
+      ][0].level.display.toUpperCase()} - ${schedules[
+        scheduleIndex
+      ][0].sectionName.toUpperCase()}`;
       sectionID = schedules[scheduleIndex][0].section;
       unitsCount = await getSectionsTotalUnits(sectionID);
       const ws = XLSX.utils.aoa_to_sheet([
         [cellHeaderText(sectionName)],
-        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+        [
+          cellHeaderText(
+            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+          ),
+        ],
         [cellHeaderText(`${unitsCount} UNITS`)],
         [],
         [
@@ -2083,7 +2382,10 @@ const downloadAllSectionCalendarXLSX = async () => {
     XLSX.writeFile(wb, `${programView.find(":selected").text()}.xlsx`);
   } catch (error) {
     console.error(error);
-    Toast.fire({ icon: "warning", title: "Can't Download, Something went wrong" });
+    Toast.fire({
+      icon: "warning",
+      title: "Can't Download, Something went wrong",
+    });
   }
 };
 
@@ -2104,9 +2406,11 @@ const downloadFacultyTableXLSX = async () => {
         cellData(
           element.data
             .map((element) => {
-              return `${days[element.day]} ${element.startTime} - ${element.endTime
-                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
-                }) `;
+              return `${days[element.day]} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${
+                element.level.display
+              }-${element.sectionName} ${element.room.roomName}) `;
             })
             .join("\n")
         ),
@@ -2117,7 +2421,11 @@ const downloadFacultyTableXLSX = async () => {
     facultyName = facultyView.find(":selected").text();
     facultyUnits = await getFacultyUnitsCount(facultyID);
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+      [
+        cellHeaderText(
+          `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+        ),
+      ],
       [cellHeaderText(facultyCode.toUpperCase())],
       [cellHeaderText(facultyName.toUpperCase())],
       [cellHeaderText(`${facultyUnits} UNITS`)],
@@ -2144,7 +2452,14 @@ const downloadFacultyTableXLSX = async () => {
     }
 
     ws["!merges"] = merges;
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
+    ws["!cols"] = [
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 40 },
+    ];
     XLSX.utils.book_append_sheet(wb, ws, facultyCode.toUpperCase());
     XLSX.writeFile(wb, `${facultyCode.toUpperCase()}.xlsx`);
   } catch (error) {
@@ -2158,7 +2473,9 @@ const downloadFacultyTableXLSX = async () => {
 
 const downloadAllFacultyTableXLSX = async () => {
   try {
-    const schedulesRequest = await fetch(`/api/schedules/faculty/grouped/course/${semester}`);
+    const schedulesRequest = await fetch(
+      `/api/schedules/faculty/grouped/course/${semester}`
+    );
     const schedules = await schedulesRequest.json();
     const wb = XLSX.utils.book_new();
     for (let i = 0; i < schedules.data.length; i++) {
@@ -2174,9 +2491,11 @@ const downloadAllFacultyTableXLSX = async () => {
           cellData(
             element.data
               .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${element.endTime
-                  } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
-                  }) `;
+                return `${days[element.day]} ${element.startTime} - ${
+                  element.endTime
+                } (${element.program.programCode.toUpperCase()}${
+                  element.level.display
+                }-${element.sectionName} ${element.room.roomName}) `;
               })
               .join("\n")
           ),
@@ -2189,7 +2508,11 @@ const downloadAllFacultyTableXLSX = async () => {
       facultyUnits = await getFacultyUnitsCount(facultyID);
 
       const ws = XLSX.utils.aoa_to_sheet([
-        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
+        [
+          cellHeaderText(
+            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+          ),
+        ],
         [cellHeaderText(facultyCode.toUpperCase())],
         [cellHeaderText(facultyName.toUpperCase())],
         [cellHeaderText(`${facultyUnits} UNITS`)],
@@ -2215,7 +2538,14 @@ const downloadAllFacultyTableXLSX = async () => {
         });
       }
       ws["!merges"] = merges;
-      ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
+      ws["!cols"] = [
+        { wch: 25 },
+        { wch: 30 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 40 },
+      ];
       XLSX.utils.book_append_sheet(wb, ws, facultyCode.toUpperCase());
     }
     XLSX.writeFile(wb, `FACULTY SCHEDULES.xlsx`);
@@ -2249,9 +2579,11 @@ const downloadSectionTableXLSX = async () => {
         cellData(
           element.data
             .map((element) => {
-              return `${days[element.day]} ${element.startTime} - ${element.endTime
-                } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
-                }) `;
+              return `${days[element.day]} ${element.startTime} - ${
+                element.endTime
+              } (${element.program.programCode.toUpperCase()}${
+                element.level.display
+              }-${element.sectionName} ${element.room.roomName}) `;
             })
             .join("\n")
         ),
@@ -2259,12 +2591,16 @@ const downloadSectionTableXLSX = async () => {
     });
     const unitsCount = await getSectionsTotalUnits(sectionView.val());
     const ws = XLSX.utils.aoa_to_sheet([
-      [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
       [
         cellHeaderText(
-          `${programView.find(":selected").text()} ${yearView.find(":selected").text()} - ${sectionView
+          `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+        ),
+      ],
+      [
+        cellHeaderText(
+          `${programView.find(":selected").text()} ${yearView
             .find(":selected")
-            .text()}`
+            .text()} - ${sectionView.find(":selected").text()}`
         ),
       ],
       [cellHeaderText(`${unitsCount} UNITS`)],
@@ -2292,19 +2628,27 @@ const downloadSectionTableXLSX = async () => {
     }
 
     ws["!merges"] = merges;
-    ws["!cols"] = [{ wch: 25 }, { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }, { wch: 40 }];
+    ws["!cols"] = [
+      { wch: 25 },
+      { wch: 40 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 40 },
+      { wch: 40 },
+    ];
     XLSX.utils.book_append_sheet(
       wb,
       ws,
-      `${programView.find(":selected").text()} ${yearView.find(":selected").text()} - ${sectionView
+      `${programView.find(":selected").text()} ${yearView
         .find(":selected")
-        .text()}`
+        .text()} - ${sectionView.find(":selected").text()}`
     );
     XLSX.writeFile(
       wb,
-      `${programView.find(":selected").text()} ${yearView.find(":selected").text()} - ${sectionView
+      `${programView.find(":selected").text()} ${yearView
         .find(":selected")
-        .text()}.xlsx`
+        .text()} - ${sectionView.find(":selected").text()}.xlsx`
     );
   } catch (error) {
     console.error(error);
@@ -2319,7 +2663,9 @@ const downloadAllSectionTableXLSX = async () => {
   try {
     let programName, yearLevel, section, unitsCount;
     const wb = XLSX.utils.book_new();
-    const schedulesRequest = await fetch(`/api/schedules/section/grouped/course/${semester}`);
+    const schedulesRequest = await fetch(
+      `/api/schedules/section/grouped/course/${semester}`
+    );
     const schedules = await schedulesRequest.json();
     for (let i = 0; i < schedules.data.length; i++) {
       const data = [];
@@ -2336,9 +2682,11 @@ const downloadAllSectionTableXLSX = async () => {
           cellData(
             element.data
               .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${element.endTime
-                  } (${element.program.programCode.toUpperCase()}${element.level.display}-${element.sectionName} ${element.room.roomName
-                  }) `;
+                return `${days[element.day]} ${element.startTime} - ${
+                  element.endTime
+                } (${element.program.programCode.toUpperCase()}${
+                  element.level.display
+                }-${element.sectionName} ${element.room.roomName}) `;
               })
               .join("\n")
           ),
@@ -2347,10 +2695,20 @@ const downloadAllSectionTableXLSX = async () => {
       programName = schedules.data[i].schedule[0].data[0].program.programCode;
       yearLevel = schedules.data[i].schedule[0].data[0].level.display;
       section = schedules.data[i].schedule[0].data[0].sectionName;
-      unitsCount = await getSectionsTotalUnits(schedules.data[i].schedule[0].data[0].section);
+      unitsCount = await getSectionsTotalUnits(
+        schedules.data[i].schedule[0].data[0].section
+      );
       const ws = XLSX.utils.aoa_to_sheet([
-        [cellHeaderText(`SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`)],
-        [cellHeaderText(`${programName.toUpperCase()} ${yearLevel} - ${section}`)],
+        [
+          cellHeaderText(
+            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+          ),
+        ],
+        [
+          cellHeaderText(
+            `${programName.toUpperCase()} ${yearLevel} - ${section}`
+          ),
+        ],
         [cellHeaderText(`${unitsCount} UNITS`)],
         [],
         [
@@ -2376,8 +2734,20 @@ const downloadAllSectionTableXLSX = async () => {
       }
 
       ws["!merges"] = merges;
-      ws["!cols"] = [{ wch: 25 }, { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 40 }, { wch: 40 }];
-      XLSX.utils.book_append_sheet(wb, ws, `${programName.toUpperCase()} ${yearLevel} - ${section}`);
+      ws["!cols"] = [
+        { wch: 25 },
+        { wch: 40 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 40 },
+        { wch: 40 },
+      ];
+      XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        `${programName.toUpperCase()} ${yearLevel} - ${section}`
+      );
     }
     XLSX.writeFile(wb, `${programView.find(":selected").text()}.xlsx`);
   } catch (error) {
