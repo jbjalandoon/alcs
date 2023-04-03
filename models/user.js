@@ -11,6 +11,7 @@ const UserSChema = new Schema({
   password: {
     type: String,
     required: true,
+    select: false,
   },
   role: {
     type: String,
@@ -19,16 +20,21 @@ const UserSChema = new Schema({
     default: "user",
   },
   userInformation: {
-    facultyCode: {
-      type: String,
-    },
     firstName: {
       type: String,
+      required: true,
     },
     lastName: {
       type: String,
+      required: true,
     },
     middleName: {
+      type: String,
+      default: null,
+    },
+  },
+  facultyInformation: {
+    facultyCode: {
       type: String,
     },
     facultyType: {
