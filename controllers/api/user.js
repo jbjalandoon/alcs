@@ -1,127 +1,106 @@
 const User = require("../../models/user");
 const Crypto = require("crypto");
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
+const { sendMail } = require("../../helper/email");
 const { validationResult } = require("express-validator");
 
-let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "sticaschedula@gmail.com",
-    pass: "fglzoantcdlqjoyr",
-  },
-});
+exports.get = async (req, res, next) => {
+  try {
+    const user = await User.find({ deleted: false, role: { $ne: "user" } });
 
-exports.get = (req, res, next) => {
-  User.find({ deleted: false, role: "admin" })
-    .then((result) => {
-      res.json({ status: 200, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
+    if (user.length === 0)
+      return res.status(404).json({ msg: "User is empty" });
 
-exports.getOne = (req, res, next) => {
-  User.findOne({ _id: req.params.id, role: "admin" })
-    .then((result) => {
-      res.json({ status: 200, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
-
-exports.post = (req, res, next) => {
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ ok: false, errors: errors.mapped() });
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
   }
-  let returnValue;
-  let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9),
-    generatedPassword;
-  bcrypt
-    .hash(randomString, 12)
-    .then((password) => {
-      generatedPassword = password;
-      return User.findOne({
-        email: req.body.email,
-      });
-    })
-    .then((result) => {
-      if (result) {
-        result.email = req.body.email;
-        result.password = generatedPassword;
-        result.deleted = false;
-        result.role = "admin";
-        result.userInformation = {
-          firstName: req.body.firstName,
-          middleName: req.body.middleName,
-          lastName: req.body.lastName,
-        };
-        return result.save();
-      }
-      return new User({
-        email: req.body.email,
-        password: generatedPassword,
-        role: "admin",
-        userInformation: {
-          firstName: req.body.firstName,
-          middleName: req.body.middleName,
-          lastName: req.body.lastName,
-        },
+};
+
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findOne({ _id: id });
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const { email, firstName, lastName, middleName, role } = req.body;
+    const password = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const userInformation = {
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+    };
+
+    let user;
+    const existingUser = await User.findOne({ email: email, deleted: true });
+
+    if (existingUser) {
+      existingUser = { password: hashedPassword, role, email, userInformation };
+      user = await existingUser.save();
+    } else {
+      user = await new User({
+        password: hashedPassword,
+        role,
+        email,
+        userInformation,
       }).save();
-    })
-    .then((result) => {
-      returnValue = result;
-      const emailDetails = {
-        from: "sticaschedula@gmail.com",
-        to: req.body.email,
-        subject: "No Reply - Password Generated",
-        text: randomString,
-      };
-      return mailTransporter.sendMail(emailDetails);
-    })
-    .then((result) => {
-      res.status(201).json({ status: 201, data: returnValue });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
-    });
-};
+    }
 
-exports.edit = (req, res, next) => {
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ ok: false, errors: errors.mapped() });
+    const sendMailData = await sendMail(
+      email,
+      "Schedula - Random Password",
+      password
+    );
+
+    res.status(201).json({ user, sendMailData });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong", error });
   }
-  User.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      email: req.body.email,
-      userInformation: {
-        firstName: req.body.firstName,
-        middleName: req.body.middleName,
-        lastName: req.body.lastName,
-      },
-    },
-    { new: true }
-  )
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
 };
 
-exports.delete = (req, res, next) => {
-  User.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, result: error });
-    });
+exports.edit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { firstName, middleName, lastName, email } = req.body;
+    const user = await User.findOneAndUpdate(
+      { _id: id },
+      {
+        email,
+        userInformation: {
+          firstName,
+          middleName,
+          lastName,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findOneAndUpdate({ _id: id }, { deleted: true });
+
+    res.status(204).json({ msg: "User Successfully Deleted", user });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };

@@ -19,11 +19,13 @@ const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
 const scheduleRoutes = require("./routes/schedule");
 const authenticationRoutes = require("./routes/authentication");
+const maintenanceRoutes = require("./routes/maintenance");
+
 const {
   validateAdminAuthorization,
   validateAuthentication,
   validateFacultyAuthorization,
-} = require("./middleware/validation");
+} = require("./middleware/authentication");
 
 const port = process.env.PORT || 3000;
 
@@ -74,7 +76,7 @@ app.use(
   validateFacultyAuthorization,
   userRoutes
 );
-app.use("/api", apiRoutes);
+app.use("/api", apiRoutes, maintenanceRoutes);
 app.use("/api/curriculums", curriculumRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/schedules", scheduleRoutes);

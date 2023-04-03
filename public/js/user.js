@@ -1,162 +1,165 @@
-const table = $("#userTable").DataTable({
-  
-});
+const table = $("#userTable").DataTable();
 
 const csrf = $("#csrf").val();
 
-const addModal = new bootstrap.Modal($("#addModal"));
+const addModal = new bootstrap.Modal($("#addModal"), {
+  backdrop: "static",
+  keyboard: false,
+});
 const editModal = new bootstrap.Modal($("#editModal"));
 
-const dataTable = (operation, data) => {
-  const firstName = data.userInformation.firstName.toUpperCase();
-  const middleName = data.userInformation.middleName
-    ? data.userInformation.middleName.toUpperCase()
-    : "";
-  const lastName = data.userInformation.lastName.toUpperCase();
+const dataTable = (operation, { _id: id, email, role, userInformation }) => {
+  const { firstName, middleName, lastName } = userInformation;
   operation([
-    firstName + " " + middleName + " " + lastName,
-    data.email,
+    `${firstName} ${middleName} ${lastName}`.toUpperCase(),
+    email,
+    role.toUpperCase(),
     `
-      ${actionButton(data._id)}
+      ${actionButton(id)}
     `,
   ]).draw();
 };
 
-fetch("/api/users")
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    result.data.forEach((element) => {
+(async () => {
+  try {
+    const { data } = await axios.get("/api/users");
+    data.user.forEach((element) => {
       dataTable(table.row.add, element);
     });
-  })
-  .catch((error) => {
+  } catch (error) {
     console.log(error);
-  });
+  }
+})();
 
 $(addModal._element).on("show.bs.modal", (event) => {
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
   const email = $(event.currentTarget).find("#email");
+  const form = $(event.currentTarget).find("form");
   const submit = $(event.currentTarget).find("#submit");
+  const buttons = $(event.currentTarget).find("button");
   removeValidationError([firstName, middleName, lastName, email]);
   firstName.val("");
   middleName.val("");
   lastName.val("");
   email.val("");
-  submit.on("click", () => {
-    fetch("/api/users", {
-      method: "POST",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName: firstName.val().toLowerCase(),
-        middleName: middleName.val().toLowerCase(),
-        lastName: lastName.val().toLowerCase(),
-        email: email.val().toLowerCase(),
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      buttons.addClass("disabled");
+      submit.html("Submitting...");
+      const userInformation = {
+        firstName: firstName.val(),
+        middleName: middleName.val(),
+        lastName: lastName.val(),
+      };
+      const { data } = await axios.post(
+        "/api/users",
+        { role: "admin", email: email.val(), ...userInformation },
+        {
+          headers: {
+            "csrf-token": csrf,
+          },
         }
-        addModal.hide();
-        dataTable(table.row.add, result.data);
-        displayToast(result);
-      })
-      .catch((error) => {
-        console.log(error);
-        displayToast(error);
-      });
+      );
+      dataTable(table.row.add, data.user);
+      firstName.val("");
+      middleName.val("");
+      lastName.val("");
+      email.val("");
+      addModal.hide();
+    } catch ({ response }) {
+      const { status, data } = response;
+      if (status === 400) {
+        displayValidationError(data.errors, event.currentTarget);
+        return;
+      }
+      displayToast(response);
+    } finally {
+      buttons.removeClass("disabled");
+      submit.html("Submit");
+    }
   });
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
+$(editModal._element).on("show.bs.modal", async (event) => {
+  const id = $(event.relatedTarget).attr("data-bs-id");
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
   const email = $(event.currentTarget).find("#email");
+  const form = $(event.currentTarget).find("form");
   const submit = $(event.currentTarget).find("#submit");
-  removeValidationError([firstName, middleName, lastName, email]);
-  fetch(`/api/users/${$(event.relatedTarget).attr("data-bs-id")}`)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      firstName.val(result.data.userInformation.firstName);
-      middleName.val(result.data.userInformation.middleName);
-      lastName.val(result.data.userInformation.lastName);
-      email.val(result.data.email);
-      submit.on("click", () => {
-        fetch(`/api/users/${$(event.relatedTarget).attr("data-bs-id")}`, {
-          method: "PUT",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
+  const buttons = $(event.currentTarget).find("button");
+  try {
+    const { data } = await axios.get(`/api/users/${id}`);
+
+    const { userInformation, email: currentEmail } = data.user;
+    firstName.val(userInformation.firstName);
+    middleName.val(userInformation.middleName);
+    lastName.val(userInformation.lastName);
+    email.val(currentEmail);
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+
+        buttons.addClass("disabled");
+        submit.html("Submitting...");
+        removeValidationError([firstName, middleName, lastName, email]);
+        const response = await axios.put(
+          `/api/users/${id}`,
+          {
             firstName: firstName.val().toLowerCase(),
             middleName: middleName.val().toLowerCase(),
             lastName: lastName.val().toLowerCase(),
             email: email.val().toLowerCase(),
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            removeValidationError([firstName, middleName, lastName, email]);
+          },
+          {
+            headers: { "csrf-token": csrf },
+          }
+        );
+        const { data } = response;
+        dataTable(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.user
+        );
+        editModal.hide();
+        displayToast(response);
+      } catch (error) {
+        console.log(error);
+        const { status, data } = response;
+        if (status === 400) {
+          displayValidationError(data.errors, event.currentTarget);
+          return;
+        }
 
-            if (result.errors) {
-              displayValidationError(result.errors, event.currentTarget);
-              return displayToast(result);
-            }
-            editModal.hide();
-            dataTable(
-              table.row($(event.relatedTarget).closest("tr")).data,
-              result.data
-            );
-            displayToast(result);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
+        editModal.hide();
+      } finally {
+        buttons.removeClass("disabled");
+        submit.html("Submit");
+      }
     });
+  } catch (error) {
+    submit.addClass("disabled");
+    displayToast(error?.response);
+  }
 });
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch("/api/users/" + id, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+  try {
+    if (isConfirmed) {
+      const response = await axios.delete(`/api/users/${id}`, {
+        headers: { "csrf-token": csrf },
+      });
+
       table.row(element.closest("tr")).remove().draw();
-      displayToast(result.value);
+      displayToast(response);
     }
-  });
+  } catch (error) {
+    displayToast(error.response);
+  }
 };

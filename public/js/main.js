@@ -26,18 +26,18 @@ $("#logout").on("click", (event) => {
 
 const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-const displayToast = (result) => {
+const displayToast = ({ status }) => {
   let icon, message;
-  switch (result.status) {
+  switch (status) {
     case 200:
       icon = "success";
-      message = "Request is Successful";
+      message = "Successfully Edited";
       break;
     case 201:
       icon = "success";
       message = "Successfully Created";
       break;
-    case 202:
+    case 204:
       icon = "success";
       message = "Successfully Deleted";
       break;
@@ -51,11 +51,11 @@ const displayToast = (result) => {
       break;
     case 500:
       icon = "warning";
-      message = "Internal Server Error";
+      message = "Something went wrong";
       break;
     default:
       icon = "warning";
-      message = "Do Something";
+      message = "Something went wrong";
       break;
   }
   return Toast.fire({

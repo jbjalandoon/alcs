@@ -30,7 +30,7 @@ const UserSChema = new Schema({
     },
     middleName: {
       type: String,
-      default: null,
+      default: '',
     },
   },
   facultyInformation: {

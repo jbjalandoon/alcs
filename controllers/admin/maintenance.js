@@ -56,7 +56,7 @@ exports.getFaculties = (req, res, next) => {
 
 // Rendering the views of Users
 exports.getUsers = (req, res, next) => {
-  res.render("admin/users/index", {
+  res.render("maintenance/user", {
     title: "Schedula | Users",
   });
 };

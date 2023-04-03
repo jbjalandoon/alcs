@@ -1,0 +1,143 @@
+<%- include('../includes/header.ejs') %>
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+  <div class="content-wrapper container">
+    <div class="page-heading">
+      <span class="h3">List of Admin Users</span>
+      <button type="button" class="btn btn-sm btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addModal">
+        Add Users
+      </button>
+    </div>
+    <div class="page-content">
+      <section class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="userTable" class="table table-striped datatables" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th width="25% ">Name</th>
+                      <th width="25%">Email</th>
+                      <th width="25%">Role</th>
+                      <th width="25%">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+      
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Add New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addForm" class="needs-validation" novalidate>
+          <div class="modal-body">
+            <div class="container">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="firstName" class="col-form-label">First Name: </label>
+                  <input type="text" class="form-control" id="firstName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="middleName" class="col-form-label">Middle Name (optional): </label>
+                  <input type="text" class="form-control" id="middleName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="lastName" class="col-form-label">Last Name: </label>
+                  <input type="text" class="form-control" id="lastName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="email" class="col-form-label">Email: </label>
+                  <input type="text" class="form-control" id="email">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabebl" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editModalLabebl">Editing Faculty</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addForm" class="needs-validation" novalidate>
+          <div class="modal-body">
+            <div class="container">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="firstName" class="col-form-label">First Name: </label>
+                  <input type="text" class="form-control" id="firstName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="middleName" class="col-form-label">Middle Name (optional): </label>
+                  <input type="text" class="form-control" id="middleName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="lastName" class="col-form-label">Last Name: </label>
+                  <input type="text" class="form-control" id="lastName">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="email" class="col-form-label">Email: </label>
+                  <input type="text" class="form-control" id="email">
+                  <div class="invalid-feedback">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="submit">Edit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <input type="hidden" value="<%= csrf %>" id="csrf">
+  <%- include('../includes/footer.ejs') %>
+  <script src="/js/user.js"></script>
+</body>
+
+</html>

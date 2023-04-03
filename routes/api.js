@@ -3,7 +3,6 @@ const express = require("express");
 const program = require("../controllers/api/program");
 const year = require("../controllers/api/year");
 const level = require("../controllers/api/level");
-const user = require("../controllers/api/user");
 const room = require("../controllers/api/room");
 const course = require("../controllers/api/course");
 const faculty = require("../controllers/api/faculty");
@@ -38,11 +37,11 @@ router.post("/levels", validation.level, level.post);
 router.put("/levels/:id", validation.level, level.edit);
 router.delete("/levels/:id", level.delete);
 
-router.get("/users", user.get);
-router.get("/users/:id", user.getOne);
-router.post("/users", validation.user, user.post);
-router.put("/users/:id", validation.user, user.edit);
-router.delete("/users/:id", user.delete);
+// router.get("/users", user.get);
+// router.get("/users/:id", user.getOne);
+// router.post("/users", validation.user, user.post);
+// router.put("/users/:id", validation.user, user.edit);
+// router.delete("/users/:id", user.delete);
 
 router.get("/rooms", room.get);
 router.get("/rooms/:id", room.getOne);

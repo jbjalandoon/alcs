@@ -26,7 +26,7 @@ const userSeeder = async () => {
       password
     );
 
-    return { user, sendMail };
+    return { user, sendMailData };
   } catch (error) {
     throw new Error(error);
   }
