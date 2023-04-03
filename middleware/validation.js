@@ -8,7 +8,7 @@ exports.validateAuthentication = (req, res, next) => {
 
 exports.validateAdminAuthorization = (req, res, next) => {
   const { role } = req.session.user;
-  
+
   if (role === "admin") {
     return next();
   }
@@ -18,6 +18,7 @@ exports.validateAdminAuthorization = (req, res, next) => {
   res.render("error/404", {
     title: "Schedula | 404 Page Not Found",
   });
+  
 };
 
 exports.validateFacultyAuthorization = (req, res, next) => {
