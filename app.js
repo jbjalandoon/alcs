@@ -9,7 +9,7 @@ const path = require("path");
 const app = express();
 const multer = require("multer");
 const compression = require("compression");
-const error = require("./controllers/error");
+const { get404 } = require("./controllers/error");
 const db_uri = process.env.DB;
 const apiRoutes = require("./routes/api");
 const curriculumRoutes = require("./routes/curriculum");
@@ -49,13 +49,14 @@ app.use(csrf());
 app.use(flash());
 app.set("view engine", "ejs");
 app.set("views", "views");
+
 app.use((req, res, next) => {
   res.locals.csrf = req.csrfToken();
   res.locals.isActive = req.session.user ? true : false;
-  res.locals.email = req.session.user ? req.session.user.email : null;
-  res.locals.userId = req.session.user ? req.session.user._id : null;
-  res.locals.role = req.session.user ? req.session.user.role : null;
-  res.locals.input_success_message = req.flash("input_success_message")[0];
+  res.locals.email = req.session.user?.email;
+  res.locals.userId = req.session.user?.userId;
+  res.locals.role = req.session.user?.role;
+  res.locals.errorMessage = req.flash("errorMessage")[0];
   next();
 });
 
@@ -77,7 +78,7 @@ app.use("/api", apiRoutes);
 app.use("/api/curriculums", curriculumRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/schedules", scheduleRoutes);
-app.use("/", error.get404);
+app.use("/", get404);
 
 mongoose.set("strictQuery", false);
 /* SERVER INITIALIZATION */

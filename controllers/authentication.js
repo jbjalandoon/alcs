@@ -1,61 +1,53 @@
 const bcrypt = require("bcrypt");
-const { findOne } = require("../models/user");
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
-let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASSWORD,
-  },
-});
-
-exports.login = (req, res, next) => {
-  if (req.method === "GET") {
+exports.login = async (req, res) => {
+  const { method } = req;
+  if (method === "GET") {
     return res.render("authentication/login", {
       landing: req.query.landing,
     });
   }
-  const email = req.body.email;
-  const password = req.body.password;
-  User.findOne({
+
+  const { email, password } = req.body;
+  const user = await User.findOne({
     email: email,
-  })
-    .then((user) => {
-      if (user == null) {
-        return res.redirect(
-          "/authentication/login/?valid=false&email=" + req.body.email
-        );
-      }
-      return bcrypt.compare(password, user.password).then((result) => {
-        if (!result) {
-          return res.redirect(
-            "/authentication/login/?valid=false&email=" + req.body.email
-          );
-        }
-        req.session.user = user;
-        return req.session.save((error) => {
-          if (req.body.landing) {
-            return res.redirect(req.body.landing);
-          }
-          if (req.session.user.role === "admin") {
-            return res.redirect("/admin/dashboard");
-          }
-          if (req.session.user.role === "superadmin") {
-            return res.redirect("/admin/dashboard");
-          }
-          if (req.session.user.role === "user") {
-            return res.redirect("/user/schedule");
-          }
-        });
-      });
-    })
-    .catch((error) => {
-      throw new Error(error);
-    });
+  }).select("+password");
+  if (!user) {
+    return res.redirect(
+      "/authentication/login/?valid=false&email=" + req.body.email
+    );
+  }
+
+  const correctPassword = await bcrypt.compare(password, user.password);
+
+  if (!correctPassword)
+    return res.redirect("authentication/login?valid=false&email=" + email);
+
+  req.session.user = {
+    email: user.email,
+    userId: user._id,
+    role: user.role,
+  };
+
+  return req.session.save((error) => {
+    const { role } = req.session.user;
+
+    if (req.body.landing) {
+      return res.redirect(req.body.landing);
+    }
+    if (role === "admin") {
+      return res.redirect("/admin/dashboard");
+    }
+    if (role === "superadmin") {
+      return res.redirect("/admin/dashboard");
+    }
+    if (role === "user") {
+      return res.redirect("/user/schedule");
+    }
+  });
 };
 
 exports.changePassword = (req, res, next) => {

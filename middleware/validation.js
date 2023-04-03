@@ -7,8 +7,8 @@ exports.validateAuthentication = (req, res, next) => {
 };
 
 exports.validateAdminAuthorization = (req, res, next) => {
-  const { role } = req.session.user.role;
-
+  const { role } = req.session.user;
+  
   if (role === "admin") {
     return next();
   }

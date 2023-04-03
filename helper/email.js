@@ -1,4 +1,5 @@
 const nodemail = require("nodemailer");
+require("dotenv").config();
 
 const mailTransporter = nodemail.createTransport({
   service: "gmail",
@@ -16,7 +17,7 @@ exports.sendMail = async (to, subject, text) => {
       subject,
       text,
     };
-    return await mailTransporter.sendMail(emailDetails);
+    return mailTransporter.sendMail(emailDetails);
   } catch (error) {
     console.log(error);
   }
