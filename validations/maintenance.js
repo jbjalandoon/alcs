@@ -442,17 +442,6 @@ exports.facultyType = [
       }
       return Promise.resolve();
     }),
-  check("hoursCap")
-    .notEmpty()
-    .withMessage("This field is required")
-    .isNumeric()
-    .withMessage("Only number is allowed")
-    .custom((value) => {
-      if (value % 1 !== 0) {
-        return Promise.reject("Only whole number is allowed.");
-      }
-      return Promise.resolve();
-    }),
 ];
 
 exports.changePassword = [

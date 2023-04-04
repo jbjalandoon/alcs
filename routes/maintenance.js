@@ -7,6 +7,7 @@ const user = require("../controllers/api/user");
 const academicQualification = require("../controllers/api/academic-qualification");
 const program = require("../controllers/api/program");
 const level = require("../controllers/api/level");
+const facultyType = require("../controllers/api/faculty-type");
 
 const router = express.Router();
 
@@ -52,5 +53,21 @@ router.get("/levels/:id", level.getOne);
 router.post("/levels", validation.level, validateForm, level.post);
 router.put("/levels/:id", validation.level, validateForm, level.edit);
 router.delete("/levels/:id", level.delete);
+
+router.get("/faculty-types", facultyType.get);
+router.get("/faculty-types/:id", facultyType.getOne);
+router.post(
+  "/faculty-types",
+  validation.facultyType,
+  validateForm,
+  facultyType.post
+);
+router.put(
+  "/faculty-types/:id",
+  validation.facultyType,
+  validateForm,
+  facultyType.put
+);
+router.delete("/faculty-types/:id", facultyType.delete);
 
 module.exports = router;

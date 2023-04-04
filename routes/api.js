@@ -61,12 +61,6 @@ router.post("/faculty/send-password/:id/", faculty.sendNewPassword);
 router.post("/faculty/upload", faculty.postSpreadsheet);
 router.delete("/faculty/:id", faculty.delete);
 
-// Faculty Type Start
-router.get("/faculty-types", facultyType.get);
-router.get("/faculty-types/:id", facultyType.getOne);
-router.post("/faculty-types", validation.facultyType, facultyType.post);
-router.put("/faculty-types/:id", validation.facultyType, facultyType.put);
-router.delete("/faculty-types/:id", facultyType.delete);
 // Faculty Type Endw
 
 router.get("/degree", degree.get);

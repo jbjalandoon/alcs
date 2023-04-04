@@ -52,12 +52,14 @@ exports.post = async (req, res, next) => {
       facultyType: newFacultyType,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.put = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const facultyType = await FacultyType.findOneAndUpdate(
       { _id: id },
       { ...req.body },
@@ -68,12 +70,14 @@ exports.put = async (req, res, next) => {
       .status(200)
       .json({ msg: "Faculty type successfully edited", facultyType });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.delete = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const facultyType = await FacultyType.findOneAndUpdate(
       { _id: id },
       { deleted: true }
