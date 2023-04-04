@@ -1,99 +1,86 @@
 const FacultyType = require("../../models/faculty-type");
-const { validationResult } = require("express-validator");
 
-exports.get = (req, res, next) => {
-  FacultyType.find({ deleted: false })
-    .then((result) => {
-      res.json({ ok: true, data: result });
-    })
-    .catch((error) => {
-      return res.json({ ok: false, data: error });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const facultyType = await FacultyType.find({ deleted: false });
 
-exports.getOne = (req, res, next) => {
-  FacultyType.findOne({ _id: req.params.id, deleted: false })
-    .then((result) => {
-      if (!result) {
-        return res.status(404).json({ ok: false, status: 404 });
-      }
-      res.json({ ok: true, data: result, status: 200 });
-    })
-    .catch((error) => {
-      res.status(500).json({ ok: false, data: result, status: 500 });
-    });
-};
+    if (facultyType.length === 0)
+      return res.status(404).json({ msg: "No faculty type available" });
 
-exports.post = (req, res, next) => {
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ ok: false, errors: errors.mapped(), status: 400 });
+    res.status(200).json({ facultyType });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  FacultyType.findOne({
-    facultyType: req.body.facultyType,
-  })
-    .then((result) => {
-      if (result) {
-        result.deleted = false;
-        result.unitsCap = req.body.unitsCap;
-        result.hoursCap = req.body.hoursCap;
-        return result.save();
-      }
-      return new FacultyType({
-        facultyType: req.body.facultyType,
-        unitsCap: req.body.unitsCap,
-        hoursCap: req.body.hoursCap,
-      }).save();
-    })
-    .then((result) => {
-      res.json({ ok: true, data: result, status: 201 });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false, status: 500 });
-    });
 };
 
-exports.put = (req, res, next) => {
-  console.log(req.body);
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ ok: false, errors: errors.mapped(), status: 400 });
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const facultyType = await FacultyType.findOne({ _id: id, deleted: false });
+
+    if (!facultyType)
+      return res.status(404).json({ msg: "Faculty type not found" });
+
+    res.status(200).json({ facultyType });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  FacultyType.findOneAndUpdate(
-    {
-      _id: req.params.id,
-    },
-    {
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const { facultyType, unitsCap } = req.body;
+    const existingFacultyType = await FacultyType.findOne({
       facultyType: req.body.facultyType,
-      unitsCap: req.body.unitsCap,
-      hoursCap: req.body.hoursCap,
-    },
-    { new: true }
-  )
-    .then((result) => {
-      console.log(result);
-      res.json({ ok: true, data: result, status: 201 });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false, status: 500 });
     });
+    let newFacultyType;
+    if (existingFacultyType) {
+      existingFacultyType = {
+        unitsCap,
+        deleted: false,
+      };
+      newFacultyType = await existingFacultyType.save();
+    } else {
+      newFacultyType = await new FacultyType({
+        facultyType,
+        unitsCap,
+      }).save();
+    }
+
+    res.status(201).json({
+      msg: "Successfully added faculty type",
+      facultyType: newFacultyType,
+    });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
-exports.delete = (req, res, next) => {
-  FacultyType.findOneAndUpdate(
-    {
-      _id: req.params.id,
-    },
-    {
-      deleted: true,
-    }
-  ).then((result) => {
-    res.status(202).json({ ok: true, status: 202 });
-  });
+exports.put = async (req, res, next) => {
+  try {
+    const facultyType = await FacultyType.findOneAndUpdate(
+      { _id: id },
+      { ...req.body },
+      { new: true }
+    );
+
+    res
+      .status(200)
+      .json({ msg: "Faculty type successfully edited", facultyType });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const facultyType = await FacultyType.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
+
+    res.status(200).json({ msg: "Faculty type successfully deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
