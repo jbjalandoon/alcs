@@ -1,16 +1,15 @@
 const table = $("#qualificationTable").DataTable({});
 const csrf = $("#csrf").val();
 
-const tableData = (tableElement, data) => {
-  tableElement.row
-    .add([
+const tableData = (operation, data) => {
+  operation([
       data.academicQualification.toUpperCase(),
       data.licenseIndustry.length === 0
         ? "N/A"
         : "<ul>" +
           data.licenseIndustry
             .map((element) => {
-              return `<li>${element.tag.toUpperCase()}</li>`;
+              return `<li>${element.toUpperCase()}</li>`;
             })
             .join("") +
           "</ul>",
@@ -23,9 +22,10 @@ const tableData = (tableElement, data) => {
   try {
     const { data } = await axios.get("/api/academic-qualifications");
     data.aq.forEach((element) => {
-      tableData(table, element);
+      tableData(table.row.add, element);
     });
   } catch (error) {
+    console.log(error);
     displayToast(error.response);
   }
 })();
@@ -49,6 +49,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
   const buttons = $(event.currentTarget).find("button");
   academicQualification.val("");
   licenseIndustry.empty().trigger("change");
+  form.off("submit");
   form.on("submit", async (formEvent) => {
     try {
       formEvent.preventDefault();
@@ -63,10 +64,11 @@ $(addModal._element).on("show.bs.modal", (event) => {
         },
         { headers: { "csrf-token": csrf } }
       );
-      tableData(table, data.aq);
+      tableData(table.row.add , data.aq);
       addModal.hide();
-      displayToast({ status });
+      displayToast({ status, data });
     } catch (error) {
+      console.log(error);
       console.log(error.response.data.errors);
       displayValidationError(error.response.data.errors, event.currentTarget);
       displayToast(error.response);
@@ -77,7 +79,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
   });
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
+$(editModal._element).on("show.bs.modal", async (event) => {
   const academicQualification = $(event.currentTarget).find(
     "#academicQualification"
   );
@@ -89,77 +91,61 @@ $(editModal._element).on("show.bs.modal", (event) => {
       width: "100%",
     });
   const id = $(event.relatedTarget).attr("data-bs-id");
-  const button = $(event.currentTarget).find("#editButton");
-  button.off("click");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("buttons");
+  const submit = $(event.currentTarget).find("#editButton");
   licenseIndustry.empty().trigger("change");
-  fetch("/api/tags")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      result.data.forEach((element) => {
-        console.log(element);
-        licenseIndustry.append(
-          new Option(element.tag.toUpperCase(), element.tag)
+  try {
+    const { data, status } = await axios.get(
+      `/api/academic-qualifications/${id}`
+    );
+    academicQualification.val(data.aq.academicQualification);
+    data.aq.licenseIndustry.forEach((e) =>
+      licenseIndustry.append(new Option(e, e))
+    );
+    licenseIndustry.val(data.aq.licenseIndustry).trigger("change");
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        buttons.addClass("disabled");
+        submit.html("Submitting...");
+
+        const { data, status } = await axios.put(
+          `/api/academic-qualifications/${id}`,
+          {
+            academicQualification: academicQualification.val().toLowerCase(),
+            licenseIndustry: licenseIndustry.val().map((e) => e.toLowerCase()),
+          },
+          { headers: { "csrf-token": csrf } }
         );
-      });
-      return fetch("/api/academic-qualifications/" + id);
-    })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      console.log(result);
-      academicQualification.val(result.data.academicQualification);
-      licenseIndustry
-        .val(result.data.licenseIndustry.map((e) => e.tag))
-        .trigger("change");
-    })
-    .catch((error) => {
-      console.log(error);
-      return displayToast(error);
-    });
-  button.on("click", () => {
-    fetch("/api/academic-qualifications/" + id, {
-      method: "PUT",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        academicQualification: academicQualification.val().toLowerCase(),
-        licenseIndustry: licenseIndustry.val().map((e) => e.toLowerCase()),
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
+        // console.log(data);
         editModal.hide();
-        table
-          .row($(event.relatedTarget).closest("tr"))
-          .data([
-            result.data.academicQualification.toUpperCase(),
-            result.data.licenseIndustry.length === 0
-              ? "N/A"
-              : "<ul>" +
-                result.data.licenseIndustry
-                  .map((element) => {
-                    return `<li>${element.tag.toUpperCase()}</li>`;
-                  })
-                  .join("") +
-                "</ul>",
-            actionButton(result.data._id),
-          ])
-          .draw();
-        return displayToast(result);
-      })
-      .catch((error) => {
+        tableData(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.aq
+        );
+        return displayToast({ status, data });
+      } catch (error) {
         console.log(error);
-        return displayToast(error);
-      });
-  });
+        if (error.response.status === 400) {
+          displayValidationError(
+            errors.response.data.errors,
+            event.currentTarget
+          );
+        }
+
+        displayToast(error.response);
+      } finally {
+        buttons.removeClass("disabled");
+        submit.html("Submit");
+      }
+    });
+  } catch (error) {
+    displayToast(error.response);
+    submit.addClass("disabled");
+  }
 });
 
 const deleteData = (id, element) => {

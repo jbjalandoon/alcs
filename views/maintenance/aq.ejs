@@ -1,8 +1,8 @@
-<%- include('../../includes/header.ejs') %>
+<%- include('../includes/header.ejs') %>
 </head>
 
 <body>
-  <%- include('../../includes/navbar.ejs') %>
+  <%- include('../includes/navbar.ejs') %>
   <div class="content-wrapper container">
     <div class="page-heading">
       <span class="h3">List of Academic Qualifications</span>
@@ -19,9 +19,9 @@
                 <table id="qualificationTable" class="table table-striped" style="width:100%">
                   <thead>
                     <tr>
-                      <th width="40%">Academic Qualification</th>
-                      <th width="50%">Professional License & Industry Qualification</th>
-                      <th width="10%">Actions</th>
+                      <th width="35%">Academic Qualification</th>
+                      <th width="35%">Professional License & Industry Qualification</th>
+                      <th width="30%">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -98,8 +98,8 @@
           <h1 class="modal-title fs-5" id="editModalLabebl">Editing</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form class="needs-validation">
+        <form class="needs-validation">
+          <div class="modal-body">
             <div class="mb-3">
               <label for="academicQualification" class="form-label">Academic Qualification</label>
               <input type="text" class="form-control" placeholder="CS" id="academicQualification">
@@ -109,18 +109,18 @@
               <select id="licenseIndustry" class="form-select" multiple>
               </select>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="editButton">Edit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <input type="hidden" value="<%= csrf %>" id="csrf">
-  <%- include('../../includes/footer.ejs') %>
+  <%- include('../includes/footer.ejs') %>
   <script src="/js/aq.js"></script>
 </body>
 

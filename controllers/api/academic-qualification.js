@@ -77,7 +77,7 @@ exports.edit = async (req, res, next) => {
       { new: true }
     );
 
-    res.status(200).json({ aq });
+    res.status(200).json({ msg: "Successfully Edited", aq });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong", error });
   }

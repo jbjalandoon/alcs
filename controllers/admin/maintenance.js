@@ -21,7 +21,7 @@ exports.getCourses = (req, res, next) => {
 
 // Rendering the view of Academic Qualfications
 exports.getAcademicQualifications = (req, res, next) => {
-  res.render("admin/aq/index", {
+  res.render("maintenance/aq", {
     title: "Schedula | Academic Qualifcations",
   });
 };
