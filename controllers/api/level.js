@@ -1,87 +1,85 @@
 const Level = require("../../models/level");
 const { validationResult } = require("express-validator");
 
-exports.get = (req, res, next) => {
-  Level.find({ deleted: false })
-    .then((level) => {
-      res.json({ ok: true, status: 200, data: level });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const yearLevel = await Level.find({ deleted: false });
 
-exports.getOne = (req, res, next) => {
-  Level.findOne({ _id: req.params.id })
-    .then((level) => {
-      if (level.length == 0) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: level });
-    })
-    .catch((error) => {
-      res.json({ ok: false });
-    });
-};
+    if (yearLevel.length === 0)
+      return res.status(400).json({ msg: "No available year level" });
 
-exports.post = (req, res, next) => {
-  console.log(req.body);
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ ok: false, status: 400, errors: errors.mapped() });
+    res.status(200).json({ yearLevel });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Level.findOne({
-    $or: [{ yearLevel: req.body.yearLevel }, { display: req.body.display }],
-  })
-    .then((result) => {
-      if (result) {
-        result.yearLevel = req.body.yearLevel;
-        dispaly = req.body.display;
-        return result.save();
-      }
-      return new Level({
-        yearLevel: req.body.yearLevel,
-        display: req.body.display,
+};
+
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const yearLevel = await Level.findOne({ _id: id });
+
+    if (!yearLevel)
+      return res.status(404).json({ msg: "Year Level not found" });
+
+    res.status(200).json({ yearLevel });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const { yearLevel, display } = req.body;
+    const existingYearLevel = await Level.findOne({
+      $or: [{ yearLevel }, { display }],
+    });
+    let newYearLevel;
+    if (existingYearLevel) {
+      existingYearLevel = {
+        deleted: false,
+      };
+
+      newYearLevel = await existingYearLevel.save();
+    } else {
+      newYearLevel = await new Level({
+        yearLevel,
+        display,
       }).save();
-    })
-    .then((result) => {
-      res.json({ ok: true, status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, ok: false, data: error });
-    });
-};
-
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ ok: false, status: 400, errors: errors.mapped() });
+    }
+    res
+      .status(201)
+      .json({ msg: "Year level successfully added", newYearLevel });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Level.findOneAndUpdate(
-    { _id: req.params.id },
-    { yearLevel: req.body.yearLevel, display: req.body.display },
-    { new: true }
-  )
-    .then((result) => {
-      res.status(201).json({ ok: true, status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ ok: false, status: 500, data: error });
-    });
 };
 
-exports.delete = (req, res, next) => {
-  Level.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      res.status(202).json({ status: 202, ok: true, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, ok: false, data: error });
-    });
+exports.edit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { yearLevel, display } = req.body;
+    const newYearLevel = await Level.findOneAndUpdate(
+      { _id: id },
+      { yearLevel, display },
+      { new: true }
+    );
+
+    res
+      .status(200)
+      .json({ msg: "Year level successfully edited", yearLevel: newYearLevel });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const yearLevel = Level.findOneAndUpdate({ _id: id }, { delete: true });
+
+    res.status(200).json({ msg: "Year level successfully deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
