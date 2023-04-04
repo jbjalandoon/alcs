@@ -35,7 +35,7 @@ exports.getRooms = (req, res, next) => {
 
 // Rendering the view of levels
 exports.getLevels = (req, res, next) => {
-  res.render("admin/level/index", {
+  res.render("maintenance/level", {
     title: "Schedula | Levels",
   });
 };

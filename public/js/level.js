@@ -1,73 +1,66 @@
-const table = $("#levelTable").DataTable({
-});
+const table = $("#levelTable").DataTable({});
 const csrf = $("#csrf").val();
 
-// let editModal = new bootstrap.Modal($("#editModal"));
+const tableData = (operation, data) => {
+  operation([
+    data.yearLevel.toUpperCase(),
+    data.display.toUpperCase(),
+    actionButton(data._id),
+  ]).draw();
+};
+
 const addModal = new bootstrap.Modal($("#addModal"));
 const editModal = new bootstrap.Modal($("#editModal"));
 
-fetch("/api/levels")
-  .then((response) => {
-    return response.json();
-  })
-  .then((level) => {
-    level.data.forEach((element) => {
-      table.row
-        .add([
-          element.yearLevel.toUpperCase(),
-          element.display.toUpperCase(),
-          actionButton(element._id),
-        ])
-        .draw();
+(async () => {
+  try {
+    const { data, status } = await axios.get("/api/levels");
+
+    data.yearLevel.forEach((e) => {
+      tableData(table.row.add, e);
     });
-  })
-  .catch((error) => {
-    console.log(error);
-    displayToast(error);
-  });
+  } catch (error) {
+    displayToast(error.response);
+  }
+})();
 
 $(addModal._element).on("show.bs.modal", (event) => {
   const yearLevel = $(event.currentTarget).find("#yearLevel");
   const display = $(event.currentTarget).find("#display");
-  const button = $(event.currentTarget).find("#addButton");
-  button.off("click");
-  removeValidationError([display, yearLevel]);
-  yearLevel.val("");
-  display.val("");
-  button.on("click", () => {
-    console.log(yearLevel.val());
-    fetch("/api/levels", {
-      method: "POST",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        yearLevel: yearLevel.val().toLowerCase(),
-        display: display.val().toLowerCase(),
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        console.log(result);
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
-        addModal.hide();
-        console.log(result);
-        table.row
-          .add([
-            result.data.yearLevel.toUpperCase(),
-            result.data.display.toUpperCase(),
-            actionButton(result.data._id),
-          ])
-          .draw();
-        return displayToast(result);
-      })
-      .catch((error) => {
-        console.log(error);
-        displayToast(error);
-      });
+  const submit = $(event.currentTarget).find("#addButton");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      removeValidationError([display, yearLevel]);
+      buttons.addClass("disabled");
+      submit.html("Submitting...");
+
+      const { data, status } = await axios.post(
+        "/api/levels",
+        {
+          yearLevel: display.val().toLowerCase(),
+          display: display.val().toLowerCase(),
+        },
+        { headers: { "csrf-token": csrf } }
+      );
+      tableData(table.row.add, data.yearLevel);
+      addModal.hide();
+      yearLevel.val("");
+      display.val("");
+      displayToast({ data, status });
+    } catch (error) {
+      console.log(error);
+      if (error.response.status === 400) {
+        displayValidationError(error.response.data.errors, event.currentTarget);
+      }
+      displayToast(error.response);
+    } finally {
+      buttons.removeClass("disabled");
+      submit.html("Submit");
+    }
   });
 });
 
@@ -125,42 +118,20 @@ $(editModal._element).on("show.bs.modal", (event) => {
     });
 });
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch("/api/levels/" + id, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      if (!result.value.ok) {
-        return Toast.fire({
-          icon: "warning",
-          title: "Something Went Wrong!",
-        });
-      }
-      table.row(element.closest("tr")).remove().draw();
-      Toast.fire({
-        icon: "success",
-        title: "Successfully Deleted",
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+
+  try {
+    if (isConfirmed) {
+      const { data, status } = await axios.delete(`/api/levels/${id}`, {
+        headers: { "csrf-token": csrf },
       });
+      console.log(data);
+      table.row(element.closest("tr")).remove().draw();
+      displayToast({ status, data });
     }
-  });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
 };

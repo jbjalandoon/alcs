@@ -132,7 +132,6 @@ $(editModal._element).on("show.bs.modal", async (event) => {
         editModal.hide();
         displayToast(response);
       } catch (error) {
-        console.log(error);
         const { status, data } = response;
         if (status === 400) {
           displayValidationError(data.errors, event.currentTarget);

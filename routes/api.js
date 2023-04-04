@@ -24,11 +24,7 @@ router.post("/years", validation.year, year.post);
 router.put("/years/:id", validation.year, year.edit);
 router.delete("/years/:id", year.delete);
 
-router.get("/levels", level.get);
-router.get("/levels/:id", level.getOne);
-router.post("/levels", validation.level, level.post);
-router.put("/levels/:id", validation.level, level.edit);
-router.delete("/levels/:id", level.delete);
+
 
 // router.get("/users", user.get);
 // router.get("/users/:id", user.getOne);
