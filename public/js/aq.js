@@ -3,19 +3,18 @@ const csrf = $("#csrf").val();
 
 const tableData = (operation, data) => {
   operation([
-      data.academicQualification.toUpperCase(),
-      data.licenseIndustry.length === 0
-        ? "N/A"
-        : "<ul>" +
-          data.licenseIndustry
-            .map((element) => {
-              return `<li>${element.toUpperCase()}</li>`;
-            })
-            .join("") +
-          "</ul>",
-      actionButton(data._id),
-    ])
-    .draw();
+    data.academicQualification.toUpperCase(),
+    data.licenseIndustry.length === 0
+      ? "N/A"
+      : "<ul>" +
+        data.licenseIndustry
+          .map((element) => {
+            return `<li>${element.toUpperCase()}</li>`;
+          })
+          .join("") +
+        "</ul>",
+    actionButton(data._id),
+  ]).draw();
 };
 
 (async () => {
@@ -64,7 +63,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
         },
         { headers: { "csrf-token": csrf } }
       );
-      tableData(table.row.add , data.aq);
+      tableData(table.row.add, data.aq);
       addModal.hide();
       displayToast({ status, data });
     } catch (error) {
@@ -148,41 +147,22 @@ $(editModal._element).on("show.bs.modal", async (event) => {
   }
 });
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch("/api/academic-qualifications/" + id, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  })
-    .then((result) => {
-      console.log(result);
-      if (result.isConfirmed) {
-        table.row(element.closest("tr")).remove().draw();
-        Toast.fire({
-          icon: "success",
-          title: "Successfully Deleted",
-        });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+
+  try {
+    if (isConfirmed) {
+      const { status, data } = await axios.delete(
+        `/api/academic-qualifications/${id}`,
+        {
+          headers: { "csrf-token": csrf },
+        }
+      );
+      table.row(element.closest("tr")).remove().draw();
+      displayToast({ status, data });
+    }
+  } catch (error) {
+    console.log(error);
+    displayToast(error.reponse);
+  }
 };

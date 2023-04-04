@@ -92,8 +92,8 @@ exports.delete = async (req, res, next) => {
     );
 
     res
-      .status(204)
-      .json({ msg: "Academic Qualification Successfully Deleted", aq });
+      .status(200)
+      .json({ msg: "Academic Qualification Successfully Deleted" });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong", error });
   }
