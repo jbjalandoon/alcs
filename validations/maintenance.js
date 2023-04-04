@@ -50,8 +50,8 @@ exports.academicQualification = [
   check("academicQualification")
     .notEmpty()
     .withMessage("Academic Qualification is required.")
-    .isAlphanumeric("en-US", { ignore: "-" })
-    .withMessage("No space and special character is allowed")
+    .isAlphanumeric("en-US", { ignore: "- " })
+    .withMessage("Special character is not allowed")
     .trim()
     .custom((value, { req }) => {
       let query;

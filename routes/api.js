@@ -50,14 +50,6 @@ router.put("/rooms/:id", validation.room, room.edit);
 router.post("/rooms/upload", room.postSpreadsheet);
 router.delete("/rooms/:id", room.delete);
 
-router.get("/academic-qualifications", academicQualification.get);
-router.get("/academic-qualifications/:id", academicQualification.getOne);
-router.get("/academic-qualifications/multiple/:academicQualification", academicQualification.getMultiple);
-router.post("/academic-qualifications", validation.academicQualification, academicQualification.post);
-router.put("/academic-qualifications/:id", validation.academicQualification, academicQualification.edit);
-router.delete("/academic-qualifications/:id", academicQualification.delete);
-// router.delete("/academic-qualifications/:id", academicQualification.delete);
-
 router.get("/courses", course.get);
 router.get("/courses/filtered/:courses", course.getFiltered);
 router.get("/courses/units", course.getUnits);

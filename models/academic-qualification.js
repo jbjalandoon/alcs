@@ -8,12 +8,10 @@ const AcademicQualificationSchema = new Schema({
     required: true,
     unique: true,
   },
-  licenseIndustry: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: 'Tag',
-    },
-  ],
+  licenseIndustry: {
+    type: [String],
+    default: [],
+  },
   deleted: {
     type: Boolean,
     default: false,

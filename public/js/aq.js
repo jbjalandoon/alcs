@@ -1,6 +1,4 @@
-const table = $("#qualificationTable").DataTable({
-
-});
+const table = $("#qualificationTable").DataTable({});
 const csrf = $("#csrf").val();
 
 const tableData = (tableElement, data) => {
@@ -21,87 +19,75 @@ const tableData = (tableElement, data) => {
     .draw();
 };
 
-fetch("/api/academic-qualifications")
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    if (!result) {
-      return;
-    }
-    result.data.forEach((element) => {
+(async () => {
+  try {
+    const { data } = await axios.get("/api/academic-qualifications");
+    data.aq.forEach((element) => {
       tableData(table, element);
     });
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+  } catch (error) {
+    displayToast(error.response);
+  }
+})();
 
-let editModal = new bootstrap.Modal($("#editModal"));
-let addModal = new bootstrap.Modal($("#addModal"));
+let editModal = new bootstrap.Modal($("#editModal"), modalConfig);
+let addModal = new bootstrap.Modal($("#addModal"), modalConfig);
 
 $(addModal._element).on("show.bs.modal", (event) => {
-  const academicQualification = $(event.currentTarget).find("#academicQualification");
-  const licenseIndustry = $(event.currentTarget).find("#licenseIndustry").select2({
-    multiple: true,
-    tags: true,
-    width: "100%",
-  });
-  const button = $(event.currentTarget).find("#addButton");
-  console.log(licenseIndustry);
-  button.off("click");
+  const academicQualification = $(event.currentTarget).find(
+    "#academicQualification"
+  );
+  const licenseIndustry = $(event.currentTarget)
+    .find("#licenseIndustry")
+    .select2({
+      multiple: true,
+      tags: true,
+      width: "100%",
+    });
+  const form = $(event.currentTarget).find("form");
+  const submit = $(event.currentTarget).find("#addButton");
+  const buttons = $(event.currentTarget).find("button");
   academicQualification.val("");
   licenseIndustry.empty().trigger("change");
-  removeValidationError([academicQualification, licenseIndustry]);
-  fetch("/api/tags")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      result.data.forEach((element) => {
-        licenseIndustry.append(new Option(element.tag.toUpperCase(), element.tag));
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      return displayToast(error);
-    });
-  button.on("click", () => {
-    fetch("/api/academic-qualifications", {
-      method: "POST",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        academicQualification: academicQualification.val().toLowerCase(),
-        licenseIndustry: licenseIndustry.val().map((e) => e.toLowerCase()),
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        if (result.errors) {
-          console.log(result.errors);
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
-        addModal.hide();
-        tableData(table, result.data);
-        return displayToast(result);
-      })
-      .catch((error) => {
-        console.log(error);
-        return displayToast(error);
-      });
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      removeValidationError([academicQualification, licenseIndustry]);
+      buttons.addClass("disabled");
+      submit.html("Submitting");
+      const { data, status } = await axios.post(
+        "/api/academic-qualifications",
+        {
+          academicQualification: academicQualification.val().toLowerCase(),
+          licenseIndustry: licenseIndustry.val().map((e) => e.toLowerCase()),
+        },
+        { headers: { "csrf-token": csrf } }
+      );
+      tableData(table, data.aq);
+      addModal.hide();
+      displayToast({ status });
+    } catch (error) {
+      console.log(error.response.data.errors);
+      displayValidationError(error.response.data.errors, event.currentTarget);
+      displayToast(error.response);
+    } finally {
+      buttons.removeClass("disabled");
+      submit.html("Submit");
+    }
   });
 });
 
 $(editModal._element).on("show.bs.modal", (event) => {
-  const academicQualification = $(event.currentTarget).find("#academicQualification");
-  const licenseIndustry = $(event.currentTarget).find("#licenseIndustry").select2({
-    tags: true,
-    multiple: true,
-    width: "100%",
-  });
+  const academicQualification = $(event.currentTarget).find(
+    "#academicQualification"
+  );
+  const licenseIndustry = $(event.currentTarget)
+    .find("#licenseIndustry")
+    .select2({
+      tags: true,
+      multiple: true,
+      width: "100%",
+    });
   const id = $(event.relatedTarget).attr("data-bs-id");
   const button = $(event.currentTarget).find("#editButton");
   button.off("click");
@@ -113,7 +99,9 @@ $(editModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       result.data.forEach((element) => {
         console.log(element);
-        licenseIndustry.append(new Option(element.tag.toUpperCase(), element.tag));
+        licenseIndustry.append(
+          new Option(element.tag.toUpperCase(), element.tag)
+        );
       });
       return fetch("/api/academic-qualifications/" + id);
     })
@@ -123,7 +111,9 @@ $(editModal._element).on("show.bs.modal", (event) => {
     .then((result) => {
       console.log(result);
       academicQualification.val(result.data.academicQualification);
-      licenseIndustry.val(result.data.licenseIndustry.map((e) => e.tag)).trigger("change");
+      licenseIndustry
+        .val(result.data.licenseIndustry.map((e) => e.tag))
+        .trigger("change");
     })
     .catch((error) => {
       console.log(error);

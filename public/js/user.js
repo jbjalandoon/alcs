@@ -6,7 +6,10 @@ const addModal = new bootstrap.Modal($("#addModal"), {
   backdrop: "static",
   keyboard: false,
 });
-const editModal = new bootstrap.Modal($("#editModal"));
+const editModal = new bootstrap.Modal($("#editModal"), {
+  backdrop: "static",
+  keyboard: false,
+});
 
 const dataTable = (operation, { _id: id, email, role, userInformation }) => {
   const { firstName, middleName, lastName } = userInformation;
@@ -51,13 +54,13 @@ $(addModal._element).on("show.bs.modal", (event) => {
       buttons.addClass("disabled");
       submit.html("Submitting...");
       const userInformation = {
-        firstName: firstName.val(),
-        middleName: middleName.val(),
-        lastName: lastName.val(),
+        firstName: firstName.val().toLowerCase(),
+        middleName: middleName.val().toLowerCase(),
+        lastName: lastName.val().toLowerCase(),
       };
       const { data } = await axios.post(
         "/api/users",
-        { role: "admin", email: email.val(), ...userInformation },
+        { role: "admin", email: email.val().toLowerCase(), ...userInformation },
         {
           headers: {
             "csrf-token": csrf,
@@ -94,8 +97,8 @@ $(editModal._element).on("show.bs.modal", async (event) => {
   const submit = $(event.currentTarget).find("#submit");
   const buttons = $(event.currentTarget).find("button");
   try {
+    buttons.addClass("disabled");
     const { data } = await axios.get(`/api/users/${id}`);
-
     const { userInformation, email: currentEmail } = data.user;
     firstName.val(userInformation.firstName);
     middleName.val(userInformation.middleName);
@@ -142,6 +145,7 @@ $(editModal._element).on("show.bs.modal", async (event) => {
         submit.html("Submit");
       }
     });
+    buttons.removeClass("disabled");
   } catch (error) {
     submit.addClass("disabled");
     displayToast(error?.response);

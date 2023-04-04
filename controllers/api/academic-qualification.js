@@ -1,36 +1,33 @@
 const AcademicQualification = require("../../models/academic-qualification");
-const Tag = require("../../models/tag");
 const { validationResult } = require("express-validator");
 
-exports.get = (req, res, next) => {
-  AcademicQualification.find({ deleted: false })
-    .populate("licenseIndustry")
-    .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      return res.json({ ok: true, data: result });
-    })
-    .catch((error) => {
-      return res.json({ ok: false, data: error });
-    });
+exports.get = async (req, res, next) => {
+  try {
+    const aq = await AcademicQualification.find({ deleted: false });
+
+    if (aq.length === 0)
+      return res.status(404).json({ msg: "No Academic Qualification Found" });
+
+    res.status(200).json({ aq });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
+  }
 };
 
-exports.getOne = (req, res, next) => {
-  AcademicQualification.findOne({
-    deleted: false,
-    _id: req.params.id,
-  })
-    .populate("licenseIndustry")
-    .then((result) => {
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      return res.json({ ok: true, data: result });
-    })
-    .catch((error) => {
-      return res.json({ ok: false, data: error });
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const aq = await AcademicQualification.findOne({
+      deleted: false,
+      _id: id,
     });
+
+    if (!aq) return res.status(200).json({ aq });
+
+    res.status(200).json({ aq });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
+  }
 };
 
 exports.getMultiple = (req, res, next) => {
@@ -52,112 +49,52 @@ exports.getMultiple = (req, res, next) => {
     });
 };
 
-exports.post = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+exports.post = async (req, res, next) => {
+  try {
+    const { academicQualification, licenseIndustry } = req.body;
+    const aq = await new AcademicQualification({
+      academicQualification,
+      licenseIndustry,
+    }).save();
+
+    res
+      .status(200)
+      .json({ msg: "Academic Qualification Succcessfully Added", aq });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong", error });
   }
-  const tagId = [];
-  let tags = req.body.licenseIndustry;
-  Tag.find({ tag: { $in: req.body.licenseIndustry } })
-    .then((result) => {
-      result.forEach((element) => {
-        tagId.push(element._id);
-      });
-      const newTag = tags.filter(
-        (element) => !result.map((e) => e.tag).includes(element)
-      );
-      return Tag.insertMany(
-        newTag.map((e) => {
-          return { tag: e };
-        })
-      );
-    })
-    .then((result) => {
-      result.forEach((element) => {
-        tagId.push(element._id);
-      });
-      return new AcademicQualification({
-        academicQualification: req.body.academicQualification,
-        licenseIndustry: tagId,
-      }).save();
-    })
-    .then((result) => {
-      return AcademicQualification.populate(result, {
-        path: "licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({ status: 500, data: error });
-    });
 };
 
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+exports.edit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { academicQualification, licenseIndustry } = req.body;
+
+    const aq = await AcademicQualification.findOneAndUpdate(
+      { _id: id },
+      { academicQualification, licenseIndustry },
+      { new: true }
+    );
+
+    res.status(200).json({ aq });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
   }
-  const tagId = [];
-  let tags = req.body.licenseIndustry;
-  Tag.find({ tag: { $in: req.body.licenseIndustry } })
-    .then((result) => {
-      result.forEach((element) => {
-        tagId.push(element._id);
-      });
-      const newTag = tags.filter(
-        (element) => !result.map((e) => e.tag).includes(element)
-      );
-      return Tag.insertMany(
-        newTag.map((e) => {
-          return { tag: e };
-        })
-      );
-    })
-    .then((result) => {
-      result.forEach((element) => {
-        tagId.push(element._id);
-      });
-      return AcademicQualification.findOneAndUpdate(
-        { _id: req.params.id },
-        {
-          academicQualification: req.body.academicQualification,
-          licenseIndustry: tagId,
-        },
-        { new: true }
-      );
-    })
-    .then((result) => {
-      return AcademicQualification.populate(result, {
-        path: "licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.status(500).json({ status: 500, data: error });
-    });
 };
 
-exports.delete = (req, res, next) => {
-  AcademicQualification.findOneAndUpdate(
-    {
-      _id: req.params.id,
-    },
-    {
-      deleted: true,
-    }
-  )
-    .then((result) => {
-      console.log(result);
-      return res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const aq = await AcademicQualification.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
+
+    res
+      .status(204)
+      .json({ msg: "Academic Qualification Successfully Deleted", aq });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
+  }
 };

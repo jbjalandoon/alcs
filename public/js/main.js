@@ -10,6 +10,10 @@ const Toast = Swal.mixin({
   },
 });
 
+const modalConfig = {
+  backdrop: "static",
+  keyboard: false,
+};
 const changePasswordModal = new bootstrap.Modal($("#changePasswordModal"));
 
 const setAttributes = (element, attributes) => {
@@ -26,38 +30,14 @@ $("#logout").on("click", (event) => {
 
 const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-const displayToast = ({ status }) => {
+const displayToast = ({ status, data }) => {
   let icon, message;
-  switch (status) {
-    case 200:
-      icon = "success";
-      message = "Successfully Edited";
-      break;
-    case 201:
-      icon = "success";
-      message = "Successfully Created";
-      break;
-    case 204:
-      icon = "success";
-      message = "Successfully Deleted";
-      break;
-    case 400:
-      icon = "warning";
-      message = "Validation Error";
-      break;
-    case 404:
-      icon = "warning";
-      message = "Not Found";
-      break;
-    case 500:
-      icon = "warning";
-      message = "Something went wrong";
-      break;
-    default:
-      icon = "warning";
-      message = "Something went wrong";
-      break;
+  if (icon > 400) {
+    icon = "success";
+  } else {
+    icon = "warning";
   }
+  message = data.msg;
   return Toast.fire({
     icon: icon,
     title: message,
