@@ -33,9 +33,9 @@ const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const displayToast = ({ status, data }) => {
   let icon, message;
   if (icon > 400) {
-    icon = "success";
-  } else {
     icon = "warning";
+  } else {
+    icon = "success";
   }
   message = data.msg;
   return Toast.fire({

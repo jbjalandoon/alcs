@@ -64,58 +64,64 @@ $(addModal._element).on("show.bs.modal", (event) => {
   });
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
+$(editModal._element).on("show.bs.modal", async (event) => {
   const id = $(event.relatedTarget).attr("data-bs-id");
   const yearLevel = $(event.currentTarget).find("#yearLevel");
   const display = $(event.currentTarget).find("#display");
-  const button = $(event.currentTarget).find("#editButton");
-  button.off("click");
-  fetch("/api/levels/" + id)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      yearLevel.val(result.data.yearLevel);
-      display.val(result.data.display);
-      removeValidationError([yearLevel, display]);
-      button.on("click", () => {
-        fetch("/api/levels/" + id, {
-          method: "PUT",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            yearLevel: yearLevel.val().toLowerCase(),
-            display: display.val().toLowerCase(),
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            if (result.errors) {
-              displayValidationError(result.errors, event.currentTarget);
-              return displayToast(result);
-            }
-            editModal.hide();
-            table
-              .row($(event.relatedTarget).closest("tr"))
-              .data([
-                result.data.yearLevel.toUpperCase(),
-                result.data.display.toUpperCase(),
-                actionButton(result.data._id),
-              ])
-              .draw();
-            return displayToast(result);
-          })
-          .catch((error) => {
-            console.log(error);
-            displayToast(error);
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      displayToast(error);
+  const submit = $(event.currentTarget).find("#editButton");
+  const buttons = $(event.currentTarget).find("button");
+  const form = $(event.currentTarget).find("form");
+
+  try {
+    const { data, status } = await axios.get(`/api/levels/${id}`);
+
+    yearLevel.val(data.yearLevel.yearLevel);
+    display.val(data.yearLevel.display);
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        buttons.addClass("disabled");
+        submit.html("Submitting...");
+        removeValidationError([yearLevel, display]);
+
+        const { status, data } = await axios.put(
+          `/api/levels/${id}`,
+          {
+            yearLevel: yearLevel.val().toUpperCase(),
+            display: display.val().toUpperCase(),
+          },
+          {
+            headers: { "csrf-token": csrf },
+          }
+        );
+
+        tableData(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.yearLevel
+        );
+        yearLevel.val("");
+        display.val("");
+        editModal.hide();
+        displayToast({ status, data });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        buttons.removeClass("disabled");
+        submit.html("Submit");
+      }
     });
+  } catch (error) {
+    displayToast(error.response);
+  }
 });
 
 const deleteData = async (id, element) => {
