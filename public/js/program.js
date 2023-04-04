@@ -68,92 +68,75 @@ $(editModal._element).on("show.bs.modal", async (event) => {
   const programCode = $(event.currentTarget).find("#programCode");
   const programName = $(event.currentTarget).find("#programName");
   const id = $(event.relatedTarget).attr("data-bs-id");
-  const button = $(event.currentTarget).find("#editButton");
-  button.off("click");
-  removeValidationError([programCode, programName]);
-  fetch("/api/programs/" + id)
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      programCode.val(result.data.programCode);
-      programName.val(result.data.programName);
-      button.on("click", () => {
-        fetch("/api/programs/" + id, {
-          method: "PUT",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
+  const submit = $(event.currentTarget).find("#editButton");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
+
+  try {
+    const { data, status } = await axios.get(`/api/programs/${id}`);
+    programCode.val(data.program.programCode);
+    programName.val(data.program.programName);
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting...");
+        buttons.addClass("disabled");
+        removeValidationError([programCode, programName]);
+
+        const { data, status } = await axios.put(
+          `/api/programs/${id}`,
+          {
             programCode: programCode.val().toLowerCase(),
             programName: programName.val().toLowerCase(),
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            if (result.errors) {
-              displayValidationError(result.errors, event.currentTarget);
-              return displayToast(result);
-            }
-            editModal.hide();
-            table
-              .row($(event.relatedTarget).closest("tr"))
-              .data([
-                result.data.programCode.toUpperCase(),
-                result.data.programName.toUpperCase(),
-                actionButton(result.data._id),
-              ])
-              .draw();
-            return displayToast(result);
-          })
-          .catch((error) => {
-            console.log(error);
-            return displayToast(error);
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      return displayToast(error);
+          },
+          {
+            headers: {
+              "csrf-token": csrf,
+            },
+          }
+        );
+        console.log(data.program);
+        tableData(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.program
+        );
+        editModal.hide();
+        displayToast({ status, data });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast({ response });
+      } finally {
+        buttons.removeClass("disabled");
+        submit.html("Submit");
+      }
     });
+  } catch (error) {
+    submit.addClass("disabled");
+    displayToast(error.response);
+  }
 });
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch("/api/programs/" + id, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  })
-    .then((result) => {
-      if (result.isConfirmed) {
-        table.row(element.closest("tr")).remove().draw();
-        Toast.fire({
-          icon: "success",
-          title: "Successfully Deleted",
-        });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+
+  try {
+    if (isConfirmed) {
+      const { status, data } = await axios.delete(`/api/programs/${id}`, {
+        headers: { "csrf-token": csrf },
+      });
+      table.row(element.closest("tr")).remove().draw();
+      displayToast({ status, data });
+    }
+  } catch (error) {
+    displayToast(error.response);
+  }
 };
 
 $("#uploadButton").on("click", () => {

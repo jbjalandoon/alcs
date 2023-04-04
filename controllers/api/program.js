@@ -48,14 +48,13 @@ exports.post = async (req, res, next) => {
 
 exports.edit = async (req, res, next) => {
   try {
-    const { programCode, programName } = req.params;
+    const { programCode, programName } = req.body;
     const { id } = req.params;
     const program = await Program.findOneAndUpdate(
       { _id: id },
       { programCode, programName },
       { new: true }
     );
-
     res.status(200).json({ msg: "Program successfully edited", program });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
