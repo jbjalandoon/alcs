@@ -1,81 +1,70 @@
-const table = $("#programTable").DataTable({
-});
+const table = $("#programTable").DataTable({});
 const csrf = $("#csrf").val();
 const uploadModal = new bootstrap.Modal($("#uploadModal"));
+
+const tableData = (operation, data) => {
+  operation([
+    data.programName.toUpperCase(),
+    data.programCode.toUpperCase(),
+    actionButton(data._id),
+  ]).draw();
+};
 
 const addModal = new bootstrap.Modal($("#addModal"));
 const editModal = new bootstrap.Modal($("#editModal"));
 
-fetch("/api/programs", {
-  method: "GET",
-})
-  .then((response) => {
-    return response.json();
-  })
-  .then((programs) => {
-    programs.data.forEach((element) => {
-      table.row
-        .add([
-          element.programCode.toUpperCase(),
-          element.programName.toUpperCase(),
-          actionButton(element._id),
-        ])
-        .draw();
+(async () => {
+  try {
+    const { data, status } = await axios.get("/api/programs");
+    data.programs.forEach((element) => {
+      tableData(table.row.add, element);
     });
-    displayToast(programs);
-  })
-  .catch((error) => {
-    console.log(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something Went Wrong",
-    });
-  });
+  } catch (error) {
+    displayToast(error.response);
+  }
+})();
 
 $(addModal._element).on("show.bs.modal", (event) => {
   const programName = $(event.currentTarget).find("#programName");
   const programCode = $(event.currentTarget).find("#programCode");
-  const button = $(event.currentTarget).find("#addButton");
-  button.off("click");
-  removeValidationError([programName, programCode]);
-  programName.val("");
-  programCode.val("");
-  button.on("click", () => {
-    fetch("/api/programs", {
-      method: "POST",
-      headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        programName: programName.val().toLowerCase(),
-        programCode: programCode.val().toLowerCase(),
-      }),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        console.log(result);
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
-        addModal.hide();
-        table.row
-          .add([
-            result.data.programCode.toUpperCase(),
-            result.data.programName.toUpperCase(),
-            actionButton(result.data._id),
-          ])
-          .draw();
-        return displayToast(result);
-      })
-      .catch((error) => {
-        console.log(error);
-        displayToast(error);
-      });
+  const submit = $(event.currentTarget).find("#addButton");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      removeValidationError([programName, programCode]);
+      submit.html("Submitting...");
+      buttons.addClass("disabled");
+
+      const { data, status } = await axios.post(
+        "/api/programs",
+        {
+          programName: programName.val().toLowerCase(),
+          programCode: programCode.val().toLowerCase(),
+        },
+        { headers: { "csrf-token": csrf } }
+      );
+
+      tableData(table.row.add, data.program);
+      addModal.hide();
+      programCode.val("");
+      programName.val("");
+      displayToast({ status, data });
+    } catch (error) {
+      if (error.response.status === 400) {
+        displayValidationError(error.response.data.errors, event.currentTarget);
+      }
+      displayToast(error.response);
+    } finally {
+      submit.html("Submit");
+      buttons.removeClass("disabled");
+    }
   });
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
+$(editModal._element).on("show.bs.modal", async (event) => {
   const programCode = $(event.currentTarget).find("#programCode");
   const programName = $(event.currentTarget).find("#programName");
   const id = $(event.relatedTarget).attr("data-bs-id");

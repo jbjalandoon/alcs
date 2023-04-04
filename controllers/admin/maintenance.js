@@ -7,7 +7,7 @@ exports.getFacultyType = (req, res, next) => {
 
 // Rendering the view of programs
 exports.getPrograms = (req, res, next) => {
-  res.render("admin/program/index", {
+  res.render("maintenance/program", {
     title: "Schedula | Programs",
   });
 };

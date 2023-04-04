@@ -3,97 +3,77 @@ const { validationResult } = require("express-validator");
 
 const excelToJson = require("convert-excel-to-json");
 
-exports.get = (req, res, next) => {
-  Program.find({ deleted: false })
-    .then((program) => {
-      res.status(200).json({
-        status: 200,
-        data: program,
-      });
-    })
-    .catch((error) => {
-      res.json({
-        status: 500,
-        data: error,
-      });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const programs = await Program.find({ deleted: false });
 
-exports.getOne = (req, res, next) => {
-  Program.findOne({ _id: req.params.id })
-    .then((program) => {
-      res.status(200).json({
-        status: 200,
-        data: program,
-      });
-    })
-    .catch((error) => {
-      res.json({
-        status: 500,
-        data: error,
-      });
-    });
-};
+    if (programs.length === 0)
+      return res.status(404).json({ msg: "No program available" });
 
-exports.post = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+    res.status(200).json({ msg: "Successfully retrieved programs", programs });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong", error });
   }
-  Program.findOne({ programCode: req.body.programCode })
-    .then((result) => {
-      if (result) {
-        result.programCode = req.body.programCode;
-        result.programName = req.body.programName;
-        return result.save();
-      }
-      return new Program({
-        programCode: req.body.programCode,
-        programName: req.body.programName,
-      }).save();
-    })
-    .then((result) => {
-      console.log(result);
-      res.json({
-        data: result,
-        status: 201,
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
-    });
 };
 
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+exports.getOne = async (req, res, next) => {
+  try {
+    const program = await Program.findOne({ _id: req.params.id });
+
+    if (!program) return res.status(404).json({ msg: "Program not found" });
+
+    res.status(200).json({ msg: "Successfully retrieved program", program });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Program.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      programCode: req.body.programCode,
-      programName: req.body.programName,
-    },
-    { new: true }
-  )
-    .then((result) => {
-      res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
 };
 
-exports.delete = (req, res, next) => {
-  Program.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
+exports.post = async (req, res, next) => {
+  try {
+    const { programCode, programName } = req.body;
+    const existingProgram = await Program.findOne({ programCode });
+    let newProgram;
+    if (existingProgram) {
+      existingProgram = { programName, deleted: false };
+      newProgram = await existingProgram.save();
+    } else {
+      newProgram = await new Program({ programCode, programName }).save();
+    }
+
+    res.status(201).json({ msg: "Successfully added", program: newProgram });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.edit = async (req, res, next) => {
+  try {
+    const { programCode, programName } = req.params;
+    const { id } = req.params;
+    const program = await Program.findOneAndUpdate(
+      { _id: id },
+      { programCode, programName },
+      { new: true }
+    );
+
+    res.status(200).json({ msg: "Program successfully edited", program });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const program = await Program.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
+
+    res.status(200).json({ msg: "Successfully Deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.postSpreadsheet = (req, res, next) => {

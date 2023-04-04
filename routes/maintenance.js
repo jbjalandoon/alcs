@@ -5,6 +5,7 @@ const validation = require("../validations/maintenance");
 
 const user = require("../controllers/api/user");
 const academicQualification = require("../controllers/api/academic-qualification");
+const program = require("../controllers/api/program");
 
 const router = express.Router();
 
@@ -35,5 +36,12 @@ router.put(
   academicQualification.edit
 );
 router.delete("/academic-qualifications/:id", academicQualification.delete);
+
+router.get("/programs", program.get);
+router.get("/programs/:id", program.getOne);
+router.post("/programs/upload", program.postSpreadsheet);
+router.post("/programs/", validation.program, validateForm, program.post);
+router.put("/programs/:id", validation.program, validateForm, program.edit);
+router.delete("/programs/:id", program.delete);
 
 module.exports = router;
