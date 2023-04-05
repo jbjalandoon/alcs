@@ -2,62 +2,84 @@ const Room = require("../../models/room");
 const { validationResult } = require("express-validator");
 const readXlsxFile = require("read-excel-file/node");
 
-exports.get = (req, res, next) => {
-  Room.find({ deleted: false })
-    .then((room) => {
-      res.json({ ok: true, status: 200, data: room });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const room = await Room.find({ deleted: false });
+    if (room.length === 0)
+      return res.status(404).json({ msg: "No available room" });
 
-exports.getOne = (req, res, next) => {
-  Room.findOne({ _id: req.params.id })
-    .then((room) => {
-      if (!room) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: room });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
-    });
-};
-
-exports.post = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ ok: false, status: 400, errors: errors.mapped() });
+    return res.status(200).json({ room });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Room.findOne({
-    roomName: req.body.roomName,
-    deleted: true,
-  })
-    .then((result) => {
-      if (result) {
-        result.roomName = req.body.roomName;
-        result.laboratory = req.body.laborator;
-        return result.save();
-      }
-      return new Room({
-        roomName: req.body.roomName,
-        laboratory: req.body.laboratory,
-      }).save();
-    })
-    .then((result) => {
-      return res.status(201).json({ ok: false, status: 201, data: result });
-    })
-    .catch((error) => {
-      return res.status(500).json({ ok: false, status: 500, data: error });
-    });
 };
 
-exports.postSpreadsheet = (req, res, next) => {
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const room = await findOne({ _id: id });
+
+    if (!room) return res.status(404).json({ msg: "Room not found" });
+
+    res.status(200).json({ room });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const { roomName, isLaboratory } = req.body;
+
+    const existingRoom = await Room.findOne({ roomName, deleted: true });
+    let newRoom;
+    if (existingRoom) {
+      existingRoom = {
+        ...existingRoom,
+        roomName,
+        isLaboratory,
+        deleted: false,
+      };
+      newRoom = await existingRoom.save();
+    } else {
+      newRoom = await new Room({ roomName, isLaboratory }).save();
+    }
+
+    res.status(201).json({ msg: "Room successfully added", room: newRoom });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.edit = async (req, res, next) => {
+  try {
+    const { roomName, isLaboratory } = req.body;
+    const { id } = req.params;
+
+    const room = await Room.findOneAndUpdate(
+      { _id: id },
+      { roomName, isLaboratory },
+      { new: true }
+    );
+
+    res.status(200).json({ msg: "Room successfully edited", room });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const room = await Room.findOneAndUpdate({ _id: id }, { deleted: true });
+
+    res.status(200).json({ msg: "Room successfully deleted", room });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.postSpreadsheet = async (req, res, next) => {
   let data;
   readXlsxFile(Buffer.from(req.file.buffer))
     .then((rows) => {
@@ -100,36 +122,5 @@ exports.postSpreadsheet = (req, res, next) => {
     .catch((error) => {
       res.json({ status: 500, data: error });
       console.log(error);
-    });
-};
-
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(401).json({ ok: false, errors: errors.mapped() });
-  }
-  Room.findOneAndUpdate(
-    { _id: req.params.id },
-    { roomName: req.body.roomName, laboratory: req.body.laboratory },
-    { new: true }
-  )
-    .then((result) => {
-      console.log(result);
-      res.status(201).json({ ok: true, status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ ok: false, status: 500, data: result });
-    });
-};
-
-exports.delete = (req, res, next) => {
-  Room.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      return res.json({ ok: true, status: 202, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false, status: 500, data: error });
     });
 };
