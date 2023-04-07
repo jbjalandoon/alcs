@@ -28,7 +28,7 @@ exports.getAcademicQualifications = (req, res, next) => {
 
 // Rendering the view of Roooms
 exports.getRooms = (req, res, next) => {
-  res.render("admin/room/index", {
+  res.render("maintenance/room", {
     title: "Schedula | Room",
   });
 };

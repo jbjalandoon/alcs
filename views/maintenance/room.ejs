@@ -1,8 +1,8 @@
-<%- include('../../includes/header.ejs') %>
+<%- include('../includes/header.ejs') %>
 </head>
 
 <body>
-  <%- include('../../includes/navbar.ejs') %>
+  <%- include('../includes/navbar.ejs') %>
   <div class="content-wrapper container">
     <div class="page-heading">
       <span class="h3">List of Rooms</span>
@@ -72,8 +72,8 @@
           <h5 class="modal-title" id="addModalLabel">Adding new room</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form id="addForm" class="needs-validation" novalidate>
+        <form id="addForm" class="needs-validation" novalidate>
+          <div class="modal-body">
             <div class="mb-3">
               <label for="room-name" class="col-form-label">Room Name:</label>
               <input type="text" class="form-control" id="roomName">
@@ -88,12 +88,12 @@
                 </div>
               </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="addButton">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -105,8 +105,8 @@
           <h1 class="modal-title fs-5" id="editModalLabebl">Editing room</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form class="needs-validation">
+        <form class="needs-validation">
+          <div class="modal-body">
             <div class="mb-3">
               <label for="room-name" class="col-form-label">Room Name:</label>
               <input type="text" class="form-control" id="roomName">
@@ -121,18 +121,18 @@
                 </div>
               </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="editButton">Edit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="editButton">Edit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <input type="hidden" value="<%= csrf %>" id="csrf">
-  <%- include('../../includes/footer.ejs') %>
+  <%- include('../includes/footer.ejs') %>
   <script src="/js/room.js"></script>
 </body>
 

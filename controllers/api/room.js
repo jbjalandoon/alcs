@@ -17,12 +17,13 @@ exports.get = async (req, res, next) => {
 exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const room = await findOne({ _id: id });
+    const room = await Room.findOne({ _id: id });
 
     if (!room) return res.status(404).json({ msg: "Room not found" });
 
     res.status(200).json({ room });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -55,7 +56,6 @@ exports.edit = async (req, res, next) => {
   try {
     const { roomName, isLaboratory } = req.body;
     const { id } = req.params;
-
     const room = await Room.findOneAndUpdate(
       { _id: id },
       { roomName, isLaboratory },

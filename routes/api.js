@@ -31,14 +31,6 @@ router.delete("/years/:id", year.delete);
 // router.post("/users", validation.user, user.post);
 // router.put("/users/:id", validation.user, user.edit);
 // router.delete("/users/:id", user.delete);
-
-router.get("/rooms", room.get);
-router.get("/rooms/:id", room.getOne);
-router.post("/rooms", validation.room, room.post);
-router.put("/rooms/:id", validation.room, room.edit);
-router.post("/rooms/upload", room.postSpreadsheet);
-router.delete("/rooms/:id", room.delete);
-
 router.get("/courses", course.get);
 router.get("/courses/filtered/:courses", course.getFiltered);
 router.get("/courses/units", course.getUnits);
