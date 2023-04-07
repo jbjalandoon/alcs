@@ -6,17 +6,152 @@ const mongoose = require("mongoose");
 const AcademicQualification = require("../../models/academic-qualification");
 const fs = require("fs");
 
-exports.get = (req, res, next) => {
-  Course.find({ deleted: false })
-    .populate("qualification.academicQualification")
-    .populate("qualification.licenseIndustry")
-    .then((course) => {
-      res.json({ status: 200, data: course });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
+exports.get = async (req, res, next) => {
+  try {
+    const course = await Course.find({ deleted: false }).populate(
+      "qualification.academicQualification"
+    );
+
+    if (course.length === 0) {
+      return res.status(404).json({ msg: "No course available" });
+    }
+
+    res.status(200).json({ course });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findOne({ _id: id }).populate(
+      "qualification.academicQualification"
+    );
+
+    if (!course) return res.status(404).json({ msg: "Course not found" });
+
+    res.status(200), json({ course });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const {
+      courseCode,
+      courseDescription,
+      customTitle,
+      lecture,
+      lab,
+      units,
+      examination,
+      academicQualification,
+      licenseIndustry,
+      degree,
+      experience,
+    } = req.body;
+
+    const qualification = {
+      academicQualification,
+      licenseIndustry,
+      degree,
+      experience,
+    };
+
+    const existingCourse = await Course.findOne({ courseCode });
+    let newCourse;
+    if (existingCourse) {
+      existingCourse = {
+        ...existingCourse,
+        courseCode,
+        courseDescription,
+        customTitle,
+        lecture,
+        lab,
+        units,
+        examination,
+        qualification,
+      };
+      newCourse = await existingCourse.save();
+    } else {
+      newCourse = await new Course({
+        courseCode,
+        courseDescription,
+        customTitle,
+        lecture,
+        lab,
+        units,
+        examination,
+        qualification,
+      }).save();
+    }
+
+    res.status(201).json({
+      msg: "Course successfully added",
+      course: await newCourse.populate("qualification.academicQualification"),
     });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.edit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      courseCode,
+      courseDescription,
+      customTitle,
+      lecture,
+      lab,
+      units,
+      examination,
+      academicQualification,
+      licenseIndustry,
+      degree,
+      experience,
+    } = req.body;
+
+    const qualification = {
+      academicQualification,
+      licenseIndustry,
+      degree,
+      experience,
+    };
+    const course = await findOneAndUpdate(
+      { _id: id },
+      {
+        courseCode,
+        courseDescription,
+        customTitle,
+        lecture,
+        lab,
+        units,
+        examination,
+        qualification,
+      }
+    ).populate("qualification.academicQualification");
+
+    res.status(200).json({ msg: "Course succesfully edited", course });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = id;
+    const course = await Course.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
+
+    res.status(200).json({ msg: "Course successfully deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.getFiltered = (req, res, next) => {
@@ -27,7 +162,10 @@ exports.getFiltered = (req, res, next) => {
     })
     .catch((error) => {
       console.log(error);
-      res.status(500).json({ status: 500, data: error });
+      res
+        .status(500)
+        .json({ msg: "Something went wrong" })
+        .json({ status: 500, data: error });
     });
 };
 
@@ -42,133 +180,6 @@ exports.getUnits = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false, data: error });
-    });
-};
-
-exports.getOne = (req, res, next) => {
-  Course.findOne({ _id: req.params.id })
-    .populate("qualification.academicQualification")
-    .populate("qualification.licenseIndustry")
-    .then((course) => {
-      if (!course) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: course });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
-    });
-};
-
-exports.post = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
-  }
-  Course.findOne({ courseCode: req.body.courseCode })
-    .then((result) => {
-      if (result) {
-        result.courseCode = req.body.courseCode;
-        result.courseDescription = req.body.courseDescription;
-        result.lecture = req.body.lecture;
-        result.customTitle = req.body.customTitle;
-        result.lab = req.body.lab;
-        result.units = req.body.units;
-        result.examination = req.body.examination;
-        result.qualification = {
-          academicQualification: req.body.academicQualification,
-          licenseIndustry: req.body.licenseIndustry,
-          degree: req.body.degree,
-          experience: req.body.experience,
-        };
-        return result.save();
-      }
-      return new Course({
-        courseCode: req.body.courseCode,
-        courseDescription: req.body.courseDescription,
-        lecture: req.body.lecture,
-        customTitle: req.body.customTitle,
-        lab: req.body.lab,
-        units: req.body.units,
-        examination: req.body.examination,
-        qualification: {
-          academicQualification: req.body.academicQualification,
-          licenseIndustry: req.body.licenseIndustry,
-          degree: req.body.degree,
-          experience: req.body.experience,
-        },
-      }).save();
-    })
-    .then((result) => {
-      return Course.populate(result, { path: "qualification.licenseIndustry" });
-    })
-    .then((result) => {
-      return Course.populate(result, {
-        path: "qualification.academicQualification",
-      });
-    })
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ status: 500, data: error });
-    });
-};
-
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.json({ ok: false, errors: errors.mapped() });
-  }
-  Course.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      courseCode: req.body.courseCode,
-      courseDescription: req.body.courseDescription,
-      lecture: req.body.lecture,
-      customTitle: req.body.customTitle,
-      lab: req.body.lab,
-      units: req.body.units,
-      examination: req.body.examination,
-      qualification: {
-        academicQualification: req.body.academicQualification,
-        licenseIndustry: req.body.licenseIndustry,
-        degree: req.body.degree,
-        experience: req.body.experience,
-      },
-    },
-    { new: true }
-  )
-    .then((result) => {
-      return Course.populate(result, {
-        path: "qualification.licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return Course.populate(result, {
-        path: "qualification.academicQualification",
-      });
-    })
-    .then((result) => {
-      res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
-    });
-};
-
-exports.delete = (req, res, next) => {
-  Course.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      console.log(result);
-      res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
     });
 };
 
