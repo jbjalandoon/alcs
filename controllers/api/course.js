@@ -31,8 +31,9 @@ exports.getOne = async (req, res, next) => {
 
     if (!course) return res.status(404).json({ msg: "Course not found" });
 
-    res.status(200), json({ course });
+    res.status(200).json({ course });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -120,7 +121,7 @@ exports.edit = async (req, res, next) => {
       degree,
       experience,
     };
-    const course = await findOneAndUpdate(
+    const course = await Course.findOneAndUpdate(
       { _id: id },
       {
         courseCode,
@@ -131,11 +132,13 @@ exports.edit = async (req, res, next) => {
         units,
         examination,
         qualification,
-      }
+      },
+      { new: true }
     ).populate("qualification.academicQualification");
 
     res.status(200).json({ msg: "Course succesfully edited", course });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };

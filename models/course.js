@@ -34,18 +34,8 @@ const CourseSchema = new Schema({
     default: false,
   },
   qualification: {
-    academicQualification: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: "Qualification",
-      },
-    ],
-    licenseIndustry: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: "Tag",
-      },
-    ],
+    academicQualification: [String],
+    licenseIndustry: [String],
     degree: {
       type: Number,
       default: 0,

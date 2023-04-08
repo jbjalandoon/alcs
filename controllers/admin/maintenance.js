@@ -14,7 +14,7 @@ exports.getPrograms = (req, res, next) => {
 
 // Rendering the view of courses
 exports.getCourses = (req, res, next) => {
-  res.render("admin/course/index", {
+  res.render("maintenance/course", {
     title: "Schedula | Courses",
   });
 };
