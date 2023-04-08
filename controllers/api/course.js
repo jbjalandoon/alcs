@@ -145,7 +145,7 @@ exports.edit = async (req, res, next) => {
 
 exports.delete = async (req, res, next) => {
   try {
-    const { id } = id;
+    const { id } = req.params;
     const course = await Course.findOneAndUpdate(
       { _id: id },
       { deleted: true }

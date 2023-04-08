@@ -29,7 +29,7 @@ const tableData = (operation, data) => {
       ? "N/A"
       : data.qualification.licenseIndustry
           .map((element) => {
-            return element.tag.toUpperCase();
+            return element.toUpperCase();
           })
           .join(", "),
     data.examination.toString().toUpperCase(),
@@ -65,6 +65,7 @@ $(addModal._element).on("show.bs.modal", async (event) => {
       multiple: true,
       width: "100%",
     });
+  academicQualification.empty();
   const experience = $(event.currentTarget).find("#experience");
   const degree = $(event.currentTarget).find("#degree");
   const licenseIndustry = $(event.currentTarget)
@@ -73,6 +74,7 @@ $(addModal._element).on("show.bs.modal", async (event) => {
       multiple: true,
       width: "100%",
     });
+  licenseIndustry.empty();
   const examination = $(event.currentTarget).find("#examination");
   const buttons = $(event.currentTarget).find("buttons");
   const submit = $(event.currentTarget).find("#addButton");
@@ -189,6 +191,7 @@ $(editModal._element).on("show.bs.modal", async (event) => {
       multiple: true,
       width: "100%",
     });
+  academicQualification.empty();
   const experience = $(event.currentTarget).find("#experience");
   const degree = $(event.currentTarget).find("#degree");
   const licenseIndustry = $(event.currentTarget)
@@ -197,6 +200,7 @@ $(editModal._element).on("show.bs.modal", async (event) => {
       multiple: true,
       width: "100%",
     });
+  licenseIndustry.empty();
   const examination = $(event.currentTarget).find("#examination");
   const submit = $(event.currentTarget).find("#editButton");
   const buttons = $(event.currentTarget).find("button");
@@ -238,7 +242,7 @@ $(editModal._element).on("show.bs.modal", async (event) => {
     degree.val(existingData.qualification.degree);
     experience.val(existingData.qualification.experience);
     examination.prop("checked", existingData.examination);
-
+    licenseIndustry.val(existingData.qualification.licenseIndustry);
     form.off("submit");
     form.on("submit", async (formEvent) => {
       try {
@@ -342,38 +346,19 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
   });
 });
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch("/api/courses/" + id, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  })
-    .then((result) => {
-      if (result.isConfirmed) {
-        table.row(element.closest("tr")).remove().draw();
-        return displayToast(result.value);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      displayToast(error);
-    });
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+
+  try {
+    if (isConfirmed) {
+      const { status, data } = await axios.delete(`/api/courses/${id}`, {
+        headers: { "csrf-token": csrf },
+      });
+
+      table.row(element.closest("tr")).remove().draw();
+      displayToast({ status, data });
+    }
+  } catch (error) {
+    displayToast(error.response);
+  }
 };
