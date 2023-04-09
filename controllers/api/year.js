@@ -60,13 +60,17 @@ exports.post = async (req, res, next) => {
 
 exports.edit = async (req, res, next) => {
   try {
-    const year = await Year.findOneAndUpdate(
+    const { id } = req.params;
+    const { year } = req.body;
+    const schoolYear = await Year.findOneAndUpdate(
       { _id: id },
-      { year: schoolYear },
+      { year: year },
       { new: true }
     );
 
-    res.status(200).json({ msg: "School year successfully edited", year });
+    res
+      .status(200)
+      .json({ msg: "School year successfully edited", year: schoolYear });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
   }
@@ -74,9 +78,10 @@ exports.edit = async (req, res, next) => {
 
 exports.delete = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const year = await Year.findOneAndUpdate({ _id: id }, { deleted: true });
 
-    res.status(200), json({ msg: "School year successfully deleted", year });
+    res.status(200).json({ msg: "School year successfully deleted", year });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
   }
