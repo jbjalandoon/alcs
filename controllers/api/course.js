@@ -1,6 +1,4 @@
 const Course = require("../../models/course");
-const Tag = require("../../models/tag");
-const { validationResult } = require("express-validator");
 const readXlsxFile = require("read-excel-file/node");
 const mongoose = require("mongoose");
 const AcademicQualification = require("../../models/academic-qualification");
@@ -190,12 +188,77 @@ exports.postSpreadsheet = async (req, res, next) => {
   try {
     const validationError = {};
     const { buffer } = req.file;
+    const addAcademicQualification = [];
     const rows = await readXlsxFile(Buffer.from(buffer));
     rows.shift();
 
-    rows.forEach((element, index) => {});
-    console.log(rows);
+    const courses = rows.map((element, index) => {
+      const split = element[3].replace(/\s/g, "").split(",");
+      const li = [];
+      const aq = [];
+      split.forEach((element) => {
+        const [academicQualification, licenseIndustry] = element.split("-");
+
+        addAcademicQualification.push({
+          academicQualification: academicQualification.toLowerCase(),
+          licenseIndustry: licenseIndustry
+            ? licenseIndustry.split(".")
+            : undefined,
+        });
+
+        aq.push(academicQualification.toLowerCase());
+        if (licenseIndustry) li.push(...licenseIndustry.split("."));
+      });
+      aq.unique();
+      li.unique();
+
+      return {
+        courseCode: element[0].toLowerCase(),
+        customTitle: element[1] ? element[1].toLowerCase() : null,
+        courseDescription: element[2].toLowerCase(),
+        units: element[4],
+        lecture: element[5],
+        lab: element[6],
+        qualification : {
+          experience: element[7],
+          degree: element[8],
+          academicQualification: aq,
+          licenseIndustry: li,
+        },
+        examination: element[9] === "TRUE" ? true : false,
+        deleted: false,
+      };
+    });
+    await AcademicQualification.bulkWrite(
+      addAcademicQualification.map((e) => {
+        return {
+          updateOne: {
+            filter: { academicQualification: e.academicQualification },
+            update: {
+              academicQualification: e.academicQualification,
+              $addToSet: { licenseIndustry: e.licenseIndustry },
+            },
+            upsert: true,
+          },
+        };
+      })
+    );
+
+    const course = await Course.bulkWrite(
+      courses.map((e) => {
+        return {
+          updateOne: {
+            filter: { courseCode: e.courseCode },
+            update: { ...e },
+            upsert: true,
+          },
+        };
+      })
+    );
+    console.log(course);
+    res.status(201).json({ msg: "Course successfully uploaded" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 

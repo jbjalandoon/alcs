@@ -47,6 +47,7 @@ const uploadModal = new bootstrap.Modal($("#uploadModal"));
 
     data.course.forEach((element) => tableData(table.row.add, element));
   } catch (error) {
+    console.log(error);
     displayToast(error.response);
   }
 })();
@@ -309,40 +310,39 @@ $(editModal._element).on("show.bs.modal", async (event) => {
 });
 
 $(uploadModal._element).on("show.bs.modal", (event) => {
-  const button = $(event.currentTarget).find("#uploadButton");
-  const body = new FormData();
-  button.off("click");
-  button.on("click", () => {
-    body.append(
-      "spreadsheet",
-      $(event.currentTarget).find("#spreadsheet")[0].files[0]
-    );
-    fetch("/api/courses/upload", {
-      method: "POST",
-      headers: { "csrf-token": csrf },
-      body: body,
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        console.log(result);
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
-        uploadModal.hide();
-        table.rows().remove().draw();
+  const submit = $(event.currentTarget).find("#uploadButton");
+  const buttons = $(event.currentTarget).find("button");
+  const form = $(event.currentTarget).find("form");
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      const file = $(event.currentTarget).find("#spreadsheet")[0].files[0];
+      buttons.addClass("disabled");
+      submit.html("Submit");
+      const body = new FormData();
+      body.append("spreadsheet", file);
 
-        result.data.forEach((element) => {
-          tableData(table.row.add, element);
-        });
-        displayToast(result);
-      })
-      .catch((error) => {
-        console.log(error);
-        displayToast(error);
+      const { data, status } = await axios.post("/api/courses/upload", body, {
+        headers: { "csrf-token": csrf },
       });
+
+      const { data: courses } = await axios.get("/api/courses");
+
+      table.clear().draw();
+      courses.course.forEach((element) => tableData(table.row.add, element));
+
+      uploadModal.hide();
+      displayToast({ data, status });
+    } catch (error) {
+      if (error.response.status === 400) {
+        displayValidationError(error.response.data.errors, event.currentTarget);
+      }
+      displayToast(error.response);
+    } finally {
+      submit.html("Uploading...");
+      buttons.removeClass("disabled");
+    }
   });
 });
 
