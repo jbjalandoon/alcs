@@ -2,79 +2,82 @@ const Year = require("../../models/year");
 const Curriculum = require("../../models/curriculum");
 const { validationResult } = require("express-validator");
 
-exports.get = (req, res, next) => {
-  Year.find({ deleted: false })
-    .then((year) => {
-      res.json({ status: 200, data: year });
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({ ok: false, error: error });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const year = await Year.find({ deleted: false });
 
-exports.getOne = (req, res, next) => {
-  Year.findOne({ _id: req.params.id })
-    .then((year) => {
-      res.json({ status: 201, data: year });
-    })
-    .catch((error) => {
-      cconsole.log(error);
-      res.json({ status: 500, data: error });
-    });
-};
+    if (year.length === 0)
+      return res.status(404).json({ msg: "No School Year Available" });
 
-exports.post = (req, res, next) => {
-  let year;
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+    res.status(200).json({ year });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  new Year({
-    year: req.body.year,
-  })
-    .save()
-    .then((result) => {
-      year = result;
-      return new Curriculum({
-        schoolYear: result._id,
+};
+
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const year = await Year.findOne({ _id: id });
+
+    if (!year) return res.status(404).json({ msg: "School Year not found" });
+
+    res.status(200).json({ year: year });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const { year } = req.body;
+    const schoolYear = await new Year({
+      year,
+    }).save();
+
+    const existingCurriculum = await Curriculum.findOne({
+      schoolYear: schoolYear._id,
+    });
+
+    if (existingCurriculum) {
+      const curriulum = await new Curriculum({
+        schoolYear: schoolYear._id,
         semesters: [
           { sem: "first", isActive: false, activeFaculties: [] },
           { sem: "second", isActive: false, activeFaculties: [] },
           { sem: "summer", isActive: false, activeFaculties: [] },
         ],
       }).save();
-    })
-    .then((result) => {
-      console.log(result);
-      res.json({ status: 201, data: year });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
-    });
-};
+    }
 
-exports.edit = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ status: 400, errors: errors.mapped() });
+    res
+      .status(201)
+      .json({ msg: "School year successfully addded", year: schoolYear });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Year.findOneAndUpdate({ _id: req.params.id }, { year: req.body.year }, { new: true })
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
 };
 
-exports.delete = (req, res, next) => {
-  Year.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
+exports.edit = async (req, res, next) => {
+  try {
+    const year = await Year.findOneAndUpdate(
+      { _id: id },
+      { year: schoolYear },
+      { new: true }
+    );
+
+    res.status(200).json({ msg: "School year successfully edited", year });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const year = await Year.findOneAndUpdate({ _id: id }, { deleted: true });
+
+    res.status(200), json({ msg: "School year successfully deleted", year });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };

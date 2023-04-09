@@ -18,11 +18,6 @@ const validation = require("../validations/maintenance");
 
 const router = express.Router();
 
-router.get("/years", year.get);
-router.get("/years/:id", year.getOne);
-router.post("/years", validation.year, year.post);
-router.put("/years/:id", validation.year, year.edit);
-router.delete("/years/:id", year.delete);
 
 
 

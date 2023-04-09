@@ -42,7 +42,7 @@ exports.getLevels = (req, res, next) => {
 
 // Rendering the view of years
 exports.getYears = (req, res, next) => {
-  res.render("admin/year", {
+  res.render("maintenance/year", {
     title: "Schedula | School Year",
   });
 };

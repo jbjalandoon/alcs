@@ -9,6 +9,7 @@ const program = require("../controllers/api/program");
 const level = require("../controllers/api/level");
 const room = require("../controllers/api/room");
 const course = require("../controllers/api/course");
+const year = require("../controllers/api/year");
 const facultyType = require("../controllers/api/faculty-type");
 
 const router = express.Router();
@@ -87,5 +88,12 @@ router.post("/courses", validation.course, validateForm, course.post);
 router.post("/courses/upload", course.postSpreadsheet);
 router.put("/courses/:id", validation.course, validateForm, course.edit);
 router.delete("/courses/:id", course.delete);
+
+
+router.get("/years", year.get);
+router.get("/years/:id", year.getOne);
+router.post("/years", validation.year,validateForm, year.post);
+router.put("/years/:id", validation.year,validateForm, year.edit);
+router.delete("/years/:id", year.delete);
 
 module.exports = router;
