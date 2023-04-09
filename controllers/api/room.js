@@ -1,5 +1,5 @@
 const Room = require("../../models/room");
-const { validationResult } = require("express-validator");
+const validator = require("validator");
 const readXlsxFile = require("read-excel-file/node");
 
 exports.get = async (req, res, next) => {
@@ -79,7 +79,18 @@ exports.delete = async (req, res, next) => {
   }
 };
 
-exports.postSpreadsheet = async (req, res, next) => {
+exports.postSpreadsheet = (req, res, next) => {
+  // try {
+  //   const { buffer } = req.file;
+  //   const rows = await readXlsxFile(Buffer.from(buffer));
+  //   rows.forEach((e, i) => {
+  //     const roomName = e[0];
+  //     const isLaboratory = e[1];
+  //   });
+  //   console.log(rows);
+  // } catch (error) {
+  //   res.status(500).json({ msg: "Something went wrong" });
+  // }
   let data;
   readXlsxFile(Buffer.from(req.file.buffer))
     .then((rows) => {
