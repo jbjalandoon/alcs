@@ -163,8 +163,8 @@
           <h5 class="modal-title" id="copyModalLabel">Copy From Another Semester</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form id="copyForm" class="needs-validation" novalidate>
+        <form id="copyForm" class="needs-validation" novalidate>
+          <div class="modal-body">
             <div class="mb-3">
               <label for="year" class="col-form-label">School Year:</label>
               <select class="form-select" id="year">
@@ -174,17 +174,17 @@
             </div>
             <div class="mb-3">
               <label for="semester" class="col-form-label">Semester:</label>
-              <select class="form-select" id="semester" disabled>
+              <select class="form-select" id="semester">
               </select>
               <div class="invalid-feedback">
               </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary disabled" id="copySubmit">Submit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="copySubmit">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

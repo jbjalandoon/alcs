@@ -46,8 +46,6 @@ const addYearLevelModal = new bootstrap.Modal($("#addYearLevelModal"));
   } catch (error) {
     displayToast(error.response);
   }
-
-  copyCurriculum();
 })();
 
 $(addProgramModal._element).on("show.bs.modal", async (event) => {
@@ -229,6 +227,140 @@ $(addNewSectionModal._element).on("show.bs.modal", (event) => {
       buttons.removeClass("disabled");
     }
   });
+});
+
+$(addYearLevelModal._element).on("show.bs.modal", async (event) => {
+  const yearLevel = $(event.currentTarget).find("#yearLevel");
+  yearLevel.empty();
+  const id = $(event.relatedTarget).attr("data-bs-id");
+  const submit = $(event.currentTarget).find("#addYearLevelButton");
+  const buttons = $(event.currentTarget).find("button");
+  const form = $(event.currentTarget).find("form");
+  try {
+    const toRemove = [];
+    yearLevel.attr("disabled", false);
+    $("#v-pills-tab")
+      .children()
+      .each((index, element) => {
+        toRemove.push($(element).html());
+      });
+
+    const { data } = await axios.get(`/api/levels`);
+
+    const filteredYearLevel = data.yearLevel.filter(
+      (el) => !toRemove.includes(el.yearLevel.toUpperCase())
+    );
+
+    filteredYearLevel.forEach((element) => {
+      yearLevel.append(
+        new Option(element.yearLevel.toUpperCase(), element._id)
+      );
+    });
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        buttons.addClass("disabled");
+        submit.html("Submitting...");
+
+        const { data, status } = await axios.post(
+          `/api/curriculums/levels/${viewProgram.val()}`,
+          { yearLevel: yearLevel.val() },
+          {
+            headers: { "csrf-token": csrf },
+          }
+        );
+
+        addYearLevelModal.hide();
+        viewProgram.trigger("change");
+        displayToast({ data, status });
+      } catch (error) {
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        buttons.removeClass("disabled");
+        submit.html("Submit");
+      }
+    });
+  } catch (error) {
+    buttons.addClass("disabled");
+    displayToast(error.response);
+  }
+});
+
+$(copyModal._element).on("show.bs.modal", async (event) => {
+  try {
+    const copyYear = $(event.currentTarget).find("#year");
+    const copySem = $(event.currentTarget).find("#semester");
+    const submit = $(event.currentTarget).find("#copySubmit");
+    const buttons = $(event.currentTarget).find("button");
+    const form = $(event.currentTarget).find("form");
+    copyYear.off("change");
+    copySem.off("change");
+    copyYear.empty();
+    copySem.empty();
+
+    const { data: schoolYearData } = await axios.get(
+      `/api/curriculums/school-year`
+    );
+    schoolYearData.curriculum.forEach((element) => {
+      copyYear.append(new Option(element.schoolYear, element._id));
+    });
+    copyYear.on("change", async () => {
+      try {
+        const { data, status } = await axios.get(
+          `/api/curriculums/semesters/${copyYear.val()}`
+        );
+        copySem.empty();
+        data.semesters.forEach((element) => {
+          copySem.append(new Option(element.sem.toUpperCase(), element._id));
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    copyYear.trigger("change");
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting");
+        buttons.addClass("disabled");
+        if (semester === copySem.val()) {
+          displayToast({
+            data: { msg: "Can't copy the same semester" },
+            status: 400,
+          });
+        }
+        const { data, status } = await axios.post(
+          `/api/curriculums/semesters/copy/${semester}/${copySem.val()}`,
+          {},
+          { headers: { "csrf-token": csrf } }
+        );
+        window.location.reload();
+      } catch (error) {
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.removeClass("disabled");
+      }
+    });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 const renderProgram = async () => {
@@ -451,132 +583,6 @@ const deleteCourse = async (event) => {
   }
 };
 
-const copyCurriculum = () => {
-  $(copyModal._element).on("show.bs.modal", async (event) => {
-    try {
-      let copyYear, copySem;
-
-      if (copyYear) copyYear.off("change");
-      if (copySem) copySem.off("change");
-      copyYear = $("#year");
-      copySem = $("#semester");
-      copyYear.empty();
-      copySem.empty();
-      copySem.attr("disabled", true);
-
-      const schoolYearRequest = await fetch(`/api/curriculums/school-year`);
-      const schoolYearResponse = await schoolYearRequest.json();
-      if (schoolYearResponse.data.length === 0) {
-        Toast.fire({
-          icon: "warning",
-          title: "No School Year Found",
-        });
-        return;
-      }
-      schoolYearResponse.data.forEach((element) => {
-        copyYear.append(new Option(element.schoolYear, element._id));
-      });
-
-      copyYear.on("change", async () => {
-        try {
-          const semesterRequest = await fetch(
-            `/api/curriculums/semesters/${copyYear.val()}`
-          );
-          const semesterResponse = await semesterRequest.json();
-
-          if (semesterResponse.data.length === 0) {
-            $("#copySubmit").addClass("disabled");
-            Toast.fire({
-              icon: "warning",
-              title: "No Semester Found",
-            });
-            return;
-          }
-          copySem.empty();
-          semesterResponse.data.forEach((element) => {
-            copySem.append(new Option(element.sem.toUpperCase(), element._id));
-          });
-          copySem.removeAttr("disabled");
-          copySem.on("change", () => {
-            $("#copySubmit").removeClass("disabled");
-          });
-          copySem.trigger("change");
-        } catch (error) {
-          console.error(error);
-        }
-      });
-      copyYear.trigger("change");
-    } catch (error) {
-      console.error(error);
-    }
-  });
-};
-
-$(addYearLevelModal._element).on("show.bs.modal", async (event) => {
-  const yearLevel = $(event.currentTarget).find("#yearLevel");
-  yearLevel.empty();
-  const id = $(event.relatedTarget).attr("data-bs-id");
-  const submit = $(event.currentTarget).find("#addYearLevelButton");
-  const buttons = $(event.currentTarget).find("button");
-  const form = $(event.currentTarget).find("form");
-  try {
-    const toRemove = [];
-    yearLevel.attr("disabled", false);
-    $("#v-pills-tab")
-      .children()
-      .each((index, element) => {
-        toRemove.push($(element).html());
-      });
-
-    const { data } = await axios.get(`/api/levels`);
-
-    const filteredYearLevel = data.yearLevel.filter(
-      (el) => !toRemove.includes(el.yearLevel.toUpperCase())
-    );
-
-    filteredYearLevel.forEach((element) => {
-      yearLevel.append(
-        new Option(element.yearLevel.toUpperCase(), element._id)
-      );
-    });
-
-    form.off("submit");
-    form.on("submit", async (formEvent) => {
-      try {
-        formEvent.preventDefault();
-        buttons.addClass("disabled");
-        submit.html("Submitting...");
-
-        const { data, status } = await axios.post(
-          `/api/curriculums/levels/${viewProgram.val()}`,
-          { yearLevel: yearLevel.val() },
-          {
-            headers: { "csrf-token": csrf },
-          }
-        );
-
-        addYearLevelModal.hide();
-        viewProgram.trigger("change");
-        displayToast({ data, status });
-      } catch (error) {
-        if (error.response.status === 400) {
-          displayValidationError(
-            error.response.data.errors,
-            event.currentTarget
-          );
-        }
-        displayToast(error.response);
-      } finally {
-        buttons.removeClass("disabled");
-        submit.html("Submit");
-      }
-    });
-  } catch (error) {
-    buttons.addClass("disabled");
-    displayToast(error.response);
-  }
-});
-
 const deleteYearLevel = async (event) => {
   try {
     const year = $(event.currentTarget).attr("id");
@@ -619,32 +625,32 @@ const renderCourse = async (table, data) => {
   table.children("tbody").append(tr);
 };
 
-$("#copySubmit").on("click", () => {
-  if (semester === copySem.val()) {
-    return Toast.fire({
-      icon: "warning",
-      title: "Active Semester and Selected Semester is same",
-    });
-  }
-  fetch("/api/curriculums/semesters/copy/" + semester + "/" + copySem.val(), {
-    method: "POST",
-    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result) {
-        return;
-      }
-      copyModal.hide();
-      window.location.reload();
-      return Toast.fire({
-        icon: "success",
-        title: "successfully copied",
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-});
+// $("#copySubmit").on("click", () => {
+//   if (semester === copySem.val()) {
+//     return Toast.fire({
+//       icon: "warning",
+//       title: "Active Semester and Selected Semester is same",
+//     });
+//   }
+//   fetch("/api/curriculums/semesters/copy/" + semester + "/" + copySem.val(), {
+//     method: "POST",
+//     headers: { "csrf-token": csrf, "Content-Type": "application/json" },
+//   })
+//     .then((response) => {
+//       return response.json();
+//     })
+//     .then((result) => {
+//       if (!result) {
+//         return;
+//       }
+//       copyModal.hide();
+//       window.location.reload();
+//       return Toast.fire({
+//         icon: "success",
+//         title: "successfully copied",
+//       });
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//     });
+// });
