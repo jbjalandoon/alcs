@@ -47,7 +47,6 @@ const addYearLevelModal = new bootstrap.Modal($("#addYearLevelModal"));
     displayToast(error.response);
   }
 
-  addSection();
   copyCurriculum();
 })();
 
@@ -415,51 +414,21 @@ const deleteProgram = async (event) => {
   }
 };
 
-const addSection = () => {};
-
 const deleteSection = async (event) => {
+  const { isConfirmed } = await confirmDelete();
   const section = $(event.currentTarget).attr("id");
   try {
-    const alert = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!!!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (!alert.isConfirmed) {
-      return;
+    if (isConfirmed) {
+      const { data, status } = await axios.delete(
+        `/api/curriculums/sections/${section}`,
+        { headers: { "csrf-token": csrf } }
+      );
+      $(event.currentTarget).parent().remove();
+      displayToast({ data, status });
     }
-
-    const deleteSectionRequest = await fetch(
-      `/api/curriculums/sections/${section}`,
-      {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      }
-    );
-
-    const deleteSectionResponse = await deleteSectionRequest.json();
-    if (deleteSectionResponse.error) {
-      Toast.fire({
-        icon: "Warning",
-        title: "Something Went Wrong",
-      });
-      return;
-    }
-
-    $(event.currentTarget).parent().remove();
-    Toast.fire({
-      icon: "success",
-      title: "Successfully Deleted",
-    });
   } catch (error) {
-    console.error(error);
+    console.log();
+    displayToast(error.response);
   }
 };
 

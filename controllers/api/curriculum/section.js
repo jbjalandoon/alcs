@@ -125,13 +125,10 @@ exports.deleteSection = async (req, res, next) => {
         },
       }
     );
-    if (update.modifiedCount === 0) {
-      return res.status(500).json({ status: 500, error: "Error" });
-    }
-    return res.status(202).json({ status: 202, data: update });
+    return res.status(202).json({ msg: "Section Successfully Deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
