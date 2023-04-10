@@ -651,30 +651,24 @@ $(addYearLevelModal._element).on("show.bs.modal", async (event) => {
 });
 
 const deleteYearLevel = async (event) => {
-  const year = $(event.currentTarget).attr("id");
-  const alert = await Swal.fire({
-    title: "Are you sure?",
-    text: "Existing schedules will be deleted, You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-  });
+  try {
+    const year = $(event.currentTarget).attr("id");
+    const { isConfirmed } = await confirmDelete();
 
-  if (alert.isConfirmed) {
-    await fetch(`/api/curriculums/levels/${viewProgram.val()}/${year}`, {
-      method: "DELETE",
-      headers: {
-        "csrf-token": csrf,
-        "Content-Type": "application/json",
-      },
-    });
-    Toast.fire({
-      icon: "success",
-      title: "Successfully Deleted",
-    });
-    viewProgram.trigger("change");
+    if (isConfirmed) {
+      const { data, status } = await axios.delete(
+        `/api/curriculums/levels/${viewProgram.val()}/${year}`,
+        {
+          headers: {
+            "csrf-token": csrf,
+          },
+        }
+      );
+      viewProgram.trigger("change");
+      displayToast({ data, status });
+    }
+  } catch (error) {
+    displayToast(error.response);
   }
 };
 

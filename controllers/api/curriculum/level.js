@@ -90,12 +90,8 @@ exports.deleteYearLevel = async (req, res, next) => {
         },
       }
     );
-    console.log(update);
-    if (update.modifiedCount === 0) {
-      return res.status(500).json({ status: 500, data: update });
-    }
-    return res.status(201).json({ status: 202, data: update });
+    return res.status(200).json({ msg: "Year level successfully deleted" });
   } catch (error) {
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
