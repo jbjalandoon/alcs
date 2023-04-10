@@ -52,7 +52,7 @@ router.get("/tags", tag.get);
 // // router.put("/tags/:id", validation.putCourse, faculty.edit);
 // router.delete("/tags/:id", faculty.delete);
 
-router.get("/curriculums/school-year", curriculum.getSchoolYears);
+// router.get("/curriculums/school-year", curriculum.getSchoolYears);
 
 // router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
 

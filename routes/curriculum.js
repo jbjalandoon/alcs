@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const Semester = require("../controllers/api/curriculum/semester");
+const Curriculum = require("../controllers/api/curriculum/school-year");
 const Program = require("../controllers/api/curriculum/program");
 const Course = require("../controllers/api/curriculum/course");
 const Section = require("../controllers/api/curriculum/section");
@@ -19,7 +20,11 @@ router.post("/semesters/copy/:active/:sem", Semester.copySemester);
 
 // ---> START OF PROGRAM <---
 router.get("/programs/:semester", Program.getPrograms);
-router.post("/programs/:semester", CurriculumValidation.postPrograms, Program.postPrograms);
+router.post(
+  "/programs/:semester",
+  CurriculumValidation.postPrograms,
+  Program.postPrograms
+);
 router.get("/programs/:semester/:program", Program.getOneProgram);
 router.delete("/programs/:semester/:program", Program.deleteOneProgram);
 // ---> END OF PROGRAM <---
@@ -50,4 +55,7 @@ router.get("/levels/:program", Level.getYearLevels);
 router.post("/levels/:program", Level.addYearLevel);
 router.delete("/levels/:program/:yearLevel", Level.deleteYearLevel);
 // ---> END OF LEVEL <---
+
+router.get("/school-year", Curriculum.getSchoolYears);
+
 module.exports = router;

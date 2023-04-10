@@ -317,8 +317,8 @@
               <h5 class="modal-title" id="addModalLabel">Set Active Semester</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-              <form id="activeSemesterForm" class="needs-validation" novalidate>
+            <form id="activeSemesterForm" class="needs-validation" novalidate>
+              <div class="modal-body">
                 <div class="mb-3">
                   <label for="year" class="col-form-label">School Year:</label>
                   <select class="form-select" id="year">
@@ -333,11 +333,11 @@
                   <div class="invalid-feedback">
                   </div>
                 </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary disabled" id="addButton">Submit</button>
               </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary disabled" id="addButton">Submit</button>
             </div>
           </div>
         </div>

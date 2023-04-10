@@ -1,39 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const Curriculum = require("../../models/curriculum");
 
-
-exports.getSchoolYears = (req, res, next) => {
-  Curriculum.aggregate([
-    {
-      $lookup: {
-        from: "years",
-        localField: "schoolYear",
-        foreignField: "_id",
-        as: "schoolYear",
-      },
-    },
-    {
-      $match: {
-        "schoolYear.deleted": { $ne: true },
-      },
-    },
-    {
-      $project: {
-        schoolYear: "$schoolYear.year",
-        _id: "$schoolYear._id",
-      },
-    },
-    { $unwind: "$schoolYear" },
-    { $unwind: "$_id" },
-  ])
-    .then((result) => {
-      res.json({ status: 200, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
-
 exports.getSectionSchedules = (req, res, next) => {
   if (!req.params.section.match(/^[0-9a-fA-F]{24}$/))
     return res.json({ ok: false, msg: "Invalid Query" });

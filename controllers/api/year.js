@@ -39,7 +39,7 @@ exports.post = async (req, res, next) => {
       schoolYear: schoolYear._id,
     });
 
-    if (existingCurriculum) {
+    if (!existingCurriculum) {
       const curriulum = await new Curriculum({
         schoolYear: schoolYear._id,
         semesters: [

@@ -158,6 +158,120 @@ const activeFacultyCard = $("#activeFacultyCard");
   }
 })();
 
+$(addModal._element).on("show.bs.modal", async (event) => {
+  try {
+    const activeYear = $(event.currentTarget).find("#year");
+    const activeSemester = $(event.currentTarget).find("#semester");
+    const buttons = $(event.currentTarget).find("button");
+    const submit = $(event.currentTarget).find("#addButton");
+    const form = $(event.currentTarget).find("form");
+    submit.removeClass("disabled");
+    activeSemester.empty();
+    const { data } = await axios.get(`/api/curriculums/school-year`);
+    data.curriculum.forEach((element) => {
+      activeYear.append(
+        new Option(element.schoolYear.toUpperCase(), element._id)
+      );
+    });
+    activeYear.off("change");
+    activeYear.on("change", async () => {
+      try {
+        submit.removeClass("disabled");
+        activeSemester.empty();
+        const { data } = await axios.get(
+          `/api/curriculums/semesters/${activeYear.val()}`
+        );
+        data.semesters.forEach((element) => {
+          activeSemester.append(
+            new Option(element.sem.toUpperCase(), element._id)
+          );
+        });
+        activeSemester.removeAttr("disabled");
+      } catch (error) {
+        console.log(error);
+        submit.addClass("disabled");
+        displayToast(error.response);
+      }
+    });
+    activeYear.trigger("change");
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting");
+        buttons.addClass("disabled");
+        const { data, status } = await axios.put(
+          `/api/curriculums/semesters/active/${activeSemester.val()}`,
+          {},
+          { headers: { "csrf-token": csrf } }
+        );
+        console.log(data);
+        window.location.reload();
+      } catch (error) {
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.removeClass("disabled");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    submit.addClass("disabled");
+    displayToast(error.response);
+  }
+
+  // fetch("/api/curriculums/school-year")
+  //   .then((response) => {
+  //     return response.json();
+  //   })
+  //   .then((result) => {
+  //     activeYear.off("change");
+  //     activeYear.append(
+  //       $("<option>--Select Year--</option>").attr({
+  //         selected: true,
+  //         disabled: true,
+  //       })
+  //     );
+  //     result.data.forEach((element) => {
+  //       activeYear.append(
+  //         new Option(element.schoolYear.toUpperCase(), element._id)
+  //       );
+  //     });
+  //     activeYear.on("change", (event) => {
+  //       fetch("/api/curriculums/semesters/" + activeYear.val())
+  //         .then((response) => {
+  //           return response.json();
+  //         })
+  //         .then((result) => {
+  //           $("#addButton").addClass("disabled");
+  //           activeSemester.empty();
+  //           activeSemester.append(
+  //             $("<option>--Select Semester--</option>").attr({
+  //               selected: true,
+  //               disabled: true,
+  //             })
+  //           );
+  //           result.data.forEach((element) => {
+  //             activeSemester.append(
+  //               new Option(element.sem.toUpperCase(), element._id)
+  //             );
+  //           });
+  //           activeSemester.removeAttr("disabled");
+  //         })
+  //         .catch((error) => {
+  //           console.error(error);
+  //         });
+  //     });
+  //     activeSemester.on("change", (event) => {
+  //       $("#addButton").removeClass("disabled");
+  //     });
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //   });
+});
+
 activeFacultyCard.on("click", (event) => {
   facultyModal.show();
 });
@@ -633,94 +747,6 @@ const getFacultyType = async (faculty) => {
     return 0;
   }
 };
-
-$(addModal._element).on("show.bs.modal", (event) => {
-  if (activeYear) activeYear.off("change");
-  if (activeSemester) activeSemester.off("change");
-  activeYear = $(event.currentTarget).find("#year");
-  activeSemester = $(event.currentTarget).find("#semester");
-  activeYear.empty();
-  activeSemester.empty();
-  activeSemester.append(
-    $("<option>--Select Semester--</option>").attr({
-      selected: true,
-      disabled: true,
-    })
-  );
-  fetch("/api/curriculums/school-year")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      activeYear.off("change");
-      activeYear.append(
-        $("<option>--Select Year--</option>").attr({
-          selected: true,
-          disabled: true,
-        })
-      );
-      result.data.forEach((element) => {
-        activeYear.append(
-          new Option(element.schoolYear.toUpperCase(), element._id)
-        );
-      });
-      activeYear.on("change", (event) => {
-        fetch("/api/curriculums/semesters/" + activeYear.val())
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            $("#addButton").addClass("disabled");
-            activeSemester.empty();
-            activeSemester.append(
-              $("<option>--Select Semester--</option>").attr({
-                selected: true,
-                disabled: true,
-              })
-            );
-            result.data.forEach((element) => {
-              activeSemester.append(
-                new Option(element.sem.toUpperCase(), element._id)
-              );
-            });
-            activeSemester.removeAttr("disabled");
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      });
-      activeSemester.on("change", (event) => {
-        $("#addButton").removeClass("disabled");
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-});
-
-$("#addButton").on("click", () => {
-  fetch(`/api/curriculums/semesters/active/${activeSemester.val()}`, {
-    method: "PUT",
-    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (!result) {
-        return;
-      }
-      // addModal.hide();
-      window.location.reload();
-      Toast.fire({
-        icon: "success",
-        title: "Successfully Set an Active Semester",
-      });
-    })
-    .then((error) => {
-      console.error(error);
-    });
-});
 
 function downloadSpreadsheet(filename, events, type) {
   const cols = [

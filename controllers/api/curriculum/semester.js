@@ -20,11 +20,11 @@ exports.getSemesters = async (req, res, next) => {
         },
       },
     ]);
-    if (semesters.length === 0) return res.status(404).json({ status: 404, data: semesters });
-    return res.status(200).json({ status: 200, data: semesters });
+    if (semesters.length === 0)
+      return res.status(404).json({ msg: "No semesters available" });
+    return res.status(200).json({ semesters });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 500, errors: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -65,7 +65,10 @@ exports.getActiveSemester = async (req, res, next) => {
 // middleware for setting the active semester
 exports.putActiveSemester = async (req, res, next) => {
   try {
-    const setActiveFalse = await Curriculum.updateMany({}, { "semesters.$[].isActive": false });
+    const setActiveFalse = await Curriculum.updateMany(
+      {},
+      { "semesters.$[].isActive": false }
+    );
     const setActiveTrue = await Curriculum.updateOne(
       {
         "semesters._id": req.params.semester,
@@ -75,10 +78,9 @@ exports.putActiveSemester = async (req, res, next) => {
       },
       { arrayFilters: [{ "semester._id": req.params.semester }] }
     );
-    res.status(200).json({ status: 200, data: setActiveTrue });
+    res.status(200).json({ msg: "Semester successfully set as active" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
