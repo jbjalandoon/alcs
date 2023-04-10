@@ -8,7 +8,9 @@ exports.getSections = async (req, res, next) => {
     const sections = await Curriculum.aggregate([
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.level),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.level
+          ),
         },
       },
       { $unwind: "$semesters" },
@@ -16,7 +18,9 @@ exports.getSections = async (req, res, next) => {
       { $unwind: "$semesters.programs.year" },
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.level),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.level
+          ),
         },
       },
       { $unwind: "$semesters.programs.year.sections" },
@@ -28,7 +32,8 @@ exports.getSections = async (req, res, next) => {
       },
     ]);
 
-    if (sections.length === 0) return res.status(404).json({ status: 404, data: sections });
+    if (sections.length === 0)
+      return res.status(404).json({ status: 404, data: sections });
     res.status(200).json({ status: 200, data: sections });
   } catch (error) {
     console.error(error);
@@ -43,7 +48,9 @@ exports.postSection = async (req, res, next) => {
     const sections = await Curriculum.aggregate([
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.level),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.level
+          ),
         },
       },
       { $unwind: "$semesters" },
@@ -51,7 +58,9 @@ exports.postSection = async (req, res, next) => {
       { $unwind: "$semesters.programs.year" },
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.level),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.level
+          ),
         },
       },
       {
@@ -71,7 +80,7 @@ exports.postSection = async (req, res, next) => {
 
     filteredSection = req.body.sections.filter((element) => {
       return !sections.some((section) => {
-        return section.section === element;
+        return section.section?.toLowerCase() === element.toLowerCase();
       });
     });
 
@@ -81,12 +90,13 @@ exports.postSection = async (req, res, next) => {
       },
       {
         $push: {
-          "semesters.$[].programs.$[].year.$[year].sections": filteredSection.map((element) => {
-            return {
-              section: element,
-              schedules: [],
-            };
-          }),
+          "semesters.$[].programs.$[].year.$[year].sections":
+            filteredSection.map((element) => {
+              return {
+                section: element.toLowerCase(),
+                schedules: [],
+              };
+            }),
         },
       },
       {
@@ -94,15 +104,14 @@ exports.postSection = async (req, res, next) => {
       }
     );
 
-    res.status(201).json({ status: 201, data: update, sections: filteredSection });
+    res.status(201).json({ msg: "Section successfully added" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.deleteSection = async (req, res, next) => {
-  console.log(req.params.section);
   try {
     const update = await Curriculum.updateOne(
       {
@@ -110,7 +119,9 @@ exports.deleteSection = async (req, res, next) => {
       },
       {
         $pull: {
-          "semesters.$[].programs.$[].year.$[].sections": { _id: req.params.section },
+          "semesters.$[].programs.$[].year.$[].sections": {
+            _id: req.params.section,
+          },
         },
       }
     );
@@ -129,7 +140,9 @@ exports.getTotalUnits = async (req, res, next) => {
     const sections = await Curriculum.aggregate([
       {
         $match: {
-          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
+            req.params.section
+          ),
         },
       },
       { $unwind: "$semesters" },
@@ -138,7 +151,9 @@ exports.getTotalUnits = async (req, res, next) => {
       { $unwind: "$semesters.programs.year.sections" },
       {
         $match: {
-          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(req.params.section),
+          "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
+            req.params.section
+          ),
         },
       },
       {
@@ -163,7 +178,8 @@ exports.getTotalUnits = async (req, res, next) => {
         },
       },
     ]);
-    if (sections.length === 0) return res.status(404).json({ status: 404, data: sections });
+    if (sections.length === 0)
+      return res.status(404).json({ status: 404, data: sections });
     res.status(200).json({ status: 200, data: sections });
   } catch (error) {
     console.error(error);

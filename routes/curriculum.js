@@ -33,13 +33,23 @@ router.delete("/programs/:semester/:program", Program.deleteOneProgram);
 
 // ---> START OF COURSE <---
 router.get("/course/:year", Course.getCourses);
-router.post("/course/:year", CurriculumValidation.courses, Course.postCourse);
+router.post(
+  "/course/:year",
+  CurriculumValidation.courses,
+  validateForm,
+  Course.postCourse
+);
 router.delete("/course/:year/:course", Course.deleteCourse);
 // ---> END OF COURSE <---
 
 // ---> START OF SECTION <---
 router.get("/sections/:level", Section.getSections);
-router.post("/sections/:level", Section.postSection);
+router.post(
+  "/sections/:level",
+  CurriculumValidation.section,
+  validateForm,
+  Section.postSection
+);
 router.delete("/sections/:section", Section.deleteSection);
 router.get("/sections/units/:section", Section.getTotalUnits);
 // ---> END OF SECTION <---

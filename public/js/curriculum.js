@@ -47,7 +47,6 @@ const addYearLevelModal = new bootstrap.Modal($("#addYearLevelModal"));
     displayToast(error.response);
   }
 
-  addCourse();
   addSection();
   copyCurriculum();
 })();
@@ -189,42 +188,48 @@ $(addNewCourseModal._element).on("show.bs.modal", async (event) => {
         buttons.removeClass("disabled");
       }
     });
-    button.on("click", async () => {
-      try {
-        const table = $(`#table${year}`);
-        addNewCourseModal.hide();
-        if (table.children("tbody").find(".empty").length !== 0) {
-          table.children("tbody").find(".empty").remove();
-        }
-        addCourseResponse.data.forEach((element) => {
-          const tr = $("<tr></tr>");
-          tr.append($("<td></td>").html(element.courseCode.toUpperCase()))
-            .append(
-              $("<td></td>").html(element.courseDescription.toUpperCase())
-            )
-            .append($("<td></td>").html(element.lab))
-            .append($("<td></td>").html(element.lecture))
-            .append($("<td></td>").html(element.units))
-            .append(
-              $("<td></td>").append(
-                $("<button></button>")
-                  .addClass("btn btn-sm btn-danger text-light")
-                  .attr("year", year)
-                  .attr("course", element._id)
-                  .html("Delete")
-                  .on("click", deleteCourse)
-              )
-            );
-          table.children("tbody").append(tr);
-        });
-        displayToast(addCourseResponse);
-      } catch (error) {
-        console.error(error);
-      }
-    });
   } catch (error) {
     console.error(error);
   }
+});
+
+$(addNewSectionModal._element).on("show.bs.modal", (event) => {
+  const sections = $(event.currentTarget)
+    .find("#sections")
+    .select2({ tags: true, width: "100%", multiple: true });
+  sections.val("").trigger("change");
+  const year = $(event.relatedTarget).attr("level");
+  const submit = $(event.currentTarget).find("#addSectionButton");
+  const buttons = $(event.currentTarget).find("button");
+  const form = $(event.currentTarget).find("form");
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      buttons.addClass("disabled");
+      submit.html("Submitting...");
+      removeValidationError([sections]);
+
+      const { data, status } = await axios.post(
+        `/api/curriculums/sections/${year}`,
+        { sections: sections.val() },
+        { headers: { "csrf-token": csrf } }
+      );
+
+      viewProgram.trigger("change");
+      addNewSectionModal.hide();
+      displayToast({ status, data });
+    } catch (error) {
+      if (error.response.status === 400) {
+        console.log(error.response.data);
+        displayValidationError(error.response.data.errors, event.currentTarget);
+      }
+      displayToast(error.response);
+    } finally {
+      submit.html("Submit");
+      buttons.removeClass("disabled");
+    }
+  });
 });
 
 const renderProgram = async () => {
@@ -410,47 +415,7 @@ const deleteProgram = async (event) => {
   }
 };
 
-const addCourse = () => {};
-
-const addSection = () => {
-  $(addNewSectionModal._element).on("show.bs.modal", (event) => {
-    const sections = $(event.currentTarget)
-      .find("#sections")
-      .select2({ tags: true, width: "100%", multiple: true });
-    sections.val("").trigger("change");
-    const year = $(event.relatedTarget).attr("level");
-    const button = $(event.currentTarget).find("#addSectionButton");
-    button.off("click");
-    removeValidationError([sections]);
-    button.on("click", async () => {
-      try {
-        const sectionRequest = await fetch(
-          `/api/curriculums/sections/${year}`,
-          {
-            method: "POST",
-            headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sections: sections.val(),
-            }),
-          }
-        );
-        const sectionResponse = await sectionRequest.json();
-
-        if (sectionResponse.errors) {
-          displayValidationError(sectionResponse.errors, event.currentTarget);
-          return displayToast(sectionResponse);
-        }
-
-        viewProgram.trigger("change");
-
-        addNewSectionModal.hide();
-        displayToast(sectionResponse);
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  });
-};
+const addSection = () => {};
 
 const deleteSection = async (event) => {
   const section = $(event.currentTarget).attr("id");

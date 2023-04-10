@@ -55,9 +55,10 @@ exports.faculty = [
 ];
 
 exports.section = [
-  check("program").not().isEmpty().withMessage("Program is empty."),
-  check("year_level").not().isEmpty().withMessage("Year level is empty."),
-  check("section").not().isEmpty().withMessage("Section is empty.").trim(),
+  check("sections")
+    .not()
+    .isEmpty()
+    .withMessage("Section field is required.")
 ];
 
 exports.postPrograms = [
