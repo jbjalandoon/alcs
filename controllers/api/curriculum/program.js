@@ -31,17 +31,18 @@ exports.getPrograms = async (req, res, next) => {
       { $unwind: "$program" },
     ]);
 
-    if (programs.length === 0) return res.status(404).json({ status: 404, data: programs });
-    return res.status(200).json({ status: 200, data: programs });
+    if (programs.length === 0)
+      return res.status(404).json({ msg: "No Programs available" });
+    return res.status(200).json({ programs });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, errors: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.getOneProgram = async (req, res, next) => {
   try {
-    const program = await Curriculum.aggregate([
+    const programs = await Curriculum.aggregate([
       {
         $match: {
           "semesters.programs._id": mongoose.Types.ObjectId(req.params.program),
@@ -100,29 +101,21 @@ exports.getOneProgram = async (req, res, next) => {
         },
       },
     ]);
-    if (program === 0) return res.status(404).json({ status: 404, data: program });
-    res.status(200).json({ status: 200, data: program });
+    if (programs === 0)
+      return res.status(404).json({ msg: "Program not found" });
+    res.status(200).json({ programs });
   } catch (error) {
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.postPrograms = async (req, res, next) => {
   try {
     let fetchedLevel;
-    // validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // return 400 if validation error
-      return res.status(400).json({ ok: false, errors: errors.mapped() });
-    }
-
     const level = await Level.find({ deleted: false });
-
     fetchedLevel = level.map((element) => {
       return { yearLevel: element._id };
     });
-
     const update = await Curriculum.updateOne(
       {
         "semesters._id": req.params.semester,
@@ -139,13 +132,40 @@ exports.postPrograms = async (req, res, next) => {
       },
       { arrayFilters: [{ "semester._id": req.params.semester }] }
     );
+
+    const programs = await Curriculum.aggregate([
+      { $unwind: "$semesters" },
+      { $unwind: "$semesters.programs" },
+      {
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $project: {
+          _id: "$semesters.programs._id",
+          program: "$semesters.programs.program",
+        },
+      },
+      {
+        $lookup: {
+          from: "programs",
+          localField: "program",
+          foreignField: "_id",
+          as: "program",
+        },
+      },
+      { $unwind: "$program" },
+    ]);
+
     if (update.modifiedCount === 1) {
-      return res.status(201).json({ status: 201, data: update });
+      return res
+        .status(201)
+        .json({ msg: "Program successfully added", programs });
     }
-    res.status(500).json({ status: 500, data: [] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -163,9 +183,9 @@ exports.deleteOneProgram = async (req, res, next) => {
       { arrayFilters: [{ "program._id": req.params.program }] }
     );
 
-    return res.status(202).json({ status: 202, data: update });
+    return res.status(200).json({ msg: "Successfully deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };

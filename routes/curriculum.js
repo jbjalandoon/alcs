@@ -10,6 +10,7 @@ const Faculty = require("../controllers/api/curriculum/faculty");
 const Level = require("../controllers/api/curriculum/level");
 
 const CurriculumValidation = require("../validations/curriculum");
+const validateForm = require("../middleware/validate-form");
 
 // ---> START OF SEMESTER <---
 router.get("/semesters/active", Semester.getActiveSemester);
@@ -23,6 +24,7 @@ router.get("/programs/:semester", Program.getPrograms);
 router.post(
   "/programs/:semester",
   CurriculumValidation.postPrograms,
+  validateForm,
   Program.postPrograms
 );
 router.get("/programs/:semester/:program", Program.getOneProgram);

@@ -41,11 +41,12 @@ exports.getYearLevels = async (req, res, next) => {
       { $unwind: "$level" },
     ]);
 
-    if (levels.length === 0) return res.status(404).json({ status: 404, data: levels });
-    res.status(200).json({ status: 200, data: levels });
+    if (levels.length === 0)
+      return res.status(404).json({ msg: "No Year Level Available" });
+    res.status(200).json({ levels });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -68,12 +69,10 @@ exports.addYearLevel = async (req, res, next) => {
         arrayFilters: [{ "program._id": req.params.program }],
       }
     );
-    if (update.modifiedCount === 0) {
-      return res.status(500).json({ status: 500, data: update });
-    }
-    return res.status(201).json({ status: 201, data: update });
+
+    return res.status(201).json({ msg: "Year Level Successfully Added" });
   } catch (error) {
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 

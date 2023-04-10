@@ -53,12 +53,11 @@ exports.getActiveSemester = async (req, res, next) => {
       },
     ]);
     if (activeSemester.length === 0) {
-      return res.status(404).json({ status: 404, data: activeSemester });
+      return res.status(404).json({ msg: "No active semester" });
     }
-    return res.status(200).json({ status: 200, data: activeSemester });
+    return res.status(200).json({ semester: activeSemester[0].semesters, year: activeSemester[0].schoolYear[0] });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 500, errors: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
