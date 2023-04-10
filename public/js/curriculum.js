@@ -433,35 +433,21 @@ const deleteSection = async (event) => {
 };
 
 const deleteCourse = async (event) => {
+  const year = $(event.currentTarget).attr("year");
+  const course = $(event.currentTarget).attr("course");
   try {
-    const year = $(event.currentTarget).attr("year");
-    const course = $(event.currentTarget).attr("course");
-    const alert = await Swal.fire({
-      title: "Are you sure?",
-      text: "Existing schedules will be deleted, You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (alert.isConfirmed) {
-      await fetch(`/api/curriculums/course/${year}/${course}`, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-          "Content-Type": "application/json",
-        },
-      });
+    const { isConfirmed } = await confirmDelete();
+    if (isConfirmed) {
+      const { data, status } = await axios.delete(
+        `/api/curriculums/course/${year}/${course}`,
+        { headers: { "csrf-token": csrf } }
+      );
       $(event.currentTarget).closest("tr").remove();
-      Toast.fire({
-        icon: "success",
-        title: "Successfully Deleted",
-      });
+      displayToast({ data, status });
     }
   } catch (error) {
     console.error(error);
+    displayToast(error.response);
   }
 };
 

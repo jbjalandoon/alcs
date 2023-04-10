@@ -98,9 +98,9 @@ exports.deleteCourse = async (req, res, next) => {
       }
     );
 
-    res.status(202).json({ status: 202, data: operation });
+    res.status(200).json({ msg: "Course successfully delete" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
