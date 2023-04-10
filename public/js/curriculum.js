@@ -117,6 +117,116 @@ $(addProgramModal._element).on("show.bs.modal", async (event) => {
   }
 });
 
+$(addNewCourseModal._element).on("show.bs.modal", async (event) => {
+  try {
+    const courses = $("#courses").select2({
+      width: "100%",
+      multiple: true,
+    });
+    courses.empty();
+    const year = $(event.relatedTarget).attr("level");
+    const submit = $(event.currentTarget).find("#addCourseButton");
+    const form = $(event.currentTarget).find("form");
+    const buttons = $(event.currentTarget).find("button");
+
+    const { data: currentCourseData, status } = await axios.get(
+      `/api/curriculums/course/${year}`
+    );
+    const { data: courseData } = await axios.get("/api/courses");
+    currentCourseData.courses.forEach((currentCourse) => {
+      courseData.course.splice(
+        courseData.course.findIndex(
+          (element) => element.courseCode === currentCourse.course.courseCode
+        ),
+        1
+      );
+    });
+    courseData.course.forEach((element) => {
+      courses.append(
+        new Option(
+          `${element.courseCode.toUpperCase()} - ${element.courseDescription.toUpperCase()}`,
+          element._id
+        )
+      );
+    });
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting...");
+        buttons.addClass("disabled");
+
+        const { data, status } = await axios.post(
+          `/api/curriculums/course/${year}`,
+          { courses: courses.val() },
+          { headers: { "csrf-token": csrf } }
+        );
+
+        const table = $(`#table${year}`);
+
+        if (table.children("tbody").find(".empty").length !== 0) {
+          table.children("tbody").find(".empty").remove();
+        }
+
+        data.courses.forEach((element) => {
+          renderCourse(table, element);
+        });
+
+        addNewCourseModal.hide();
+        displayToast({ data, status });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.removeClass("disabled");
+      }
+    });
+    button.on("click", async () => {
+      try {
+        const table = $(`#table${year}`);
+        addNewCourseModal.hide();
+        if (table.children("tbody").find(".empty").length !== 0) {
+          table.children("tbody").find(".empty").remove();
+        }
+        addCourseResponse.data.forEach((element) => {
+          const tr = $("<tr></tr>");
+          tr.append($("<td></td>").html(element.courseCode.toUpperCase()))
+            .append(
+              $("<td></td>").html(element.courseDescription.toUpperCase())
+            )
+            .append($("<td></td>").html(element.lab))
+            .append($("<td></td>").html(element.lecture))
+            .append($("<td></td>").html(element.units))
+            .append(
+              $("<td></td>").append(
+                $("<button></button>")
+                  .addClass("btn btn-sm btn-danger text-light")
+                  .attr("year", year)
+                  .attr("course", element._id)
+                  .html("Delete")
+                  .on("click", deleteCourse)
+              )
+            );
+          table.children("tbody").append(tr);
+        });
+        displayToast(addCourseResponse);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 const renderProgram = async () => {
   try {
     const { data } = await axios.get(
@@ -300,110 +410,7 @@ const deleteProgram = async (event) => {
   }
 };
 
-const addCourse = () => {
-  $(addNewCourseModal._element).on("show.bs.modal", async (event) => {
-    try {
-      const courses = $("#courses").select2({
-        width: "100%",
-        multiple: true,
-      });
-      courses.empty();
-      const button = $(event.currentTarget).find("#addCourseButton");
-      button.off("click");
-      const year = $(event.relatedTarget).attr("level");
-
-      const currentCourseRequest = await fetch(
-        `/api/curriculums/course/${year}`
-      );
-      const currentCourseResponse = await currentCourseRequest.json();
-
-      const coursesRequest = await fetch(`/api/courses`);
-      const coursesResponse = await coursesRequest.json();
-
-      if (coursesResponse.data.length === 0) {
-        Toast.fire({
-          icon: "Warning",
-          title: "No Courses Found",
-        });
-        button.addClass("disabled");
-        return;
-      }
-      currentCourseResponse.data.forEach((currentCourse) => {
-        coursesResponse.data.splice(
-          coursesResponse.data.findIndex(
-            (element) => element.courseCode === currentCourse.course.courseCode
-          ),
-          1
-        );
-      });
-
-      coursesResponse.data.forEach((element) => {
-        courses.append(
-          new Option(
-            element.courseCode.toUpperCase() +
-              " - " +
-              element.courseDescription.toUpperCase(),
-            element._id
-          )
-        );
-      });
-      button.on("click", async () => {
-        try {
-          const addCourseRequest = await fetch(
-            "/api/curriculums/course/" + year,
-            {
-              method: "POST",
-              headers: {
-                "csrf-token": csrf,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                courses: courses.val(),
-              }),
-            }
-          );
-
-          const addCourseResponse = await addCourseRequest.json();
-          if (addCourseResponse.errors) {
-            displayValidationError(result.errors, event.currentTarget);
-            return displayToast(result);
-          }
-          const table = $(`#table${year}`);
-          addNewCourseModal.hide();
-          if (table.children("tbody").find(".empty").length !== 0) {
-            table.children("tbody").find(".empty").remove();
-          }
-          addCourseResponse.data.forEach((element) => {
-            const tr = $("<tr></tr>");
-            tr.append($("<td></td>").html(element.courseCode.toUpperCase()))
-              .append(
-                $("<td></td>").html(element.courseDescription.toUpperCase())
-              )
-              .append($("<td></td>").html(element.lab))
-              .append($("<td></td>").html(element.lecture))
-              .append($("<td></td>").html(element.units))
-              .append(
-                $("<td></td>").append(
-                  $("<button></button>")
-                    .addClass("btn btn-sm btn-danger text-light")
-                    .attr("year", year)
-                    .attr("course", element._id)
-                    .html("Delete")
-                    .on("click", deleteCourse)
-                )
-              );
-            table.children("tbody").append(tr);
-          });
-          displayToast(addCourseResponse);
-        } catch (error) {
-          console.error(error);
-        }
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  });
-};
+const addCourse = () => {};
 
 const addSection = () => {
   $(addNewSectionModal._element).on("show.bs.modal", (event) => {
@@ -670,6 +677,26 @@ const deleteYearLevel = async (event) => {
   } catch (error) {
     displayToast(error.response);
   }
+};
+
+const renderCourse = async (table, data) => {
+  const tr = $("<tr></tr>");
+  tr.append($("<td></td>").html(data.courseCode.toUpperCase()))
+    .append($("<td></td>").html(data.courseDescription.toUpperCase()))
+    .append($("<td></td>").html(data.lab))
+    .append($("<td></td>").html(data.lecture))
+    .append($("<td></td>").html(data.units))
+    .append(
+      $("<td></td>").append(
+        $("<button></button>")
+          .addClass("btn btn-sm btn-danger text-light")
+          .attr("year", year)
+          .attr("course", data._id)
+          .html("Delete")
+          .on("click", deleteCourse)
+      )
+    );
+  table.children("tbody").append(tr);
 };
 
 $("#copySubmit").on("click", () => {

@@ -111,8 +111,8 @@
           <h1 class="modal-title fs-5" id="addNewCourseModalLabel">Adding Course</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form>
+        <form>
+          <div class="modal-body">
             <div class="mb-3">
               <label for="courses" class="col-form-label">Courses (<span id="unitsCount">0</span> Units Selected):</label>
               <select id="courses">
@@ -120,12 +120,12 @@
               <div class="invalid-feedback">
               </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addCourseButton">Submit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="addCourseButton">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -9,7 +9,9 @@ exports.getCourses = async (req, res, next) => {
     const courses = await Curriculum.aggregate([
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.year
+          ),
         },
       },
       { $unwind: "$semesters" },
@@ -17,7 +19,9 @@ exports.getCourses = async (req, res, next) => {
       { $unwind: "$semesters.programs.year" },
       {
         $match: {
-          "semesters.programs.year._id": mongoose.Types.ObjectId(req.params.year),
+          "semesters.programs.year._id": mongoose.Types.ObjectId(
+            req.params.year
+          ),
         },
       },
       {
@@ -37,23 +41,16 @@ exports.getCourses = async (req, res, next) => {
       { $unwind: "$course" },
     ]);
 
-    if (courses.length === 0) return res.status(404).json({ status: 404, data: courses });
-    res.status(200).json({ status: 200, data: courses });
+    res.status(200).json({ courses });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
-
 
 // middleware for adding course by year
 exports.postCourse = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ ok: false, errors: errors.mapped() });
-    }
-
     const update = await Curriculum.updateOne(
       {
         "semesters.programs.year._id": req.params.year,
@@ -74,13 +71,12 @@ exports.postCourse = async (req, res, next) => {
 
     const courses = await Course.find({ _id: { $in: req.body.courses } });
 
-    return res.status(201).json({ status: 201, data: courses });
+    return res.status(201).json({ msg: "Course successfully added", courses });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
-
 
 // middleware for deleting course by year
 exports.deleteCourse = async (req, res, next) => {
