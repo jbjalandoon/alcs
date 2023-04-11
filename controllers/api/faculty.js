@@ -3,6 +3,7 @@ const AcademicQualification = require("../../models/academic-qualification");
 const Tag = require("../../models/tag");
 const { validationResult } = require("express-validator");
 const readXlsxFile = require("read-excel-file/node");
+const { sendMail } = require("../../helper/email");
 const nodemailer = require("nodemailer");
 const Crypto = require("crypto");
 
@@ -17,162 +18,148 @@ let mailTransporter = nodemailer.createTransport({
   },
 });
 
-exports.get = (req, res, next) => {
-  Faculty.find({ deleted: false, role: "user" })
-    .populate("userInformation.academicQualifications.academicQualification")
-    .populate("userInformation.academicQualifications.licenseIndustry")
-    .populate("userInformation.courseTaken")
-    .populate("userInformation.facultyType")
-    .then((faculty) => {
-      res.json({ status: 200, data: faculty });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
-    });
-};
+exports.get = async (req, res, next) => {
+  try {
+    const faculty = await Faculty.find({ deleted: false, role: "user" })
+      .populate("facultyInformation.courseTaken")
+      .populate("facultyInformation.facultyType");
 
-exports.getOne = (req, res, next) => {
-  Faculty.findOne({ role: "user", _id: req.params.id })
-    .populate("userInformation.academicQualifications.academicQualification")
-    .populate("userInformation.academicQualifications.licenseIndustry")
-    .populate("userInformation.facultyType")
-    .populate("userInformation.courseTaken")
-    .then((faculty) => {
-      if (!faculty) {
-        return res.json({ ok: false });
-      }
-      res.json({ ok: true, data: faculty });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ ok: false });
-    });
-};
+    if (faculty.length === 404)
+      return res.status(404).json({ msg: "No Faculty Available" });
 
-exports.post = (req, res, next) => {
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ ok: false, errors: errors.mapped() });
+    res.status(200).json({ faculty });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  let returnFaculty;
-  let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9),
-    generatedPassword;
-  bcrypt
-    .hash(randomString, 12)
-    .then((password) => {
-      generatedPassword = password;
-      return Faculty.findOne({
-        "userInformation.facultyCode": req.body.facultyCode,
-      });
-    })
-    .then((result) => {
-      console.log(req.body.email);
-      if (result) {
-        result.email = req.body.email;
-        result.password = generatedPassword;
-        result.deleted = false;
-        result.userInformation = {
-          facultyCode: req.body.facultyCode,
-          firstName: req.body.firstName,
-          middleName: req.body.middleName,
-          lastName: req.body.lastName,
-          facultyType: req.body.facultyType,
-          academicQualifications: req.body.academicQualifications,
-        };
-        return result.save();
-      }
-      return new Faculty({
-        email: req.body.email,
-        password: generatedPassword,
+};
+
+exports.getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const faculty = await Faculty.findOne({ role: "user", _id: id })
+      .populate("facultyInformation.facultyType")
+      .populate("facultyInformation.courseTaken");
+
+    if (!faculty) return res.status(404).json({ msg: "Faculty not found" });
+    res.status(200).json({ faculty });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.post = async (req, res, next) => {
+  try {
+    const password = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const {
+      facultyCode,
+      email,
+      firstName,
+      middleName,
+      lastName,
+      facultyType,
+      academicQualifications,
+    } = req.body;
+
+    const existingFaculty = await Faculty.findOne({
+      "facultyInformation.facultyCode": facultyCode,
+    });
+    let newFaculty;
+    if (existingFaculty) {
+      existingFaculty = {
+        ...existingFaculty,
+        email,
         userInformation: {
-          facultyCode: req.body.facultyCode,
-          firstName: req.body.firstName,
-          middleName: req.body.middleName,
-          lastName: req.body.lastName,
-          facultyType: req.body.facultyType,
-          academicQualifications: req.body.academicQualifications,
+          firstName,
+          middleName,
+          lastName,
+        },
+        facultyInformation: {
+          facultyCode,
+          facultyType,
+          academicQualifications,
+        },
+      };
+      newFaculty = await existingFaculty.save();
+    } else {
+      newFaculty = await new Faculty({
+        email,
+        userInformation: {
+          firstName,
+          middleName,
+          lastName,
+        },
+        facultyInformation: {
+          facultyCode,
+          facultyType,
+          academicQualifications,
         },
       }).save();
-    })
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.academicQualification",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.courseTaken" });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.facultyType" });
-    })
-    .then((result) => {
-      returnFaculty = result;
-      const emailDetails = {
-        from: "sticaschedula@gmail.com",
-        to: req.body.email,
-        subject: "No Reply - Password Generated",
-        text: randomString,
-      };
-      return mailTransporter.sendMail(emailDetails);
-    })
-    .then((result) => {
-      res.status(201).json({ status: 201, data: returnFaculty });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
-    });
-};
+    }
 
-exports.put = (req, res, next) => {
-  errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ ok: false, errors: errors.mapped() });
+    const sendMailData = await sendMail(
+      email,
+      "Schedula - Random Password",
+      password
+    );
+
+    const faculty = await newFaculty
+      .populate("facultyInformation.facultyType")
+      .populate("facultyInformation.courseTaken");
+
+    res.status(201).json({ msg: "Faculty successfully added", faculty });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
   }
-  Faculty.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      email: req.body.email,
-      userInformation: {
-        facultyCode: req.body.facultyCode,
-        firstName: req.body.firstName,
-        middleName: req.body.middleName,
-        lastName: req.body.lastName,
-        facultyType: req.body.facultyType,
-        academicQualifications: req.body.academicQualifications,
-      },
-    },
-    { new: true }
-  )
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.academicQualification",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.courseTaken" });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.facultyType" });
-    })
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
 };
 
+exports.put = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      facultyCode,
+      firstName,
+      middleName,
+      lastName,
+      facultyType,
+      academicQualifications,
+    } = req.body;
+    const faculty = await Faculty.findOneAndUpdate(
+      { _id: id },
+      {
+        email,
+        facultyInformation: {
+          facultyCode,
+          facultyType,
+          academicQualifications,
+        },
+        userInformation: { firstName, middleName, lastName },
+      },
+      { new: true }
+    )
+      .populate("facultyInformation.facultyType")
+      .populate("facultyInformation.courseTaken");
+
+    res.status(200).json({ msg: "Faculty successfully edited", faculty });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.delete = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const faculty = await Faculty.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
+
+    res.status(200).json({ msg: "Faculty successfully deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
 exports.getFacultyType = (req, res, next) => {
   Faculty.findOne({ deleted: false, _id: req.params.id })
     .populate("userInformation.facultyType")
@@ -194,7 +181,11 @@ exports.getFacultyType = (req, res, next) => {
 };
 
 exports.postCourse = (req, res, next) => {
-  Faculty.findOneAndUpdate({ _id: req.params.id }, { "userInformation.courseTaken": req.body.courses }, { new: true })
+  Faculty.findOneAndUpdate(
+    { _id: req.params.id },
+    { "userInformation.courseTaken": req.body.courses },
+    { new: true }
+  )
     .then((result) => {
       return Faculty.populate(result, {
         path: "userInformation.academicQualifications.academicQualification",
@@ -239,16 +230,6 @@ exports.putAcademicQualification = (req, res, next) => {
     });
 };
 
-exports.delete = (req, res, next) => {
-  Faculty.findOneAndUpdate({ _id: req.params.id }, { deleted: true })
-    .then((result) => {
-      res.json({ status: 202, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, result: error });
-    });
-};
-
 exports.postSpreadsheet = (req, res, next) => {
   const degreeEquivalent = ["associates", "bachelors", "masters", "doctoral"];
   const randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
@@ -269,11 +250,15 @@ exports.postSpreadsheet = (req, res, next) => {
             const array = e.toLowerCase().split("-");
             const degreeLicense = array[1].toLowerCase().split("/");
             const degree = degreeLicense[0].replace(/\s/g, "");
-            const licenseIndustry = degreeLicense[1] ? degreeLicense[1].toLowerCase().split(".") : [];
+            const licenseIndustry = degreeLicense[1]
+              ? degreeLicense[1].toLowerCase().split(".")
+              : [];
             return {
               academicQualification: array[0].toLowerCase().replace(/\s/g, ""),
               degree:
-                degreeEquivalent.indexOf(degree.toLowerCase()) < 0 ? 0 : degreeEquivalent.indexOf(degree.toLowerCase()),
+                degreeEquivalent.indexOf(degree.toLowerCase()) < 0
+                  ? 0
+                  : degreeEquivalent.indexOf(degree.toLowerCase()),
               licenseIndustry: licenseIndustry,
             };
           });
@@ -323,22 +308,24 @@ exports.postSpreadsheet = (req, res, next) => {
           middleName: element.middleName,
           email: element.email,
           facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map((element) => {
-            return {
-              academicQualification: element.academicQualification,
-              degree: element.degree,
-              licenseIndustry: element.licenseIndustry.map((element) => {
-                let id;
-                for (let i = 0; i < result.length; i++) {
-                  if (result[i].tag === element) {
-                    id = result[i]._id;
-                    break;
+          academicQualification: element.academicQualification.map(
+            (element) => {
+              return {
+                academicQualification: element.academicQualification,
+                degree: element.degree,
+                licenseIndustry: element.licenseIndustry.map((element) => {
+                  let id;
+                  for (let i = 0; i < result.length; i++) {
+                    if (result[i].tag === element) {
+                      id = result[i]._id;
+                      break;
+                    }
                   }
-                }
-                return id;
-              }),
-            };
-          }),
+                  return id;
+                }),
+              };
+            }
+          ),
         };
       });
       data.forEach((element) => {
@@ -380,20 +367,25 @@ exports.postSpreadsheet = (req, res, next) => {
           middleName: element.middleName,
           email: element.email,
           facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map((element) => {
-            let id;
-            for (let i = 0; i < result.length; i++) {
-              if (result[i].academicQualification === element.academicQualification) {
-                id = result[i]._id;
+          academicQualification: element.academicQualification.map(
+            (element) => {
+              let id;
+              for (let i = 0; i < result.length; i++) {
+                if (
+                  result[i].academicQualification ===
+                  element.academicQualification
+                ) {
+                  id = result[i]._id;
+                }
               }
+              return {
+                academicQualification: id,
+                degree: element.degree,
+                experience: 0,
+                licenseIndustry: element.licenseIndustry,
+              };
             }
-            return {
-              academicQualification: id,
-              degree: element.degree,
-              experience: 0,
-              licenseIndustry: element.licenseIndustry,
-            };
-          }),
+          ),
         };
       });
       return FacultyType.find({ deleted: false });
@@ -402,7 +394,10 @@ exports.postSpreadsheet = (req, res, next) => {
       data = data.map((element) => {
         let facultyType;
         for (let i = 0; i < result.length; i++) {
-          if (result[i].facultyType.toLowerCase() === element.facultyType.toLowerCase()) {
+          if (
+            result[i].facultyType.toLowerCase() ===
+            element.facultyType.toLowerCase()
+          ) {
             facultyType = result[i]._id;
             break;
           }
@@ -455,7 +450,9 @@ exports.postSpreadsheet = (req, res, next) => {
     .then((result) => {
       console.log(result);
       return Faculty.find({ deleted: false, role: "user" })
-        .populate("userInformation.academicQualifications.academicQualification")
+        .populate(
+          "userInformation.academicQualifications.academicQualification"
+        )
         .populate("userInformation.academicQualifications.licenseIndustry")
         .populate("userInformation.courseTaken")
         .populate("userInformation.facultyType");
@@ -498,8 +495,10 @@ exports.putSchedulePreference = (req, res, next) => {
     { _id: req.params.id },
     {
       "userInformation.schedulePreference.$[schedule].day": req.body.day,
-      "userInformation.schedulePreference.$[schedule].startTime": req.body.startTime,
-      "userInformation.schedulePreference.$[schedule].endTime": req.body.endTime,
+      "userInformation.schedulePreference.$[schedule].startTime":
+        req.body.startTime,
+      "userInformation.schedulePreference.$[schedule].endTime":
+        req.body.endTime,
     },
     { arrayFilters: [{ "schedule._id": req.params.preference }] }
   )
@@ -538,7 +537,10 @@ exports.sendNewPassword = (req, res, next) => {
   bcrypt
     .hash(randomString, 12)
     .then((password) => {
-      return Faculty.findOneAndUpdate({ _id: req.params.id }, { password: password });
+      return Faculty.findOneAndUpdate(
+        { _id: req.params.id },
+        { password: password }
+      );
     })
     .then((result) => {
       const emailDetails = {

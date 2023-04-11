@@ -2,7 +2,6 @@ const User = require("../../models/user");
 const Crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const { sendMail } = require("../../helper/email");
-const { validationResult } = require("express-validator");
 
 exports.get = async (req, res, next) => {
   try {

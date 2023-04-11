@@ -27,18 +27,14 @@ const router = express.Router();
 // router.put("/users/:id", validation.user, user.edit);
 // router.delete("/users/:id", user.delete);
 
-router.get("/faculty", faculty.get);
-router.get("/faculty/:id", faculty.getOne);
 router.get("/faculty/type/:id", faculty.getFacultyType);
-router.post("/faculty", validation.faculty, faculty.post);
-router.put("/faculty/:id", validation.faculty, faculty.put);
+
 router.post("/faculty/course/:id", faculty.postCourse);
 router.post("/faculty/schedule-preference/:id", faculty.postSchedulePreference);
 router.put("/faculty/schedule-preference/:id/:preference", faculty.putSchedulePreference);
 router.delete("/faculty/schedule-preference/:id/:preference", faculty.deleteSchedulePreference);
 router.post("/faculty/send-password/:id/", faculty.sendNewPassword);
 router.post("/faculty/upload", faculty.postSpreadsheet);
-router.delete("/faculty/:id", faculty.delete);
 
 // Faculty Type Endw
 

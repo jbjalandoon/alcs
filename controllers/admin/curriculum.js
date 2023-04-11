@@ -8,14 +8,14 @@ const curriculum = require("../../models/curriculum");
 const { mongoose } = require("mongoose");
 
 exports.getCurriculum = (req, res, next) => {
-  res.render("admin/curriculum/index", {
-    title: "ALCS | Curriculum",
+  res.render("curriculum/index", {
+    title: "Schedula | Curriculum",
   });
 };
 
 exports.getCurriculumFaculty = (ree,res,next) => {
-  res.render('admin/curriculum/faculty', {
-    title: 'Active Curriculum Faculty'
+  res.render('curriculum/faculty', {
+    title: 'Schedula | Active Faculty'
   })
 }
 

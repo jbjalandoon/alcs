@@ -10,6 +10,7 @@ const level = require("../controllers/api/level");
 const room = require("../controllers/api/room");
 const course = require("../controllers/api/course");
 const year = require("../controllers/api/year");
+const faculty = require("../controllers/api/faculty");
 const facultyType = require("../controllers/api/faculty-type");
 
 const router = express.Router();
@@ -89,11 +90,16 @@ router.post("/courses/upload", course.postSpreadsheet);
 router.put("/courses/:id", validation.course, validateForm, course.edit);
 router.delete("/courses/:id", course.delete);
 
-
 router.get("/years", year.get);
 router.get("/years/:id", year.getOne);
-router.post("/years", validation.year,validateForm, year.post);
-router.put("/years/:id", validation.year,validateForm, year.edit);
+router.post("/years", validation.year, validateForm, year.post);
+router.put("/years/:id", validation.year, validateForm, year.edit);
 router.delete("/years/:id", year.delete);
+
+router.get("/faculty", faculty.get);
+router.get("/faculty/:id", faculty.getOne);
+router.post("/faculty", validation.faculty, validateForm, faculty.post);
+router.put("/faculty/:id", validation.faculty, validateForm, faculty.put);
+router.delete("/faculty/:id", faculty.delete);
 
 module.exports = router;
