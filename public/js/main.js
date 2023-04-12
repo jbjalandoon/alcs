@@ -32,7 +32,7 @@ const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 const displayToast = ({ status, data }) => {
   let icon, message;
-  if (icon > 400) {
+  if (status > 400) {
     icon = "warning";
   } else {
     icon = "success";

@@ -30,7 +30,7 @@ const UserSChema = new Schema({
     },
     middleName: {
       type: String,
-      default: '',
+      default: "",
     },
   },
   facultyInformation: {
@@ -56,20 +56,12 @@ const UserSChema = new Schema({
     ],
     academicQualifications: [
       {
-        academicQualification: {
-          type: mongoose.Types.ObjectId,
-          ref: "Qualification",
-        },
+        academicQualification: String,
         degree: {
           type: Number,
           default: 0,
         },
-        licenseIndustry: [
-          {
-            type: mongoose.Types.ObjectId,
-            ref: "Tag",
-          },
-        ],
+        licenseIndustry: [String],
         experience: {
           type: Number,
           default: 0,

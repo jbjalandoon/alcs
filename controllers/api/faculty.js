@@ -24,7 +24,7 @@ exports.get = async (req, res, next) => {
       .populate("facultyInformation.courseTaken")
       .populate("facultyInformation.facultyType");
 
-    if (faculty.length === 404)
+    if (faculty.length === 0)
       return res.status(404).json({ msg: "No Faculty Available" });
 
     res.status(200).json({ faculty });
@@ -70,6 +70,7 @@ exports.post = async (req, res, next) => {
       existingFaculty = {
         ...existingFaculty,
         email,
+        password: hashedPassword,
         userInformation: {
           firstName,
           middleName,
@@ -85,6 +86,7 @@ exports.post = async (req, res, next) => {
     } else {
       newFaculty = await new Faculty({
         email,
+        password: hashedPassword,
         userInformation: {
           firstName,
           middleName,
@@ -110,6 +112,7 @@ exports.post = async (req, res, next) => {
 
     res.status(201).json({ msg: "Faculty successfully added", faculty });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };

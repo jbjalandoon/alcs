@@ -52,8 +52,8 @@
           <h5 class="modal-title" id="addModalLabel">Adding new faculty</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <form id="addForm" class="needs-validation" novalidate>
+        <form id="addForm" class="needs-validation" novalidate>
+          <div class="modal-body">
             <div class="container">
               <div class="row">
                 <div class="col-8 mb-3">
@@ -115,57 +115,18 @@
                       </div>
                     </div>
                     <div class="card-body" id="qaCard">
-                      <div id="academicQualificationForm">
-                        <div class="row">
-                          <div class="col-12 mb-3">
-                            <label for="academicQualification" class="col-form-label">Academic Qualification: </label>
-                            <select id="academicQualification" class="form-select form-select-sm academic-qualification">
-                              <option value=""></option>
-                            </select>
-                            <div class="invalid-feedback">
-                            </div>
-                          </div>
-                        </div>
-                        <div class="row mb-3">
-                          <div class="col-md-6">
-                            <label for="experience" class="form-label">Years of Experience: </label>
-                            <input type="number" class="form-control form-control-sm experience " id="experience" value="0" disabled>
-                            <div class="invalid-feedback">
-                            </div>
-                          </div>
-                          <div class="col-md-6">
-                            <label for="degree" class="form-label small-font-size ">Degree: </label>
-                            <select id="degree" class="form-select form-select-sm degree " disabled>
-                              <option value="1">Associate's Degree</option>
-                              <option value="2">Bachelor's Degree</option>
-                              <option value="3">Master's Degree</option>
-                              <option value="3">Doctoral</option>
-                            </select>
-                            <div class="invalid-feedback">
-                            </div>
-                          </div>
-                        </div>
-                        <div class="row mb-3">
-                          <div class="col-12">
-                            <label for="licenseIndustry" class="form-label">Professional License and Industry Qualification: </label>
-                            <select class="form-control license-industry " id="licenseIndustry" multiple disabled></select>
-                            <div class="invalid-feedback">
-                            </div>
-                          </div>
-                        </div>
-                        <hr>
-                      </div>
+                   
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
-        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="addButton">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
