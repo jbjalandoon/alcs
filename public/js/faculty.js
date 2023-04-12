@@ -48,9 +48,9 @@ const tableData = (operation, data) => {
       <button class="btn btn-sm btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-id="${
         data._id
       }">Course Taken</button>
-      <button class="btn btn-sm btn-secondary mb-1" onClick="sendPassword('${
+      <button class="btn btn-sm btn-secondary mb-1" onClick="sendPassword(this)" id="${
         data._id
-      }')" id="${data._id}">Send Password</button>
+      }">Send Password</button>
       ${actionButton(data._id)}
     `,
   ]).draw();
@@ -473,24 +473,26 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
   });
 });
 
-const sendPassword = (id) => {
-  loading();
-  fetch(`/api/faculty/send-password/${id}`, {
-    method: "POST",
-    headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      console.log(result);
-      displayToast(result);
-    })
-    .catch((error) => {
-      console.log(error);
-      displayToast(error);
-    });
-};
+async function sendPassword(event) {
+  try {
+    console.log($(event).attr("id"));
+    $(event).html("Sending...");
+    $(event).addClass("disabled");
+    const id = $(event).attr("id");
+    const { data, result } = await axios.post(
+      `/api/faculty/send-password/${id}`,
+      {},
+      { headers: { "csrf-token": csrf } }
+    );
+    displayToast({ data, result });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  } finally {
+    $(event).html("Send Password");
+    $(event).removeClass("disabled");
+  }
+}
 
 const makeNewAcademicQualification = (card, academicQualificationList) => {
   const container = $("<div></div>");

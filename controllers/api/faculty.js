@@ -127,6 +127,7 @@ exports.put = async (req, res, next) => {
       lastName,
       facultyType,
       academicQualifications,
+      email,
     } = req.body;
     const faculty = await Faculty.findOneAndUpdate(
       { _id: id },
@@ -171,7 +172,7 @@ exports.postCourse = async (req, res, next) => {
     const { courses } = req.body;
     const faculty = await Faculty.findOneAndUpdate(
       { _id: id },
-      { 'facultyInformation.courseTaken': courses },
+      { "facultyInformation.courseTaken": courses },
       { new: true }
     )
       .populate("facultyInformation.courseTaken")
@@ -179,7 +180,7 @@ exports.postCourse = async (req, res, next) => {
 
     res.status(200).json({ msg: "Course successfully added", faculty });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -526,33 +527,28 @@ exports.deleteSchedulePreference = (req, res, next) => {
     });
 };
 
-exports.sendNewPassword = (req, res, next) => {
-  let randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
-  bcrypt
-    .hash(randomString, 12)
-    .then((password) => {
-      return Faculty.findOneAndUpdate(
-        { _id: req.params.id },
-        { password: password }
-      );
-    })
-    .then((result) => {
-      const emailDetails = {
-        from: "sticaschedula@gmail.com",
-        to: result.email,
-        subject: "No Reply - Password Generated",
-        text: randomString,
-      };
-      return mailTransporter.sendMail(emailDetails);
-    })
-    .then((result) => {
-      console.log(result);
-      res.json({ status: 200, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ status: 500, data: error });
-    });
+exports.sendNewPassword = async (req, res, next) => {
+  try {
+    const password = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const { id } = req.params;
+    console.log(req.params);
+    const faculty = await Faculty.findOneAndUpdate(
+      { _id: id },
+      { password: hashedPassword }
+    );
+
+    const mail = await sendMail(
+      faculty.email,
+      "Schedula - Random Password",
+      password
+    );
+    console.log(mail);
+    res.status(200).json({ msg: "Password successfully sent." });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 Array.prototype.unique = function () {
