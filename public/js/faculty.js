@@ -186,7 +186,7 @@ $(addModal._element).on("show.bs.modal", async (event) => {
           },
           { headers: { "csrf-token": csrf } }
         );
-
+        console.log(data);
         tableData(table.row.add, data.faculty);
         firstName.val("");
         middleName.val("");
@@ -224,7 +224,7 @@ $(editModal._element).on("show.bs.modal", async (event) => {
   const facultyCode = $(event.currentTarget).find("#facultyCode");
   const email = $(event.currentTarget).find("#email");
   const facultyType = $(event.currentTarget).find("#facultyType");
-  facultyType.empty()
+  facultyType.empty();
   const removeAcademicQualification = $(event.currentTarget).find(
     "#removeAcademicQualification"
   );

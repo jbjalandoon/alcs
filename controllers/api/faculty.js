@@ -106,7 +106,7 @@ exports.post = async (req, res, next) => {
       password
     );
 
-    const faculty = await newFaculty
+    const faculty = await Faculty.findOne({ email: email })
       .populate("facultyInformation.facultyType")
       .populate("facultyInformation.courseTaken");
 
@@ -127,7 +127,6 @@ exports.put = async (req, res, next) => {
       lastName,
       facultyType,
       academicQualifications,
-      email,
     } = req.body;
     const faculty = await Faculty.findOneAndUpdate(
       { _id: id },
