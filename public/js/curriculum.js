@@ -624,33 +624,3 @@ const renderCourse = async (table, data) => {
     );
   table.children("tbody").append(tr);
 };
-
-// $("#copySubmit").on("click", () => {
-//   if (semester === copySem.val()) {
-//     return Toast.fire({
-//       icon: "warning",
-//       title: "Active Semester and Selected Semester is same",
-//     });
-//   }
-//   fetch("/api/curriculums/semesters/copy/" + semester + "/" + copySem.val(), {
-//     method: "POST",
-//     headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-//   })
-//     .then((response) => {
-//       return response.json();
-//     })
-//     .then((result) => {
-//       if (!result) {
-//         return;
-//       }
-//       copyModal.hide();
-//       window.location.reload();
-//       return Toast.fire({
-//         icon: "success",
-//         title: "successfully copied",
-//       });
-//     })
-//     .catch((error) => {
-//       console.log(error);
-//     });
-// });

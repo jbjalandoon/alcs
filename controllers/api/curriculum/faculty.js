@@ -8,11 +8,15 @@ exports.getActiveFaculty = async (req, res, next) => {
   try {
     const activeFaculty = await Curriculum.aggregate([
       {
-        $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
       },
       { $unwind: "$semesters" },
       {
-        $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
       },
       {
         $project: {
@@ -24,17 +28,18 @@ exports.getActiveFaculty = async (req, res, next) => {
       },
     ]);
 
-    const populatedFaculty = await Faculty.find({ _id: { $in: activeFaculty.map((e) => e.faculty) } })
-      .populate("userInformation.academicQualifications.academicQualification")
-      .populate("userInformation.academicQualifications.licenseIndustry")
-      .populate("userInformation.courseTaken")
-      .populate("userInformation.facultyType");
+    const faculty = await Faculty.find({
+      _id: { $in: activeFaculty.map((e) => e.faculty) },
+    })
+      .populate("facultyInformation.courseTaken")
+      .populate("facultyInformation.facultyType");
 
-    if (populatedFaculty.length === 0) return res.status(404).json({ status: 404, data: populatedFaculty });
-    res.status(200).json({ status: 200, data: populatedFaculty });
+    if (faculty.length === 0)
+      return res.status(200).json({ msg: "No Active Faculty", faculty: [] });
+    res.status(200).json({ faculty });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -42,11 +47,15 @@ exports.getActiveFacultyCounts = async (req, res, next) => {
   try {
     const facultyCounts = await Curriculum.aggregate([
       {
-        $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
       },
       { $unwind: "$semesters" },
       {
-        $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
       },
       {
         $project: {
@@ -83,16 +92,17 @@ exports.getActiveFacultyCounts = async (req, res, next) => {
       },
     ]);
 
-    res.status(200).json({ status: 200, data: facultyCounts });
+    res.status(200).json({ facultyCounts });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.getActiveFacultyType = async (req, res, next) => {
   try {
-    const activeFaculty = await FacultyType.findOne({ facultyType: req.params.type });
+    const activeFaculty = await FacultyType.findOne({
+      facultyType: req.params.type,
+    });
     const faculty = await Curriculum.aggregate([
       {
         $match: {
@@ -123,7 +133,9 @@ exports.getActiveFacultyType = async (req, res, next) => {
       },
       {
         $match: {
-          "faculty.userInformation.facultyType": mongoose.Types.ObjectId(activeFaculty._id),
+          "faculty.userInformation.facultyType": mongoose.Types.ObjectId(
+            activeFaculty._id
+          ),
         },
       },
       {
@@ -134,10 +146,10 @@ exports.getActiveFacultyType = async (req, res, next) => {
       },
     ]);
 
-    res.status(200).json({ status: 200, data: faculty });
+    res.status(200).json({ faculty });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, error: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -154,15 +166,15 @@ exports.postActiveFaculty = async (req, res, next) => {
     );
 
     const faculty = await Faculty.find({ _id: { $in: req.body.faculty } })
-      .populate("userInformation.academicQualifications.academicQualification")
-      .populate("userInformation.academicQualifications.licenseIndustry")
-      .populate("userInformation.courseTaken")
-      .populate("userInformation.facultyType");
+      .populate("facultyInformation.courseTaken")
+      .populate("facultyInformation.facultyType");
 
-    res.status(201).json({ status: 201, data: faculty });
+    res
+      .status(201)
+      .json({ msg: "Successfully added new active faculty", faculty });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -175,17 +187,21 @@ exports.deleteActiveFaculty = async (req, res, next) => {
           "semesters.$[semester].activeFaculties": req.params.id,
         },
         $set: {
-          "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[faculty].faculty": null,
+          "semesters.$[semester].programs.$[].year.$[].sections.$[].schedules.$[faculty].faculty":
+            null,
         },
       },
       {
-        arrayFilters: [{ "semester._id": req.params.semester }, { "faculty.faculty": req.params.id }],
+        arrayFilters: [
+          { "semester._id": req.params.semester },
+          { "faculty.faculty": req.params.id },
+        ],
       }
     );
-
-    res.status(202).json({ status: 202, data: deleteActiveFaculty });
+    console.log(deleteActiveFaculty);
+    res.status(200).json({ msg: "Active faculty successfully deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };

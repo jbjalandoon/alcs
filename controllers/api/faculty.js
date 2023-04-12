@@ -215,6 +215,7 @@ exports.postSpreadsheet = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const data = rows.map((element) => {
       const type = facultyType.find((e) => e.facultyType === element[6]);
+      console.log(type ? e._id : facultyType[0]._id);
       return {
         facultyCode: element[1].toLowerCase(),
         lastName: element[2] ? element[2].toLowerCase() : "",
@@ -233,12 +234,14 @@ exports.postSpreadsheet = async (req, res, next) => {
             update: {
               email: e.email,
               password: e.password,
-              userInformation: {
+              facultyInformation: {
+                facultyType: e.facultyType,
                 facultyCode: e.facultyCode,
+              },
+              userInformation: {
                 lastName: e.lastName,
                 firstName: e.firstName,
                 middleName: e.middleName,
-                facultyType: e.facultyType,
               },
             },
             upsert: true,

@@ -47,21 +47,23 @@
           <h5 class="modal-title" id="addModalLabel">Adding new faculty</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12">
-                <label for="faculty" class="form-label">Select Faculty Members: </label>
-                <select name="" id="faculty" multiple="true" class="form-select"></select>
-                <div class="invalid-feedback"></div>
+        <form>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-12">
+                  <label for="faculty" class="form-label">Select Faculty Members: </label>
+                  <select name="" id="faculty" multiple="true" class="form-select"></select>
+                  <div class="invalid-feedback"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="addButton">Submit</button>
-        </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="addButton">Submit</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

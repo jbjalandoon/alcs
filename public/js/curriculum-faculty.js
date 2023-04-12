@@ -1,156 +1,158 @@
-const table = $("#facultyTable").DataTable({
-});
+const table = $("#facultyTable").DataTable({});
 
-const dataTable = (operation, data) => {
-  const firstName = data.userInformation.firstName.toUpperCase();
-  const middleName = data.userInformation.middleName != null ? data.userInformation.middleName.toUpperCase() : "";
-  const lastName = data.userInformation.lastName.toUpperCase();
+const tableData = (operation, data) => {
+  const { firstName, lastName, middleName } = data.userInformation;
+  const { facultyCode, facultyType, academicQualifications, courseTaken } =
+    data.facultyInformation;
+  const { email } = data;
   operation([
-    data.userInformation.facultyCode.toUpperCase(),
-    firstName + " " + middleName + " " + lastName,
-    data.userInformation.facultyType.facultyType.toUpperCase(),
-    data.email,
-    data.userInformation.academicQualifications.length !== 0
-      ? data.userInformation.academicQualifications
-        .map((element) => {
-          return `
+    facultyCode.toUpperCase(),
+    `${firstName} ${middleName} ${lastName}`,
+    facultyType.facultyType.toUpperCase(),
+    email,
+    academicQualifications.length !== 0
+      ? academicQualifications
+          .map((element) => {
+            return `
               <div>
-                <h6>${element.academicQualification.academicQualification}</h6>
+                <h6>${element.academicQualification.toUpperCase()}</h6>
                 <ul>
                   <li>${element.experience} year/s of experience.</li>
                   <li>${degreeEquivalent[element.degree - 1]}</li>
                   ${element.licenseIndustry
-              .map((element) => {
-                return "<li>" + element.tag.toUpperCase() + "</li>";
-              })
-              .join("")}
+                    .map((element) => {
+                      return "<li>" + element.toUpperCase() + "</li>";
+                    })
+                    .join("")}
                 </ul>
               </div>`;
-        })
-        .join("")
+          })
+          .join("")
       : "N/A",
-    data.userInformation.courseTaken.length !== 0
-      ? data.userInformation.courseTaken
-        .map((element) => {
-          return element.courseCode.toUpperCase();
-        })
-        .join(", ")
+    courseTaken.length !== 0
+      ? courseTaken
+          .map((element) => {
+            return element.courseCode.toUpperCase();
+          })
+          .join(", ")
       : "N/A",
     ` 
     <button class="btn text-light btn-sm btn-danger mb-1" onClick="deleteData('${data._id}', this)">Delete</button>
+
     `,
   ]).draw();
 };
-
 const csrf = $("#csrf").val();
 
 let semester;
 
-const degreeEquivalent = ["Associate Degree", "Bachelor Degree", "Master Degree", "Doctoral"];
+const degreeEquivalent = [
+  "Associate Degree",
+  "Bachelor Degree",
+  "Master Degree",
+  "Doctoral",
+];
 
 const addModal = new bootstrap.Modal($("#addModal"));
 const existing = [];
 
-fetch(`/api/curriculums/semesters/active`)
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    console.log(result.data[0]);
-    semester = result.data[0].semesters._id;
-    $("#cardLabel").html(
-      `LIST OF ACTIVE FACULTY MEMBERS - S.Y ${result.data[0].schoolYear[0].year
-      } (${result.data[0].semesters.sem.toUpperCase()} SEMESTER)`
+(async () => {
+  try {
+    const { data, status } = await axios.get(
+      `/api/curriculums/semesters/active`
     );
-    return fetch(`/api/curriculums/faculty/${semester}`);
-  })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    result.data.forEach((element) => {
-      existing.push(element._id);
-      dataTable(table.row.add, element);
-    });
-    return fetch(`/api/faculty`);
-  })
-  .then((response) => {
-    return response.json();
-  })
-  .then((result) => {
-    $(addModal._element).on("show.bs.modal", (event) => {
-      const button = $(event.currentTarget).find("#addButton");
-      const faculty = $(event.currentTarget).find("#faculty").select2({
-        multiple: true,
-        width: "100%",
-      });
-      faculty.empty();
-      result.data.forEach((element) => {
-        if (existing.indexOf(element._id) === -1) {
-          const firstName = element.userInformation.firstName.toUpperCase();
-          const middleName = element.userInformation.middleName ? element.userInformation.middleName.toUpperCase() : "";
-          const lastName = element.userInformation.lastName.toUpperCase();
-          const name = `${firstName} ${middleName} ${lastName}`;
-          faculty.append(new Option(name, element._id));
-        }
-      });
-      button.off("click");
-      button.on("click", () => {
-        fetch(`/api/curriculums/faculty/${semester}`, {
-          method: "POST",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            faculty: faculty.val(),
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            addModal.hide();
-            result.data.forEach((element) => {
-              existing.push(element._id);
-              dataTable(table.row.add, element);
-            });
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-    });
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+    semester = data.semester._id;
+    $("#cardLabel").html(
+      `S.Y. ${data.year.year.toUpperCase()} (${data.semester.sem.toUpperCase()} SEMESTER)`
+    );
 
-const deleteData = (id, element) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "The existing schedule of the faculty will also remove, You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    preConfirm: () => {
-      return fetch(`/api/curriculums/faculty/${semester}/${id}`, {
-        method: "DELETE",
-        headers: {
-          "csrf-token": csrf,
-        },
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.log(error);
+    const { data: facultyData } = await axios.get(
+      `/api/curriculums/faculty/${semester}`
+    );
+
+    facultyData.faculty.forEach((element) => {
+      existing.push(element._id);
+      tableData(table.row.add, element);
+    });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
+})();
+
+$(addModal._element).on("show.bs.modal", async (event) => {
+  const submit = $(event.currentTarget).find("#addButton");
+  const buttons = $(event.currentTarget).find("button");
+  const form = $(event.currentTarget).find("form");
+  const faculty = $(event.currentTarget).find("#faculty").select2({
+    multiple: true,
+    width: "100%",
+  });
+  faculty.empty();
+  form.off("submit");
+  try {
+    const { data } = await axios.get(`/api/faculty`);
+
+    const { faculty: facultyData } = data;
+    facultyData.forEach((e) => {
+      if (existing.indexOf(e._id) === -1) {
+        const { firstName, middleName, lastName } = e.userInformation;
+        const name = `${firstName} ${middleName} ${lastName}`;
+        faculty.append(new Option(name.toUpperCase(), e._id));
+      }
+    });
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting...");
+        buttons.addClass("disabled");
+        removeValidationError([faculty]);
+
+        const { data, status } = await axios.post(
+          `/api/curriculums/faculty/${semester}`,
+          { faculty: faculty.val() },
+          { headers: { "csrf-token": csrf } }
+        );
+        data.faculty.forEach((element) => {
+          existing.push(element._id);
+          tableData(table.row.add, element);
         });
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
+        addModal.hide();
+        displayToast({ data, status });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.removeClass("disabled");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
+});
+
+const deleteData = async (id, element) => {
+  const { isConfirmed } = await confirmDelete();
+  try {
+    if (isConfirmed) {
+      const { data, status } = await axios.delete(
+        `/api/curriculums/faculty/${semester}/${id}`,
+        { headers: { "csrf-token": csrf } }
+      );
+      console.log(data);
       existing.splice(existing.indexOf(id), 1);
       table.row(element.closest("tr")).remove().draw();
-      displayToast(result.value);
+      displayToast({ data, status });
     }
-  });
+  } catch (error) {
+    displayToast(error.response);
+  }
 };
