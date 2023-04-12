@@ -205,260 +205,54 @@ exports.getFacultyType = (req, res, next) => {
     });
 };
 
-exports.putAcademicQualification = (req, res, next) => {
-  console.log(req.body.academicQualifications);
-  Faculty.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      "userInformation.academicQualifications": req.body.academicQualifications,
-    }
-  )
-    .then((result) => {
-      console.log(result);
-      if (!result) {
-        return res.json({ ok: false });
-      }
-      return res.json({ ok: false, data: result });
-    })
-    .catch((error) => {
-      return res.json({ ok: false, data: error });
-    });
-};
-
-exports.postSpreadsheet = (req, res, next) => {
-  const degreeEquivalent = ["associates", "bachelors", "masters", "doctoral"];
-  const randomString = Crypto.randomBytes(8).toString("base64").slice(0, 9);
-  let tags = [],
-    fetchedTag,
-    academicQualifications = [],
-    storedLicenseIndustry = [],
-    newLicenseIndustry = [],
-    data;
-  readXlsxFile(Buffer.from(req.file.buffer))
-    .then((rows) => {
-      rows.shift();
-      data = rows.map((element) => {
-        const academicQualification = element[6]
-          .toLowerCase()
-          .split(",")
-          .map((e) => {
-            const array = e.toLowerCase().split("-");
-            const degreeLicense = array[1].toLowerCase().split("/");
-            const degree = degreeLicense[0].replace(/\s/g, "");
-            const licenseIndustry = degreeLicense[1]
-              ? degreeLicense[1].toLowerCase().split(".")
-              : [];
-            return {
-              academicQualification: array[0].toLowerCase().replace(/\s/g, ""),
-              degree:
-                degreeEquivalent.indexOf(degree.toLowerCase()) < 0
-                  ? 0
-                  : degreeEquivalent.indexOf(degree.toLowerCase()),
-              licenseIndustry: licenseIndustry,
-            };
-          });
-
-        return {
-          facultyCode: element[1].toLowerCase(),
-          lastName: element[2] ? element[2].toLowerCase() : null,
-          firstName: element[3] ? element[3].toLowerCase() : null,
-          middleName: element[4] ? element[4].toLowerCase() : null,
-          email: element[5].toLowerCase().replace(/\s/g, ""),
-          facultyType: element[7],
-          academicQualification: academicQualification,
-        };
-      });
-      data.forEach((element) => {
-        element.academicQualification.forEach((element) => {
-          if (element.licenseIndustry) {
-            element.licenseIndustry.forEach((element) => {
-              tags.push(element);
-            });
-          }
-        });
-      });
-      return Tag.bulkWrite(
-        tags.map((e) => {
-          return {
-            updateOne: {
-              filter: { tag: e },
-              update: {
-                tag: e,
-              },
-              upsert: true,
-            },
-          };
-        })
-      );
-    })
-    .then((result) => {
-      return Tag.find({ tag: { $in: tags } });
-    })
-    .then((result) => {
-      data = data.map((element) => {
-        return {
-          facultyCode: element.facultyCode,
-          lastName: element.lastName,
-          firstName: element.firstName,
-          middleName: element.middleName,
-          email: element.email,
-          facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map(
-            (element) => {
-              return {
-                academicQualification: element.academicQualification,
-                degree: element.degree,
-                licenseIndustry: element.licenseIndustry.map((element) => {
-                  let id;
-                  for (let i = 0; i < result.length; i++) {
-                    if (result[i].tag === element) {
-                      id = result[i]._id;
-                      break;
-                    }
-                  }
-                  return id;
-                }),
-              };
-            }
-          ),
-        };
-      });
-      data.forEach((element) => {
-        element.academicQualification.forEach((element) => {
-          academicQualifications.push({
-            academicQualification: element.academicQualification,
-            licenseIndustry: element.licenseIndustry,
-          });
-        });
-      });
-      return AcademicQualification.bulkWrite(
-        academicQualifications.map((e) => {
-          return {
-            updateOne: {
-              filter: { academicQualification: e.academicQualification },
-              update: {
-                academicQualification: e.academicQualification,
-                $addToSet: { licenseIndustry: e.licenseIndustry },
-              },
-              upsert: true,
-            },
-          };
-        })
-      );
-    })
-    .then((result) => {
-      return AcademicQualification.find({
-        academicQualification: {
-          $in: academicQualifications.map((e) => e.academicQualification),
-        },
-      });
-    })
-    .then((result) => {
-      data = data.map((element) => {
-        return {
-          facultyCode: element.facultyCode,
-          lastName: element.lastName,
-          firstName: element.firstName,
-          middleName: element.middleName,
-          email: element.email,
-          facultyType: element.facultyType,
-          academicQualification: element.academicQualification.map(
-            (element) => {
-              let id;
-              for (let i = 0; i < result.length; i++) {
-                if (
-                  result[i].academicQualification ===
-                  element.academicQualification
-                ) {
-                  id = result[i]._id;
-                }
-              }
-              return {
-                academicQualification: id,
-                degree: element.degree,
-                experience: 0,
-                licenseIndustry: element.licenseIndustry,
-              };
-            }
-          ),
-        };
-      });
-      return FacultyType.find({ deleted: false });
-    })
-    .then((result) => {
-      data = data.map((element) => {
-        let facultyType;
-        for (let i = 0; i < result.length; i++) {
-          if (
-            result[i].facultyType.toLowerCase() ===
-            element.facultyType.toLowerCase()
-          ) {
-            facultyType = result[i]._id;
-            break;
-          }
-        }
-        return {
-          facultyCode: element.facultyCode.toLowerCase(),
-          lastName: element.lastName.toLowerCase(),
-          firstName: element.firstName.toLowerCase(),
-          middleName: element.middleName,
-          email: element.email.toLowerCase(),
-          facultyType: facultyType,
-          academicQualification: element.academicQualification,
-        };
-      });
-      return bcrypt.hash(randomString, 12);
-    })
-    .then((password) => {
-      return Faculty.bulkWrite(
-        data.map((e) => {
-          return {
-            updateOne: {
-              filter: { "userInformation.facultyCode": e.facultyCode },
-              update: {
-                email: e.email,
-                password: password,
-                userInformation: {
-                  facultyCode: e.facultyCode,
-                  lastName: e.lastName,
-                  firstName: e.firstName,
-                  middleName: e.middleName,
-                  facultyType: e.facultyType,
-                  academicQualifications: e.academicQualification,
-                },
-              },
-              upsert: true,
-            },
-          };
-        })
-      );
-    })
-    .then((result) => {
-      const emailDetails = {
-        from: "sticaschedula@gmail.com",
-        to: data.map((e) => e.email),
-        subject: "No Reply - Password Generated",
-        text: randomString,
+exports.postSpreadsheet = async (req, res, next) => {
+  try {
+    console.log(req.body);
+    const rows = await readXlsxFile(Buffer.from(req.file.buffer));
+    rows.shift();
+    const facultyType = await FacultyType.find();
+    const password = Crypto.randomBytes(8).toString("base64").slice(0, 9);
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const data = rows.map((element) => {
+      const type = facultyType.find((e) => e.facultyType === element[6]);
+      return {
+        facultyCode: element[1].toLowerCase(),
+        lastName: element[2] ? element[2].toLowerCase() : "",
+        firstName: element[3] ? element[3].toLowerCase() : "",
+        middleName: element[4] ? element[4].toLowerCase() : "",
+        email: element[5].toLowerCase().replace(/\s/g, ""),
+        facultyType: type ? e._id : facultyType[0]._id,
+        password: hashedPassword,
       };
-      return mailTransporter.sendMail(emailDetails);
-    })
-    .then((result) => {
-      console.log(result);
-      return Faculty.find({ deleted: false, role: "user" })
-        .populate(
-          "userInformation.academicQualifications.academicQualification"
-        )
-        .populate("userInformation.academicQualifications.licenseIndustry")
-        .populate("userInformation.courseTaken")
-        .populate("userInformation.facultyType");
-    })
-    .then((result) => {
-      res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.json({ status: 500, data: error });
     });
+    const bulkWrite = await Faculty.bulkWrite(
+      await data.map((e) => {
+        return {
+          updateOne: {
+            filter: { "facultyInformation.facultyCode": e.facultyCode },
+            update: {
+              email: e.email,
+              password: e.password,
+              userInformation: {
+                facultyCode: e.facultyCode,
+                lastName: e.lastName,
+                firstName: e.firstName,
+                middleName: e.middleName,
+                facultyType: e.facultyType,
+              },
+            },
+            upsert: true,
+          },
+        };
+      })
+    );
+
+    console.log(bulkWrite);
+    res.status(200).json({ msg: "Successfully Uploaded" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.postSchedulePreference = (req, res, next) => {

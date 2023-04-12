@@ -441,35 +441,36 @@ $(addCourseModal._element).on("show.bs.modal", async (event) => {
 });
 
 $(uploadModal._element).on("show.bs.modal", (event) => {
-  const button = $(event.currentTarget).find("#uploadButton");
-  const body = new FormData();
-  button.off("click");
-  button.on("click", () => {
-    body.append(
-      "spreadsheet",
-      $(event.currentTarget).find("#spreadsheet")[0].files[0]
-    );
-    loading();
-    fetch("/api/faculty/upload", {
-      method: "POST",
-      headers: { "csrf-token": csrf },
-      body: body,
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((result) => {
-        if (result.errors) {
-          displayValidationError(result.errors, event.currentTarget);
-          return displayToast(result);
-        }
-        uploadModal.hide();
-        table.rows().remove().draw();
-        result.data.forEach((element) => {
-          dataTable(table.row.add, element);
-        });
-        return displayToast(result);
+  const submit = $(event.currentTarget).find("#uploadButton");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
+  form.off("submit");
+  form.on("submit", async (formEvent) => {
+    try {
+      formEvent.preventDefault();
+      const file = $(event.currentTarget).find("#spreadsheet")[0].files[0];
+      const body = new FormData();
+      body.append("spreadsheet", file);
+
+      const { data, status } = await axios.post(`/api/faculty/upload`, body, {
+        headers: { "csrf-token": csrf },
       });
+
+      const { data: faculty } = await axios.get(`/api/faculty`);
+
+      table.clear().draw();
+      faculty.faculty.forEach((element) => tableData(table.row.add, element));
+      uploadModal.hide();
+      displayToast({ data, status });
+    } catch (error) {
+      if (error.response.status === 400) {
+        displayValidationError(error.response.data.errors, event.currentTarget);
+      }
+      displayToast(error.response);
+    } finally {
+      submit.html("Submit");
+      buttons.removeClass("disabled");
+    }
   });
 });
 
