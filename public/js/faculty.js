@@ -12,7 +12,6 @@ const tableData = (operation, data) => {
   const { facultyCode, facultyType, academicQualifications, courseTaken } =
     data.facultyInformation;
   const { email } = data;
-  console.log(academicQualifications)
   operation([
     facultyCode.toUpperCase(),
     `${firstName} ${middleName} ${lastName}`,
@@ -77,11 +76,7 @@ const uploadModal = new bootstrap.Modal($("#uploadModal"));
 })();
 
 $(addModal._element).on("show.bs.modal", async (event) => {
-  let academicQualificationList,
-    experience,
-    degrees,
-    licenseIndustry,
-    academicQualification;
+  let experience, degrees, licenseIndustry, academicQualification;
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
@@ -157,16 +152,12 @@ $(addModal._element).on("show.bs.modal", async (event) => {
         submit.html("Submitting...");
         buttons.addClass("disabled");
         removeValidationError([
-          experience,
-          degrees,
-          licenseIndustry,
-          academicQualification,
           firstName,
           middleName,
           lastName,
           facultyCode,
-          email,
           facultyType,
+          email,
         ]);
 
         const qualifications = [];
@@ -225,49 +216,72 @@ $(addModal._element).on("show.bs.modal", async (event) => {
   }
 });
 
-$(editModal._element).on("show.bs.modal", (event) => {
-  let academicQualificationList,
-    experience,
-    degrees,
-    licenseIndustry,
-    academicQualification;
+$(editModal._element).on("show.bs.modal", async (event) => {
+  let experience, degrees, licenseIndustry, academicQualification;
   const firstName = $(event.currentTarget).find("#firstName");
   const middleName = $(event.currentTarget).find("#middleName");
   const lastName = $(event.currentTarget).find("#lastName");
   const facultyCode = $(event.currentTarget).find("#facultyCode");
   const email = $(event.currentTarget).find("#email");
   const facultyType = $(event.currentTarget).find("#facultyType");
-  const schedulePreference = $(event.currentTarget)
-    .find("#schedulePreference")
-    .select2({
-      multiple: true,
-      width: "100%",
-    });
+  facultyType.empty()
   const removeAcademicQualification = $(event.currentTarget).find(
     "#removeAcademicQualification"
   );
   const newAcademicQualification = $(event.currentTarget).find(
     "#newAcademicQualification"
   );
-  const button = $(event.currentTarget).find("#editButton");
+  const submit = $(event.currentTarget).find("#editButton");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
   const card = $(event.currentTarget).find("#qaCard");
   const id = $(event.relatedTarget).attr("data-bs-id");
+
   removeAcademicQualification.off("click");
   newAcademicQualification.off("click");
-  button.off("click");
-  fetch("/api/faculty-types")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      if (academicQualification) academicQualification.off("change");
+  try {
+    const { data: facultyTypeData } = await axios.get(`/api/faculty-types`);
+    const { data: academicQualificationData } = await axios.get(
+      `/api/academic-qualifications`
+    );
+    const { data: existingFaculty } = await axios.get(`/api/faculty/${id}`);
+    const { faculty } = existingFaculty;
+    facultyTypeData.facultyType.forEach((element) => {
+      facultyType.append(
+        new Option(element.facultyType.toUpperCase(), element._id)
+      );
+    });
 
-      facultyType.find("option").not(":first").remove();
-      result.data.forEach((element) => {
-        facultyType.append(
-          new Option(element.facultyType.toUpperCase(), element._id)
-        );
-      });
+    firstName.val(faculty.userInformation.firstName);
+    middleName.val(faculty.userInformation.middleName);
+    lastName.val(faculty.userInformation.lastName);
+    facultyCode.val(faculty.facultyInformation.facultyCode);
+    email.val(faculty.email);
+    facultyType.val(faculty.facultyInformation.facultyType._id);
+
+    card.empty();
+    faculty.facultyInformation.academicQualifications.forEach((element) => {
+      existingAcademicQualification(
+        card,
+        academicQualificationData.aq,
+        element
+      );
+    });
+
+    academicQualification = $(event.currentTarget).find(
+      ".academic-qualification"
+    );
+    experience = $(event.currentTarget).find(".experience");
+    degrees = $(event.currentTarget).find(".degree");
+    licenseIndustry = $(event.currentTarget).find(".license-industry");
+    if (academicQualification.length === 1) {
+      $(event.currentTarget).addClass("disabled");
+    }
+    removeAcademicQualification.on("click", (button) => {
+      card.children().last().remove();
+      academicQualification = $(event.currentTarget).find(
+        ".academic-qualification"
+      );
       academicQualification = $(event.currentTarget).find(
         ".academic-qualification"
       );
@@ -275,86 +289,37 @@ $(editModal._element).on("show.bs.modal", (event) => {
       degrees = $(event.currentTarget).find(".degree");
       licenseIndustry = $(event.currentTarget).find(".license-industry");
       if (academicQualification.length === 1) {
-        $(event.currentTarget).addClass("disabled");
+        $(button.currentTarget).addClass("disabled");
       }
-      return fetch("/api/academic-qualifications");
-    })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      academicQualificationList = result.data;
-      return fetch("/api/faculty/" + id);
-    })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      console.log(result.data.userInformation.facultyType);
-      firstName.val(result.data.userInformation.firstName);
-      middleName.val(result.data.userInformation.middleName);
-      lastName.val(result.data.userInformation.lastName);
-      facultyCode.val(result.data.userInformation.facultyCode);
-      email.val(result.data.email);
-      facultyType.val(result.data.userInformation.facultyType._id);
-      schedulePreference
-        .val(result.data.userInformation.schedulePreference)
-        .trigger("change");
-      card.empty();
-      result.data.userInformation.academicQualifications.forEach((element) => {
-        existingAcademicQualification(card, academicQualificationList, element);
-      });
-      if (academicQualification) academicQualification.off("change");
+    });
+    newAcademicQualification.on("click", () => {
+      makeNewAcademicQualification(card, academicQualificationData.aq);
+      academicQualification = $(event.currentTarget).find(
+        ".academic-qualification"
+      );
       academicQualification = $(event.currentTarget).find(
         ".academic-qualification"
       );
       experience = $(event.currentTarget).find(".experience");
       degrees = $(event.currentTarget).find(".degree");
       licenseIndustry = $(event.currentTarget).find(".license-industry");
-      removeValidationError([
-        experience,
-        degrees,
-        licenseIndustry,
-        academicQualification,
-        firstName,
-        middleName,
-        lastName,
-        facultyCode,
-        email,
-        facultyType,
-        schedulePreference,
-      ]);
-      removeAcademicQualification.on("click", (button) => {
-        card.children().last().remove();
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
-        experience = $(event.currentTarget).find(".experience");
-        degrees = $(event.currentTarget).find(".degree");
-        licenseIndustry = $(event.currentTarget).find(".license-industry");
-        if (academicQualification.length === 1) {
-          $(button.currentTarget).addClass("disabled");
-        }
-      });
-      newAcademicQualification.on("click", () => {
-        makeNewAcademicQualification(card, academicQualificationList);
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
-        academicQualification = $(event.currentTarget).find(
-          ".academic-qualification"
-        );
-        experience = $(event.currentTarget).find(".experience");
-        degrees = $(event.currentTarget).find(".degree");
-        licenseIndustry = $(event.currentTarget).find(".license-industry");
-        if (academicQualification.length !== 1) {
-          removeAcademicQualification.removeClass("disabled");
-        }
-      });
-      button.on("click", () => {
+      if (academicQualification.length !== 1) {
+        removeAcademicQualification.removeClass("disabled");
+      }
+    });
+
+    form.off("submit");
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        removeValidationError([
+          firstName,
+          middleName,
+          lastName,
+          facultyCode,
+          facultyType,
+          email,
+        ]);
         const qualifications = [];
         academicQualification.each((index) => {
           if ($(academicQualification[index]).val() !== null) {
@@ -367,47 +332,45 @@ $(editModal._element).on("show.bs.modal", (event) => {
             qualifications.push(qualification);
           }
         });
-        fetch("/api/faculty/" + id, {
-          method: "PUT",
-          headers: { "csrf-token": csrf, "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const { data, status } = await axios.put(
+          `/api/faculty/${id}`,
+          {
             firstName: firstName.val().toLowerCase(),
             middleName: middleName.val().toLowerCase(),
             lastName: lastName.val().toLowerCase(),
             facultyCode: facultyCode.val().toLowerCase(),
             facultyType: facultyType.val(),
             email: email.val(),
-            schedulePreference: schedulePreference.val(),
             academicQualifications: qualifications,
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            if (result.errors) {
-              displayValidationError(result.errors, event.currentTarget);
-              if (result.errors.academicQualifications) {
-                return Toast.fire({
-                  icon: "warning",
-                  title: "Input atleast 1 Academic Qualification",
-                });
-              }
-              return displayToast(result);
-            }
-            editModal.hide();
-            dataTable(
-              table.row($(event.relatedTarget).closest("tr")).data,
-              result.data
-            );
-            return displayToast(result);
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      displayToast(error);
+          },
+          { headers: { "csrf-token": csrf } }
+        );
+        console.log(data);
+        console.log(status);
+        tableData(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.faculty
+        );
+        editModal.hide();
+        displayToast({ status, data });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.not(removeAcademicQualification).removeClass("disabled");
+      }
     });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
 });
 
 $(addCourseModal._element).on("show.bs.modal", (event) => {
@@ -678,60 +641,22 @@ const existingAcademicQualification = (
       .append(
         $("<select></select>")
           .addClass("form-select form-select-sm academic-qualification")
-          .on("change", (event) => {
-            fetch(
-              "/api/academic-qualifications/" + $(event.currentTarget).val()
-            )
-              .then((response) => {
-                return response.json();
-              })
-              .then((result) => {
-                $(event.currentTarget)
-                  .closest(".academic-qualification-form")
-                  .children()
-                  .eq(2)
-                  .find(".license-industry")
-                  .empty();
-                result.data.licenseIndustry.forEach((license) => {
-                  $(event.currentTarget)
-                    .closest(".academic-qualification-form")
-                    .children()
-                    .eq(2)
-                    .find(".license-industry")
-                    .append(new Option(license.tag, license._id))
-                    .val(
-                      data.licenseIndustry.map((element) => {
-                        return element._id;
-                      })
-                    )
-                    .trigger("change");
-                });
-                $(event.currentTarget)
-                  .closest(".academic-qualification-form")
-                  .find("select, input")
-                  .attr({
-                    disabled: false,
-                  });
-              });
-          })
+          .on("change", aqChangeHandler)
       )
       .append($("<div></div>").addClass("invalid-feedback"))
   );
   aqRow.find("select").empty();
-  aqRow.find("select").append(
-    $("<option>--Select Academic Qualification</option>").attr({
-      disabled: true,
-      selected: true,
-    })
-  );
   academicQualificationList.forEach((element) => {
     aqRow
       .find("select")
       .append(
-        new Option(element.academicQualification.toUpperCase(), element._id)
+        new Option(
+          element.academicQualification.toUpperCase(),
+          element.academicQualification
+        )
       );
   });
-  aqRow.find("select").val(data.academicQualification._id).trigger("change");
+  aqRow.find("select").val(data.academicQualification);
   const numberRow = $("<div></div>");
   numberRow.addClass("row mb-2");
   numberRow
@@ -809,7 +734,19 @@ const existingAcademicQualification = (
     multiple: true,
     width: "100%",
   });
-
+  function aqChangeHandler(event) {
+    value = $(event.currentTarget).val();
+    const { licenseIndustry: li } = academicQualificationList.find(
+      (e) => e.academicQualification === value
+    );
+    const licenseIndustry = $(licenseIndustryRow).find("select");
+    licenseIndustry.empty();
+    li.forEach((e) => {
+      licenseIndustry.append(new Option(e, e));
+    });
+    licenseIndustry.val(data.licenseIndustry);
+  }
+  aqRow.find("select").trigger("change");
   card.append(container);
 };
 

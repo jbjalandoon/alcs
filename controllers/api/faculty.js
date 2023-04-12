@@ -127,6 +127,7 @@ exports.put = async (req, res, next) => {
       lastName,
       facultyType,
       academicQualifications,
+      email,
     } = req.body;
     const faculty = await Faculty.findOneAndUpdate(
       { _id: id },
@@ -146,6 +147,7 @@ exports.put = async (req, res, next) => {
 
     res.status(200).json({ msg: "Faculty successfully edited", faculty });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
