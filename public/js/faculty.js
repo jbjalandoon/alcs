@@ -373,77 +373,71 @@ $(editModal._element).on("show.bs.modal", async (event) => {
   }
 });
 
-$(addCourseModal._element).on("show.bs.modal", (event) => {
+$(addCourseModal._element).on("show.bs.modal", async (event) => {
   const course = $(event.currentTarget).find("#course").select2({
     multiple: true,
     width: "100%",
   });
+  course.empty();
   const id = $(event.relatedTarget).attr("data-bs-id");
-  const button = $(event.currentTarget).find("#addCourse");
-  button.off("click");
-  fetch("/api/courses")
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      course.empty("").trigger("change");
-      console.log(result);
-      result.data.forEach((element) => {
-        course
-          .append(
-            new Option(
-              element.courseCode.toUpperCase() +
-                " - " +
-                element.courseDescription.toUpperCase(),
-              element._id
-            )
-          )
-          .trigger("change");
-      });
-      return fetch("/api/faculty/" + id);
-    })
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
+  const submit = $(event.currentTarget).find("#addCourse");
+  const form = $(event.currentTarget).find("form");
+  const buttons = $(event.currentTarget).find("button");
+  form.off("submit");
+  try {
+    const { data: courseData } = await axios.get(`/api/courses`);
+    const { data: existingFacultyData } = await axios.get(`/api/faculty/${id}`);
+    courseData.course.forEach((e) => {
       course
-        .val(
-          result.data.userInformation.courseTaken.map((element) => {
-            return element._id;
-          })
+        .append(
+          new Option(
+            e.courseCode.toUpperCase() +
+              " - " +
+              e.courseDescription.toUpperCase(),
+            e._id
+          )
         )
         .trigger("change");
-      button.on("click", () => {
-        fetch("/api/faculty/course/" + id, {
-          method: "POST",
-          headers: {
-            "csrf-token": csrf,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            courses: course.val(),
-          }),
-        })
-          .then((response) => {
-            return response.json();
-          })
-          .then((result) => {
-            addCourseModal.hide();
-            dataTable(
-              table.row($(event.relatedTarget).closest("tr")).data,
-              result.data
-            );
-            return displayToast(result);
-          })
-          .catch((error) => {
-            console.log(error);
-            return displayToast(result);
-          });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
     });
+
+    const { facultyInformation } = existingFacultyData.faculty;
+    course.val(facultyInformation.courseTaken);
+
+    form.on("submit", async (formEvent) => {
+      try {
+        formEvent.preventDefault();
+        submit.html("Submitting...");
+        buttons.removeClass("disabled");
+        const { data, status } = await axios.post(
+          `/api/faculty/course/${id}`,
+          { courses: course.val() },
+          { headers: { "csrf-token": csrf } }
+        );
+
+        tableData(
+          table.row($(event.relatedTarget).closest("tr")).data,
+          data.faculty
+        );
+        addCourseModal.hide();
+        displayToast({ data, status });
+      } catch (error) {
+        console.log(error);
+        if (error.response.status === 400) {
+          displayValidationError(
+            error.response.data.errors,
+            event.currentTarget
+          );
+        }
+        displayToast(error.response);
+      } finally {
+        submit.html("Submit");
+        buttons.removeClass("disabled");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
 });
 
 $(uploadModal._element).on("show.bs.modal", (event) => {

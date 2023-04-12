@@ -164,6 +164,26 @@ exports.delete = async (req, res, next) => {
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
+
+exports.postCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { courses } = req.body;
+    const faculty = await Faculty.findOneAndUpdate(
+      { _id: id },
+      { 'facultyInformation.courseTaken': courses },
+      { new: true }
+    )
+      .populate("facultyInformation.courseTaken")
+      .populate("facultyInformation.facultyType");
+
+    res.status(200).json({ msg: "Course successfully added", faculty });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
 exports.getFacultyType = (req, res, next) => {
   Faculty.findOne({ deleted: false, _id: req.params.id })
     .populate("userInformation.facultyType")
@@ -181,36 +201,6 @@ exports.getFacultyType = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ status: 500, data: error });
-    });
-};
-
-exports.postCourse = (req, res, next) => {
-  Faculty.findOneAndUpdate(
-    { _id: req.params.id },
-    { "userInformation.courseTaken": req.body.courses },
-    { new: true }
-  )
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.academicQualification",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, {
-        path: "userInformation.academicQualifications.licenseIndustry",
-      });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.courseTaken" });
-    })
-    .then((result) => {
-      return Faculty.populate(result, { path: "userInformation.facultyType" });
-    })
-    .then((result) => {
-      return res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      return res.json({ status: 500, data: error });
     });
 };
 
