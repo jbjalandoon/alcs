@@ -432,31 +432,28 @@ const splitSchedule = async (info) => {
     }
 
     info.event.setExtendedProp("hourDuration", durationHours);
-    const splitSchedule = await putSchedule(
-      id,
+    const { data, status } = await axios.put(
+      `/api/schedules/sections/split/${semester}/${id}`,
       {
         startTime:
           ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
-        room: $("#roomForm").val(),
+        room: $("#roomForm").find(":selected").text(),
         hour: moment.duration(end.diff(start)).asHours(),
         section: scheduleSectionForm.val(),
         currentHour: currentHour,
         maxHour: maxHours,
         event: info.event,
       },
-      true
+      { headers: { "csrf-token": csrf } }
     );
 
-    if (!splitSchedule) {
-      info.revert();
-      return Toast.fire({ icon: "warning", title: "Something Went Wrong" });
-    }
     info.event.remove();
-    Toast.fire({ icon: "success", title: "Schedule Successfully Splitted" });
+    displayToast({ data, status });
   } catch (error) {
     console.error(error);
-    Toast.fire({ icon: "warning", title: "Something went wrong" });
+    info.revert();
+    displayToast(error.response);
   }
 };
 
@@ -494,7 +491,7 @@ const viewSchedule = async (info) => {
         const course = info.event.extendedProps.course;
         const end = moment(info.event.endStr);
         const start = moment(info.event.startStr);
-        const type = info.event.extendedProps.courseType;
+        const type = info.event.extendedProps.type;
         const durationHours = moment.duration(end.diff(start)).asHours();
 
         const { data, status } = await axios.delete(
@@ -543,7 +540,7 @@ const config = {
   // for editing schedule
   eventDrop: editSchedule,
   // for spliting the schedule
-  // eventResize: splitSchedule,
+  eventResize: splitSchedule,
   // for schedule information
   eventClick: viewSchedule,
   // eventDidMount: function (info) {
@@ -1072,13 +1069,13 @@ socket.on("editSectionSchedule", (data) => {
     data.event.startEditable = true;
   }
   data.event.overlap = false;
-  console.log(data.event);
   calendar.addEvent(data.event);
 });
 
 socket.on("deleteSectionSchedule", (data) => {
   if (data.section === scheduleSectionForm.val()) {
     let currentHour, maxHours;
+    console.log(data.type);
     if (data.type === "lecture") {
       currentCourseHourCount[data.course].currentLecture -= data.hours;
       maxHours = currentCourseHourCount[data.course].maxLecture;
@@ -1118,7 +1115,6 @@ socket.on("deleteSectionSchedule", (data) => {
 });
 
 socket.on("splitSectionSchedule", (data) => {
-  console.log(data);
   calendar.getEvents().forEach((e) => {
     if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID)
       e.remove();
@@ -1130,15 +1126,13 @@ socket.on("splitSectionSchedule", (data) => {
       if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID)
         e.remove();
     });
-    if (extendedProps.courseType === "lecture") {
+    if (extendedProps.type === "lecture") {
       currentCourseHourCount[extendedProps.course].currentLecture =
         data.currentHour;
     } else {
       currentCourseHourCount[extendedProps.course].currentLab =
         data.currentHour;
     }
-    console.log(extendedProps.course);
-    console.log(currentCourseHourCount[extendedProps.course]);
     if (data.maxHour - data.currentHour === 0) {
       $("#external-events")
         .find(

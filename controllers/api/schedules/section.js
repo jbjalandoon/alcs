@@ -373,7 +373,7 @@ exports.splitSchedule = async (req, res, next) => {
       .to(req.body.section)
       .to(req.body.room)
       .emit("splitSectionSchedule", {
-        event: req.body.event,
+        event: { ...req.body.event, room: req.body.room },
         section: req.body.section,
         room: req.body.room,
         currentHour: req.body.currentHour,
