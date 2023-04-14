@@ -528,6 +528,7 @@ const config = {
     left: "",
     right: "",
   },
+  eventClassNames: [ 'overflow-auto' ],
   slotMinTime: "7:00:00",
   slotMaxTime: "22:00:00",
   validRange: {
@@ -554,6 +555,7 @@ const config = {
     div.style.flexDirection = "column";
     div.style.justifyContent = "center";
     div.style.alignItems = "center";
+    div.style.overflow = "hidden";
 
     // const faculty = info.event.extendedProps.faculty
     //   ? info.event.extendedProps.faculty.toUpperCase()
@@ -801,7 +803,7 @@ roomForm.on("change", async (event) => {
     const { data: roomScheduleData } = await axios.get(
       `/api/schedules/rooms/${semester}/${roomValue}`
     );
-
+    console.log(roomScheduleData);
     const events = calendar.getEvents();
     events.forEach((element) => {
       if (!element.extendedProps.current) {
@@ -823,11 +825,12 @@ roomForm.on("change", async (event) => {
           course: element.course.courseCode,
           program: element.program.programCode,
           section: element.sectionName,
-          room: element.room.roomName,
-          level: element.level.display,
+          room: element.room,
+          type: element.type,
+          level: element.yearLevel.display,
           faculty: element.faculty
             ? element.faculty.userInformation.facultyCode
-            : null,
+            : '',
           current: false,
           color: "#FFC107",
           textColor: "black",

@@ -104,7 +104,7 @@ exports.getSchedules = async (req, res, next) => {
 
 exports.getSchedule = async (req, res, next) => {
   try {
-    const schedules = await Schedule.aggregate([
+    const [schedules] = await Schedule.aggregate([
       {
         $unwind: "$semesters",
       },
@@ -122,7 +122,7 @@ exports.getSchedule = async (req, res, next) => {
       },
       {
         $match: {
-          "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+          // "semesters.programs.year.sections.schedules.faculty": { $ne: null },
           "semesters._id": mongoose.Types.ObjectId(req.params.semester),
         },
       },
@@ -160,7 +160,14 @@ exports.getSchedule = async (req, res, next) => {
           as: "program",
         },
       },
-
+      {
+        $lookup: {
+          from: "levels",
+          localField: "yearLevel",
+          foreignField: "_id",
+          as: "yearLevel",
+        },
+      },
       {
         $lookup: {
           from: "users",
@@ -172,24 +179,16 @@ exports.getSchedule = async (req, res, next) => {
       { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: "$room",
           schedules: { $push: "$$ROOT" },
         },
       },
-      {
-        $lookup: {
-          from: "rooms",
-          localField: "_id",
-          foreignField: "_id",
-          as: "room",
-        },
-      },
-      { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
     ]);
-
-    res.status(200).json({ schedules });
+    console.log(schedules);
+    res.status(200).json({ ...schedules });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
   }
