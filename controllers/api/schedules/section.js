@@ -286,20 +286,21 @@ exports.editSchedule = async (req, res, next) => {
       { arrayFilters: [{ "schedule._id": req.params.schedule }] }
     );
     if (editSchedule.modifiedCount === 0) {
-      return res.status(500).json({ status: 500 });
+      return res.status(500).json({ msg: "Something went wrong" });
     }
+    console.log(req.body.room);
     io.getIO()
       .to(req.params.section)
       .to(req.body.room)
       .emit("editSectionSchedule", {
-        event: req.body.event,
+        event: { ...req.body.event, room: req.body.room },
         section: req.params.section,
         room: req.body.room,
       });
-    res.json({ status: 201, data: editSchedule });
+    res.json({ msg: "Schedule successfully edited" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500 });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -367,7 +368,7 @@ exports.splitSchedule = async (req, res, next) => {
       }
     );
     if (splitSchedule.modifiedCount === 0)
-      return res.status(500).json({ status: 500, data: false });
+      return res.status(500).json({ msg: "Something went wrong" });
     io.getIO()
       .to(req.body.section)
       .to(req.body.room)
@@ -378,10 +379,10 @@ exports.splitSchedule = async (req, res, next) => {
         currentHour: req.body.currentHour,
         maxHour: req.body.maxHour,
       });
-    return res.status(200).json({ status: 200, data: splitSchedule });
+    return res.status(200).json({ msg: "Schedule successfully splitted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: false });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 

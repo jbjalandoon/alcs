@@ -16,8 +16,6 @@ const socket = io(`http://${urlHost}:3000`, {
   reconnectionAttempts: 99999,
 });
 
-let counter = 0;
-
 let semester;
 let isLaboratorySelect;
 let draggable;
@@ -25,10 +23,7 @@ let previousRoom = "";
 let previousSection = "";
 
 // Buttons
-const scheduleSubmitButton = $("#schedule-form #submit");
 const currentCourseHourCount = {};
-let assignSubmitButton;
-let scheduleModal;
 
 const createSchedule = async (info) => {
   try {
@@ -239,7 +234,6 @@ const editSchedule = async (info) => {
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
     const dayHoursExceeds = sameDayHours > 8;
-    console.log(dayHoursExceeds);
     // Check if there is a big and small time gap between schedules
     if (!isPreviousValid || !isNextValid || dayHoursExceeds) {
       let previous = false;
@@ -288,27 +282,23 @@ const editSchedule = async (info) => {
     const endMinutes =
       event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
 
-    const schedule = await putSchedule(
-      id,
+    const { data, status } = await axios.put(
+      `/api/schedules/sections/edit/${scheduleSectionForm.val()}/${id}`,
       {
         day: event.start.getDay(),
         startTime:
           ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
-        room: $("#roomForm").val(),
+        room: $("#roomForm").find(":selected").text(),
         event: event,
       },
-      false
+      { headers: { "csrf-token": csrf } }
     );
-
     info.event.remove();
-    Toast.fire({
-      icon: "warning",
-      title: "Schedule Successfully Edited",
-    });
+    displayToast({ data, status });
   } catch (error) {
     console.error(error);
-    Toast.fire({ icon: "warning", title: "Something Went Wrong" });
+    displayToast(error.response);
   }
 };
 
@@ -551,7 +541,7 @@ const config = {
   // for adding schedule
   eventReceive: createSchedule,
   // for editing schedule
-  // eventDrop: editSchedule,
+  eventDrop: editSchedule,
   // for spliting the schedule
   // eventResize: splitSchedule,
   // for schedule information
@@ -1044,7 +1034,6 @@ socket.on("createSectionSchedule", (data) => {
       currentCourseHourCount[extendedProps.course].currentLab =
         currentCourseHourCount[extendedProps.course].maxLab;
     }
-    console.log(currentCourseHourCount)
     $("#external-events")
       .find(
         `[course='${extendedProps.course}'][courseType='${extendedProps.type}']`
@@ -1083,7 +1072,7 @@ socket.on("editSectionSchedule", (data) => {
     data.event.startEditable = true;
   }
   data.event.overlap = false;
-
+  console.log(data.event);
   calendar.addEvent(data.event);
 });
 
