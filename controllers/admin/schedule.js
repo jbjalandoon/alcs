@@ -5,15 +5,9 @@ const moment = require("moment");
 const { query, response } = require("express");
 
 exports.getSchedule = (req, res, next) => {
-  Curriculum.find()
-    .then((curriculums) => {
-      res.render("admin/schedule/index", {
-        title: "ALCS | Schedule",
-      });
-    })
-    .catch((error) => {
-      throw new Error(error);
-    });
+  res.render("schedules/assign", {
+    title: "Schedula | Schedule",
+  });
 };
 
 exports.getSemesters = (req, res, next) => {

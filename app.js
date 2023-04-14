@@ -6,7 +6,6 @@ const csrf = require("csurf");
 const flash = require("connect-flash");
 require("dotenv").config();
 const path = require("path");
-const app = express();
 const multer = require("multer");
 const compression = require("compression");
 const { get404 } = require("./controllers/error");
@@ -14,12 +13,16 @@ const db_uri = process.env.DB;
 const apiRoutes = require("./routes/api");
 const curriculumRoutes = require("./routes/curriculum");
 const dashboardRoutes = require("./routes/dashboard");
+const http = require('http');
 
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
 const scheduleRoutes = require("./routes/schedule");
 const authenticationRoutes = require("./routes/authentication");
 const maintenanceRoutes = require("./routes/maintenance");
+
+const app = express();
+const server = http.createServer(app);
 
 const {
   validateAdminAuthorization,
@@ -84,7 +87,7 @@ app.use("/", get404);
 
 mongoose.set("strictQuery", false);
 /* SERVER INITIALIZATION */
-app.listen(port, async (server) => {
+server.listen(port, async () => {
   try {
     await mongoose.connect(process.env.DB);
     const io = require("./socket").init(server);

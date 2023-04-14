@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Section = require("../controllers/api/schedules/section");
 const Faculty = require("../controllers/api/schedules/faculty");
+const Room = require("../controllers/api/schedules/room");
 
 router.get("/sections/:section", Section.getSchedules);
 router.post("/sections/create/:section", Section.createSchedule);
@@ -13,5 +14,8 @@ router.delete("/sections/delete/:semester/:schedule", Section.deleteSchedule);
 
 router.get("/faculty/:semester/:faculty", Faculty.getSchedules);
 router.get("/faculty/units/:semester/:faculty", Faculty.getUnits);
+
+router.get("/rooms/:semester/:room", Room.getSchedule);
+router.get("/rooms/:semester", Room.getSchedules);
 
 module.exports = router;

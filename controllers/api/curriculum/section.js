@@ -33,11 +33,11 @@ exports.getSections = async (req, res, next) => {
     ]);
 
     if (sections.length === 0)
-      return res.status(404).json({ status: 404, data: sections });
-    res.status(200).json({ status: 200, data: sections });
+      return res.status(404).json({ msg: "No Section Found" });
+    res.status(200).json({ sections });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 

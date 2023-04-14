@@ -1,8 +1,8 @@
-<%- include('../../includes/header.ejs') %>
+<%- include('../includes/header.ejs') %>
 </head>
 
 <body>
-  <%- include('../../includes/navbar.ejs') %>
+  <%- include('../includes/navbar.ejs') %>
   <div class="d-flex justify-content-center" id="spinner">
     <div class="spinner-border" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -10,7 +10,7 @@
   </div>
   <div class="content-wrapper container d-none" id="content">
     <div class="page-heading">
-      <span class="h3" id="card-title">No Semester Active</span>
+      <span class="h3" id="cardLabel">No Semester Active</span>
     </div>
     <div class="page-content">
       <section class="row">
@@ -111,7 +111,7 @@
   </div>
 
   <input type="hidden" name="_csrf" value="<%= csrf %>" id="csrf">
-  <%- include('../../includes/footer.ejs') %>
+  <%- include('../includes/footer.ejs') %>
   <script src="/js/schedule.js"></script>
 </body>
 

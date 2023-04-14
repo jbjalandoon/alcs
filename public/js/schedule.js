@@ -6,7 +6,8 @@ const roomForm = $("#roomForm");
 const content = $("#content");
 const spinner = $("#spinner");
 const csrf = $("#csrf").val();
-const urlHost = window.location.hostname
+
+const urlHost = window.location.hostname;
 const socket = io(`http://${urlHost}:3000`, {
   autoConnect: false,
   reconnection: true,
@@ -14,6 +15,8 @@ const socket = io(`http://${urlHost}:3000`, {
   reconnectionDelayMax: 500,
   reconnectionAttempts: 99999,
 });
+
+let counter = 0;
 
 let semester;
 let isLaboratorySelect;
@@ -42,10 +45,15 @@ const createSchedule = async (info) => {
     // filter the current schedules to currently dragged day
     const sameDaySchedules = calendar
       .getEvents()
-      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+      .filter(
+        (e) =>
+          e.start.getDay() === event.start.getDay() && e.extendedProps.current
+      );
 
     const sameDayHours = sameDaySchedules
-      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .map((e) =>
+        moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours()
+      )
       .reduce((a, b) => a + b);
 
     // sort the filtered schedule
@@ -54,13 +62,25 @@ const createSchedule = async (info) => {
     });
 
     // find the index of currently added schedule
-    const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
+    const currentIndex = sameDaySchedules.findIndex(
+      (e) => e.start.getHours() === event.start.getHours()
+    );
     // assigning the previous and next schedule
-    const previousEvent = currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
-    const nextEvent = currentIndex < sameDaySchedules.length - 1 ? sameDaySchedules[currentIndex + 1] : null;
+    const previousEvent =
+      currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
+    const nextEvent =
+      currentIndex < sameDaySchedules.length - 1
+        ? sameDaySchedules[currentIndex + 1]
+        : null;
     // getting the time gaps between schedules
-    const previousTimeGap = previousEvent != null ? (event.start.getTime() - previousEvent.end.getTime()) / 1000 : null;
-    const nextTimeGap = nextEvent != null ? (nextEvent.start.getTime() - event.end.getTime()) / 1000 : null;
+    const previousTimeGap =
+      previousEvent != null
+        ? (event.start.getTime() - previousEvent.end.getTime()) / 1000
+        : null;
+    const nextTimeGap =
+      nextEvent != null
+        ? (nextEvent.start.getTime() - event.end.getTime()) / 1000
+        : null;
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
@@ -72,7 +92,9 @@ const createSchedule = async (info) => {
       let text = "";
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
+        text += `${
+          previousTimeGap / 60 / 60
+        } hour/s of gap from previous schedule. `;
         previous = true;
       }
 
@@ -101,43 +123,41 @@ const createSchedule = async (info) => {
 
     if (!confirmed) return info.revert();
 
-    const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
-    const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+    const startMinutes =
+      event.start.getMinutes() == 0
+        ? "00"
+        : event.start.getMinutes().toString();
+    const endMinutes =
+      event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
     const end = moment(event.endStr);
     const start = moment(event.startStr);
     const hour = moment.duration(end.diff(start)).asHours();
     // setting the hours of schedule
     event.setExtendedProp("hourDuration", hour);
 
-    const schedule = await postSchedule({
-      courseType: extendedProps.courseType,
-      course: extendedProps.courseId,
-      day: event.start.getDay(),
-      startTime: ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
-      endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
-      room: roomForm.val(),
-      hour: hour,
-      event: event,
-    });
-    if (!schedule) {
-      info.revert();
-      return Toast.fire({
-        icon: "warning",
-        title: "Something Went Wrong",
-      });
-    }
-
+    const { data, status } = await axios.post(
+      `/api/schedules/sections/create/${scheduleSectionForm.val()}`,
+      {
+        courseType: extendedProps.type,
+        course: extendedProps.courseId,
+        day: event.start.getDay(),
+        startTime:
+          ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
+        endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
+        room: roomForm.val(),
+        hour: hour,
+        event: event,
+      },
+      { headers: { "csrf-token": csrf } }
+    );
     // setting the schedule id
-    event.setExtendedProp("scheduleID", schedule.id);
+    event.setExtendedProp("scheduleID", data.id);
     info.revert();
-    Toast.fire({
-      icon: "success",
-      title: "Schedule Successfully Created",
-    });
+    displayToast({ data, status });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     info.revert();
-    Toast.fire({ icon: "warning", title: "Something went wrong" });
+    displayToast(error.response);
   }
 };
 
@@ -179,10 +199,15 @@ const editSchedule = async (info) => {
     // Filter the schedule by currently set day
     const sameDaySchedules = calendar
       .getEvents()
-      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+      .filter(
+        (e) =>
+          e.start.getDay() === event.start.getDay() && e.extendedProps.current
+      );
 
     const sameDayHours = sameDaySchedules
-      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .map((e) =>
+        moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours()
+      )
       .reduce((a, b) => a + b);
 
     // sorting the schedules
@@ -191,13 +216,25 @@ const editSchedule = async (info) => {
     });
 
     // find the index of currently added schedule
-    const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
+    const currentIndex = sameDaySchedules.findIndex(
+      (e) => e.start.getHours() === event.start.getHours()
+    );
     // assigning the previous and next schedule
-    const previousEvent = currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
-    const nextEvent = currentIndex < sameDaySchedules.length - 1 ? sameDaySchedules[currentIndex + 1] : null;
+    const previousEvent =
+      currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
+    const nextEvent =
+      currentIndex < sameDaySchedules.length - 1
+        ? sameDaySchedules[currentIndex + 1]
+        : null;
     // getting the time gaps between schedules
-    const previousTimeGap = previousEvent != null ? (event.start.getTime() - previousEvent.end.getTime()) / 1000 : null;
-    const nextTimeGap = nextEvent != null ? (nextEvent.start.getTime() - event.end.getTime()) / 1000 : null;
+    const previousTimeGap =
+      previousEvent != null
+        ? (event.start.getTime() - previousEvent.end.getTime()) / 1000
+        : null;
+    const nextTimeGap =
+      nextEvent != null
+        ? (nextEvent.start.getTime() - event.end.getTime()) / 1000
+        : null;
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
@@ -208,7 +245,9 @@ const editSchedule = async (info) => {
       let previous = false;
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
+        text += `${
+          previousTimeGap / 60 / 60
+        } hour/s of gap from previous schedule. `;
         previous = true;
       }
       if (!isNextValid) {
@@ -219,9 +258,11 @@ const editSchedule = async (info) => {
         text += `${days[event.start.getDay()]} already exceeds 8 hours. `;
       }
 
-      text += "This will also remove the currently assigned faculty, Do you still want to continue?";
+      text +=
+        "This will also remove the currently assigned faculty, Do you still want to continue?";
     } else {
-      text += "This will remove the currently assigned faculty, Do you still want to continue?";
+      text +=
+        "This will remove the currently assigned faculty, Do you still want to continue?";
     }
 
     const alert = await Swal.fire({
@@ -240,14 +281,19 @@ const editSchedule = async (info) => {
       return info.revert();
     }
 
-    const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
-    const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+    const startMinutes =
+      event.start.getMinutes() == 0
+        ? "00"
+        : event.start.getMinutes().toString();
+    const endMinutes =
+      event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
 
     const schedule = await putSchedule(
       id,
       {
         day: event.start.getDay(),
-        startTime: ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
+        startTime:
+          ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
         room: $("#roomForm").val(),
         event: event,
@@ -286,14 +332,28 @@ const splitSchedule = async (info) => {
     const type = extendedProps.courseType;
 
     const maxHours =
-      type === "lecture" ? currentCourseHourCount[course].maxLecture : currentCourseHourCount[course].maxLab;
+      type === "lecture"
+        ? currentCourseHourCount[course].maxLecture
+        : currentCourseHourCount[course].maxLab;
     const currentHour =
       type === "lecture"
-        ? Math.abs(currentCourseHourCount[course].currentLecture - extendedProps.hourDuration + durationHours)
-        : Math.abs(currentCourseHourCount[course].currentLab - extendedProps.hourDuration + durationHours);
+        ? Math.abs(
+            currentCourseHourCount[course].currentLecture -
+              extendedProps.hourDuration +
+              durationHours
+          )
+        : Math.abs(
+            currentCourseHourCount[course].currentLab -
+              extendedProps.hourDuration +
+              durationHours
+          );
 
-    const startMinutes = event.start.getMinutes() == 0 ? "00" : event.start.getMinutes().toString();
-    const endMinutes = event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
+    const startMinutes =
+      event.start.getMinutes() == 0
+        ? "00"
+        : event.start.getMinutes().toString();
+    const endMinutes =
+      event.end.getMinutes() == 0 ? "00" : event.end.getMinutes().toString();
 
     if (currentHour > maxHours) {
       Toast.fire({ icon: "warning", title: "Max Hours Exceeds" });
@@ -302,10 +362,15 @@ const splitSchedule = async (info) => {
 
     const sameDaySchedules = calendar
       .getEvents()
-      .filter((e) => e.start.getDay() === event.start.getDay() && e.extendedProps.current);
+      .filter(
+        (e) =>
+          e.start.getDay() === event.start.getDay() && e.extendedProps.current
+      );
 
     const sameDayHours = sameDaySchedules
-      .map((e) => moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours())
+      .map((e) =>
+        moment.duration(moment(e.endStr).diff(moment(e.startStr))).asHours()
+      )
       .reduce((a, b) => a + b);
 
     // sort the filtered schedule
@@ -314,13 +379,25 @@ const splitSchedule = async (info) => {
     });
 
     // find the index of currently added schedule
-    const currentIndex = sameDaySchedules.findIndex((e) => e.start.getHours() === event.start.getHours());
+    const currentIndex = sameDaySchedules.findIndex(
+      (e) => e.start.getHours() === event.start.getHours()
+    );
     // assigning the previous and next schedule
-    const previousEvent = currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
-    const nextEvent = currentIndex < sameDaySchedules.length - 1 ? sameDaySchedules[currentIndex + 1] : null;
+    const previousEvent =
+      currentIndex > 0 ? sameDaySchedules[currentIndex - 1] : null;
+    const nextEvent =
+      currentIndex < sameDaySchedules.length - 1
+        ? sameDaySchedules[currentIndex + 1]
+        : null;
     // getting the time gaps between schedules
-    const previousTimeGap = previousEvent != null ? (event.start.getTime() - previousEvent.end.getTime()) / 1000 : null;
-    const nextTimeGap = nextEvent != null ? (nextEvent.start.getTime() - event.end.getTime()) / 1000 : null;
+    const previousTimeGap =
+      previousEvent != null
+        ? (event.start.getTime() - previousEvent.end.getTime()) / 1000
+        : null;
+    const nextTimeGap =
+      nextEvent != null
+        ? (nextEvent.start.getTime() - event.end.getTime()) / 1000
+        : null;
 
     const isPreviousValid = isTimeGapValid(previousTimeGap);
     const isNextValid = isTimeGapValid(nextTimeGap);
@@ -330,7 +407,9 @@ const splitSchedule = async (info) => {
       let previous = false;
 
       if (!isPreviousValid) {
-        text += `${previousTimeGap / 60 / 60} hour/s of gap from previous schedule. `;
+        text += `${
+          previousTimeGap / 60 / 60
+        } hour/s of gap from previous schedule. `;
         previous = true;
       }
       if (!isNextValid) {
@@ -341,10 +420,12 @@ const splitSchedule = async (info) => {
         text += `${days[event.start.getDay()]} already exceeds 8 hours. `;
       }
 
-      text += "This will also remove the currently assigned faculty, Do you still want to continue?";
+      text +=
+        "This will also remove the currently assigned faculty, Do you still want to continue?";
     }
 
-    text += "This will remove the currently assigned faculty, Do you still want to continue?";
+    text +=
+      "This will remove the currently assigned faculty, Do you still want to continue?";
 
     const alert = await Swal.fire({
       title: "Are you sure?",
@@ -364,7 +445,8 @@ const splitSchedule = async (info) => {
     const splitSchedule = await putSchedule(
       id,
       {
-        startTime: ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
+        startTime:
+          ("0" + info.event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + info.event.end.getHours()).slice(-2) + ":" + endMinutes,
         room: $("#roomForm").val(),
         hour: moment.duration(end.diff(start)).asHours(),
@@ -391,15 +473,23 @@ const splitSchedule = async (info) => {
 const viewSchedule = async (info) => {
   try {
     const id = info.event.extendedProps.scheduleID;
-    const schedule = await getSchedule(id);
-
-    const viewSchedule = await Swal.fire({
+    const { data } = await axios.get(
+      `/api/schedules/sections/view/${semester}/${id}`
+    );
+    const { schedule } = data;
+    console.log(schedule);
+    const { isDenied } = await Swal.fire({
       icon: "info",
-      title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${schedule.level.display
-        }-${schedule.sectionName})- ${schedule.type.toUpperCase()}`,
-      text: `${days[schedule.day]} ${schedule.startTime} - ${schedule.endTime
-        } (${schedule.room.roomName.toUpperCase()}${schedule.faculty ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase() : ""
-        })`,
+      title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${
+        schedule.level.display
+      }-${schedule.sectionName})- ${schedule.type.toUpperCase()}`,
+      text: `${days[schedule.day]} ${schedule.startTime} - ${
+        schedule.endTime
+      } (${schedule.room.toUpperCase()}${
+        schedule.faculty
+          ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase()
+          : ""
+      })`,
       width: "50%",
       showCancelButton: true,
       showDenyButton: info.event.extendedProps.current,
@@ -408,32 +498,34 @@ const viewSchedule = async (info) => {
       cancelButtonText: `Close`,
     });
 
-    if (viewSchedule.isDenied) {
-      const deleteWarning = await Swal.fire({
-        title: "Are you sure?",
-        text: "The assigned faculty will also remove, You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!",
-      });
-      console.log(info.event);
-      if (deleteWarning.isConfirmed) {
+    if (isDenied) {
+      const { isConfirmed } = await confirmDelete();
+      if (isConfirmed) {
         const course = info.event.extendedProps.course;
         const end = moment(info.event.endStr);
         const start = moment(info.event.startStr);
         const type = info.event.extendedProps.courseType;
         const durationHours = moment.duration(end.diff(start)).asHours();
 
-        const deleteSchedule = await removeSchedule(id, durationHours, course, type);
-        if (!deleteSchedule) return Toast.fire({ icon: "warning", title: "Something went wrong in deleting schedule" });
-        Toast.fire({ icon: "success", title: "Successfully Deleted" });
+        const { data, status } = await axios.delete(
+          `/api/schedules/sections/delete/${semester}/${id}`,
+          {
+            headers: {
+              "csrf-token": csrf,
+              room: roomForm.val(),
+              section: scheduleSectionForm.val(),
+              hours: durationHours,
+              course: course,
+              type: type,
+            },
+          }
+        );
+        displayToast({ data, status });
       }
     }
   } catch (error) {
     console.error(error);
-    Toast.fire({ icon: "warning", title: "Something Went Wrong" });
+    displayToast(error.response);
   }
 };
 
@@ -459,13 +551,38 @@ const config = {
   // for adding schedule
   eventReceive: createSchedule,
   // for editing schedule
-  eventDrop: editSchedule,
+  // eventDrop: editSchedule,
   // for spliting the schedule
-  eventResize: splitSchedule,
+  // eventResize: splitSchedule,
   // for schedule information
   eventClick: viewSchedule,
-  eventDidMount: function (info) {
-    renderEvent(info);
+  // eventDidMount: function (info) {
+  //   renderEvent(info);
+  // },
+  eventContent: (info) => {
+    const { course, program, section, room, level, type } =
+      info.event.extendedProps;
+    const div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.flexDirection = "column";
+    div.style.justifyContent = "center";
+    div.style.alignItems = "center";
+
+    // const faculty = info.event.extendedProps.faculty
+    //   ? info.event.extendedProps.faculty.toUpperCase()
+    //   : "";
+    const courseEl = document.createElement("span");
+    courseEl.innerHTML = course.toUpperCase();
+    const programEl = document.createElement("span");
+    programEl.innerHTML = `${program.toUpperCase()} ${level} - ${section}`;
+    const roomEl = document.createElement("span");
+    roomEl.innerHTML = room.toUpperCase();
+    const typeEl = document.createElement("span");
+    typeEl.innerHTML = type.toUpperCase();
+    div.append(courseEl, programEl, roomEl, typeEl);
+
+    let arrayOfDomNodes = [div];
+    return { domNodes: arrayOfDomNodes };
   },
 };
 
@@ -475,44 +592,40 @@ const calendarEl = document.getElementById("calendar");
 const calendar = new FullCalendar.Calendar(calendarEl, config);
 
 (async () => {
-  const semesterData = await getActiveSemester();
-  if (semesterData === null) {
-    scheduleProgramForm.attr('disabled', true)
-    scheduleYearLevelForm.attr('disabled', true)
-    scheduleSectionForm.attr('disabled', true)
-    roomForm.attr('disabled', true)
+  try {
+    const { data, status } = await axios.get(
+      `/api/curriculums/semesters/active`
+    );
+    semester = data.semester._id;
+    $("#cardLabel").html(
+      `S.Y. ${data.year.year.toUpperCase()} (${data.semester.sem.toUpperCase()} SEMESTER)`
+    );
+
+    const { data: programData } = await axios.get(
+      `/api/curriculums/programs/${semester}`
+    );
+
+    programData.programs.forEach((element) => {
+      scheduleProgramForm.append(
+        new Option(element.program.programCode.toUpperCase(), element._id)
+      );
+    });
+
     content.removeClass("d-none");
     spinner.addClass("d-none");
-    calendar.render();
-    return Toast.fire({
-      icon: "warning",
-      title: "No Active Semester",
-    });
-  }
-  semester = semesterData.id;
-  document.querySelector("#card-title").innerHTML = `S.Y. ${semesterData.year
-    } (${semesterData.sem.toUpperCase()} SEMESTER)`;
-
-  const programs = await getPrograms();
-  if (programs.length === 0) {
+    scheduleProgramForm.trigger("change");
+  } catch (error) {
     scheduleProgramForm.attr("disabled", true);
     scheduleYearLevelForm.attr("disabled", true);
     scheduleSectionForm.attr("disabled", true);
-    return Toast.fire({
-      icon: "warning",
-      title: "Program is Empty",
-    });
+    roomForm.attr("disabled", true);
+    console.log(error);
+    displayToast(error.response);
+  } finally {
+    content.removeClass("d-none");
+    spinner.addClass("d-none");
+    calendar.render();
   }
-
-  programs.forEach((element) => {
-    scheduleProgramForm.append(new Option(element.program.programCode.toUpperCase(), element._id));
-  });
-
-  scheduleProgramForm.trigger("change");
-
-  content.removeClass("d-none");
-  spinner.addClass("d-none");
-  calendar.render();
 })();
 
 scheduleProgramForm.on("change", async (event) => {
@@ -520,44 +633,44 @@ scheduleProgramForm.on("change", async (event) => {
     socket.disconnect();
     scheduleYearLevelForm.empty();
     scheduleSectionForm.empty();
-    const levels = await getYearLevel($(event.currentTarget).val());
-    if (levels.length === 0) {
-      scheduleYearLevelForm.attr("disabled", true);
-      scheduleSectionForm.attr("disabled", true);
-      return Toast.fire({
-        icon: "warning",
-        title: "No Year Level Found",
-      });
-    }
+    const programValue = $(event.currentTarget).val();
+    const { data: levelData } = await axios.get(
+      `/api/curriculums/levels/${programValue}`
+    );
     scheduleYearLevelForm.attr("disabled", false);
     scheduleSectionForm.attr("disabled", false);
-    levels.forEach((element) => {
-      scheduleYearLevelForm.append(new Option(element.level.display.toUpperCase(), element._id));
+    levelData.levels.forEach((element) => {
+      scheduleYearLevelForm.append(
+        new Option(element.level.display.toUpperCase(), element._id)
+      );
     });
     scheduleYearLevelForm.trigger("change");
   } catch (error) {
-    console.error(error);
+    scheduleYearLevelForm.attr("disabled", true);
+    scheduleSectionForm.attr("disabled", true);
+    displayToast(error.response);
   }
 });
 
 scheduleYearLevelForm.on("change", async (event) => {
   try {
-    const sections = await getSection($(event.currentTarget).val());
+    const level = $(event.currentTarget).val();
+    const { data: sectionData } = await axios.get(
+      `/api/curriculums/sections/${level}`
+    );
+
     scheduleSectionForm.empty();
-    if (sections.length === 0) {
-      scheduleSectionForm.attr("disabled", true);
-      return Toast.fire({
-        icon: "warning",
-        title: "No Section Found",
-      });
-    }
-    sections.forEach((element) => {
-      scheduleSectionForm.append(new Option(element.section.toUpperCase(), element._id));
+    sectionData.sections.forEach((element) => {
+      scheduleSectionForm.append(
+        new Option(element.section.toUpperCase(), element._id)
+      );
     });
     scheduleSectionForm.attr("disabled", false);
     scheduleSectionForm.trigger("change");
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    scheduleSectionForm.attr("disabled", true);
+    displayToast(error.response);
   }
 });
 
@@ -565,7 +678,7 @@ scheduleSectionForm.on("change", async (event) => {
   try {
     socket.connect();
     const current = $(event.currentTarget);
-
+    const section = current.val();
     for (const prop of Object.getOwnPropertyNames(currentCourseHourCount)) {
       delete currentCourseHourCount[prop];
     }
@@ -575,120 +688,60 @@ scheduleSectionForm.on("change", async (event) => {
       element.remove();
     });
 
-    const coursesRequest = await fetch(`/api/curriculums/course/${scheduleYearLevelForm.val()}`);
-    const courses = await coursesRequest.json();
+    const schoolYear = scheduleYearLevelForm.val();
+    const { data: coursesData } = await axios.get(
+      `/api/curriculums/course/${schoolYear}`
+    );
     const lectureList = $("#external-events #lectureList");
     const labList = $("#external-events #labList");
     lectureList.empty();
     labList.empty();
 
-    if (courses.data.length === 0) {
-      roomForm.attr("disabled", true);
-      return Toast.fire({
-        icon: "warning",
-        title: "No Courses Found",
-      });
-    }
     roomForm.attr("disabled", false);
-    courses.data.forEach((element) => {
-      currentCourseHourCount[element.course.courseCode] = {
-        currentLecture: null,
-        maxLecture: null,
-        currentLab: null,
-        maxLab: null,
-      };
-      for (let i = 0; i < 2; i++) {
-        const card = $("<div></div>");
-        card.addClass("card mb-1");
-        const item = $("<li></li>");
-        item.addClass("list-group-item bg-success text-light fc-event");
-        item.attr({
-          course: element.course.courseCode,
-          program: scheduleProgramForm.children(":selected").text(),
-          section: scheduleSectionForm.children(":selected").text(),
-          new: true,
-          level: scheduleYearLevelForm.children(":selected").text(),
-          overlap: false,
-          durationEditable: true,
-          startEditable: true,
-          "course-id": element.course._id,
-        });
-
-        card.append(item);
-        if (element.course.lecture !== 0 && i === 0) {
-          item.html(
-            element.course.courseCode.toUpperCase() +
-            " - " +
-            element.course.courseDescription.toUpperCase() +
-            " - " +
-            element.course.lecture +
-            " HOURS"
-          );
-          item.attr("courseType", "lecture");
-          item.attr("color", "#007BFF");
-          item.attr("textColor", "white");
-          item.attr("hour", element.course.lecture);
-          item.addClass("lecture-event");
-          lectureList.append(card);
-          currentCourseHourCount[element.course.courseCode].maxLecture = element.course.lecture;
-          currentCourseHourCount[element.course.courseCode].currentLecture = 0;
-        }
-        if (element.course.lab !== 0 && i === 1) {
-          item.html(
-            element.course.courseCode.toUpperCase() +
-            " - " +
-            element.course.courseDescription.toUpperCase() +
-            " - " +
-            element.course.lab +
-            " HOURS"
-          );
-          item.attr("courseType", "lab");
-          item.attr("color", "#5AA2E8");
-          item.attr("textColor", "black");
-          item.attr("hour", element.course.lab);
-          item.addClass("lab-event");
-          labList.append(card);
-          currentCourseHourCount[element.course.courseCode].maxLab = element.course.lab;
-          currentCourseHourCount[element.course.courseCode].currentLab = 0;
-        }
-      }
+    coursesData.courses.forEach((element) => {
+      renderCourses(element, labList, lectureList);
     });
 
-    const rooms = await getRooms();
-    if (rooms.length === 0) {
-      roomForm.attr("disabled", true);
-    }
+    const { data: roomData } = await axios.get(`/api/rooms`);
+
     roomForm.select2({
       placeholder: "Select a Room",
       width: "100%",
     });
 
-    rooms.forEach((element) => {
-      if (element.laboratory) {
-        roomForm.find("#optLab").append(new Option(element.roomName.toUpperCase(), element._id));
+    roomData.room.forEach((element) => {
+      if (element.isLaboratory) {
+        roomForm
+          .find("#optLab")
+          .append(new Option(element.roomName.toUpperCase(), element._id));
       } else {
-        roomForm.find("#optLecture").append(new Option(element.roomName.toUpperCase(), element._id));
+        roomForm
+          .find("#optLecture")
+          .append(new Option(element.roomName.toUpperCase(), element._id));
       }
     });
 
     roomForm.trigger("change");
 
-    const schedules = await getSectionSchedule(current.val());
-
-    schedules.data.forEach((element) => {
+    const { data: scheduleData } = await axios.get(
+      `/api/schedules/sections/${section}`
+    );
+    scheduleData.schedules.forEach((element) => {
       element.schedules.forEach((schedule) => {
         let hour;
         if (schedule.type === "lecture") {
-          currentCourseHourCount[element.course.courseCode].currentLecture += schedule.hour;
+          currentCourseHourCount[element.course.courseCode].currentLecture +=
+            schedule.hour;
           hour = Math.abs(
             currentCourseHourCount[element.course.courseCode].currentLecture -
-            currentCourseHourCount[element.course.courseCode].maxLecture
+              currentCourseHourCount[element.course.courseCode].maxLecture
           );
         } else {
-          currentCourseHourCount[element.course.courseCode].currentLab += schedule.hour;
+          currentCourseHourCount[element.course.courseCode].currentLab +=
+            schedule.hour;
           hour = Math.abs(
             currentCourseHourCount[element.course.courseCode].currentLab -
-            currentCourseHourCount[element.course.courseCode].maxLab
+              currentCourseHourCount[element.course.courseCode].maxLab
           );
         }
         const hourStr = `${Math.trunc(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
@@ -706,21 +759,29 @@ scheduleSectionForm.on("change", async (event) => {
           startEditable: true,
           course: element.course.courseCode,
           program: element.program.programCode,
-          faculty: element.faculty != null ? element.faculty.userInformation.facultyCode : null,
+          type: schedule.type,
+          faculty:
+            element.faculty != null
+              ? element.faculty.userInformation.facultyCode
+              : null,
           section: element.sectionName,
-          room: schedule.room.roomName,
+          room: schedule.room,
           level: element.yearLevel.display,
           current: true,
         });
         if (hour === 0) {
           $("#external-events")
-            .find(`[course='${element.course.courseCode}'][coursetype='${schedule.type}']`)
+            .find(
+              `[course='${element.course.courseCode}'][coursetype='${schedule.type}']`
+            )
             .removeClass(`${schedule.type}-event bg-success text-light`)
             .addClass(`bg-warning text-dark`)
             .css("curses", "");
         }
         $("#external-events")
-          .find(`[course='${element.course.courseCode}'][coursetype='${schedule.type}']`)
+          .find(
+            `[course='${element.course.courseCode}'][coursetype='${schedule.type}']`
+          )
           .attr("hour", hourStr);
       });
     });
@@ -741,142 +802,100 @@ scheduleSectionForm.on("change", async (event) => {
 });
 
 roomForm.on("change", async (event) => {
-  const current = $(event.currentTarget);
-  if (current.val() === null) {
-    return;
-  }
-
-  const roomDataRequest = await fetch(`/api/rooms/${current.val()}`);
-  const roomData = await roomDataRequest.json();
-  isLaboratorySelect = roomData.data.laboratory;
-
-  const roomSchedulesRequest = await fetch(`/api/schedules/room/${semester}/${$("#roomForm").val()}`);
-  const roomSchedules = await roomSchedulesRequest.json();
-
-  const events = calendar.getEvents();
-  events.forEach((element) => {
-    if (!element.extendedProps.current) {
-      element.remove();
+  try {
+    const current = $(event.currentTarget);
+    const roomValue = current.val();
+    if (current.val() === null) {
+      return;
     }
-  });
-  roomSchedules.data.forEach((element) => {
-    if (element.section != scheduleSectionForm.val()) {
-      calendar.addEvent({
-        scheduleID: element._id,
-        hourDuration: element.hour,
-        daysOfWeek: [element.day],
-        startTime: element.startTime,
-        endTime: element.endTime,
-        courseType: element.type,
-        overlap: false,
-        durationEditable: false,
-        startEditable: false,
-        course: element.course.courseCode,
-        program: element.program.programCode,
-        section: element.sectionName,
-        room: element.room.roomName,
-        level: element.level.display,
-        faculty: element.faculty ? element.faculty.userInformation.facultyCode : null,
-        current: false,
-        color: "#FFC107",
-        textColor: "black",
-      });
+
+    const { data: roomData } = await axios.get(`/api/rooms/${current.val()}`);
+    isLaboratorySelect = roomData.room.isLaboratory;
+    const { data: roomScheduleData } = await axios.get(
+      `/api/schedules/rooms/${semester}/${roomValue}`
+    );
+
+    const events = calendar.getEvents();
+    events.forEach((element) => {
+      if (!element.extendedProps.current) {
+        element.remove();
+      }
+    });
+    roomScheduleData.schedules.forEach((element) => {
+      if (element.section != scheduleSectionForm.val()) {
+        calendar.addEvent({
+          scheduleID: element._id,
+          hourDuration: element.hour,
+          daysOfWeek: [element.day],
+          startTime: element.startTime,
+          endTime: element.endTime,
+          courseType: element.type,
+          overlap: false,
+          durationEditable: false,
+          startEditable: false,
+          course: element.course.courseCode,
+          program: element.program.programCode,
+          section: element.sectionName,
+          room: element.room.roomName,
+          level: element.level.display,
+          faculty: element.faculty
+            ? element.faculty.userInformation.facultyCode
+            : null,
+          current: false,
+          color: "#FFC107",
+          textColor: "black",
+        });
+      }
+    });
+
+    if (draggable) {
+      draggable.destroy();
     }
-  });
 
-  if (draggable) {
-    draggable.destroy();
+    let Draggable = FullCalendar.Draggable;
+    $(".fc-event").removeClass("bg-primary bg-success text-light");
+    $(".fc-event").css("cursor", "default");
+    if (isLaboratorySelect) {
+      selector = ".lab-event";
+      $(".lab-event").addClass("bg-primary text-light");
+      $(".lecture-event").addClass("bg-success text-light");
+      $(".lab-event").css("cursor", "move");
+    } else {
+      selector = ".lecture-event";
+      $(".lecture-event").addClass("bg-primary text-light");
+      $(".lab-event").addClass("bg-success text-light");
+      $(".lecture-event").css("cursor", "move");
+    }
+    draggable = new Draggable(document.getElementById("external-events"), {
+      itemSelector: selector,
+      eventData: function (info) {
+        return {
+          duration: "0" + info.getAttribute("hour") + ":00",
+          durationEditable: true,
+          startEditable: true,
+          current: true,
+          overlap: false,
+          new: info.getAttribute("new") === "true" ? true : false,
+          course: info.getAttribute("course"),
+          color: info.getAttribute("color"),
+          textColor: info.getAttribute("textColor"),
+          courseId: info.getAttribute("course-id"),
+          program: info.getAttribute("program"),
+          section: info.getAttribute("section"),
+          room: $("#roomForm").find(":selected").text(),
+          level: info.getAttribute("level"),
+          type: info.getAttribute("courseType"),
+        };
+      },
+    });
+    socket.emit("leaveRoom", previousRoom);
+    socket.emit("joinRoom", current.val());
+    previousRoom = current.val();
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
   }
-
-  let Draggable = FullCalendar.Draggable;
-  $(".fc-event").removeClass("bg-primary bg-success text-light");
-  $(".fc-event").css("cursor", "default");
-  if (isLaboratorySelect) {
-    selector = ".lab-event";
-    $(".lab-event").addClass("bg-primary text-light");
-    $(".lecture-event").addClass("bg-success text-light");
-    $(".lab-event").css("cursor", "move");
-  } else {
-    selector = ".lecture-event";
-    $(".lecture-event").addClass("bg-primary text-light");
-    $(".lab-event").addClass("bg-success text-light");
-    $(".lecture-event").css("cursor", "move");
-  }
-  draggable = new Draggable(document.getElementById("external-events"), {
-    itemSelector: selector,
-    eventData: function (info) {
-      return {
-        duration: "0" + info.getAttribute("hour") + ":00",
-        durationEditable: true,
-        startEditable: true,
-        current: true,
-        overlap: false,
-        new: info.getAttribute("new") === "true" ? true : false,
-        course: info.getAttribute("course"),
-        color: info.getAttribute("color"),
-        textColor: info.getAttribute("textColor"),
-        courseId: info.getAttribute("course-id"),
-        program: info.getAttribute("program"),
-        section: info.getAttribute("section"),
-        room: $("#roomForm").find(":selected").text(),
-        level: info.getAttribute("level"),
-        courseType: info.getAttribute("courseType"),
-      };
-    },
-  });
-
-  socket.emit("leaveRoom", previousRoom);
-  socket.emit("joinRoom", current.val());
-  previousRoom = current.val();
 });
-
-const getPrograms = async () => {
-  try {
-    const programRequest = await fetch("/api/curriculums/programs/" + semester);
-    const programs = await programRequest.json();
-
-    return programs.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getYearLevel = async (program) => {
-  try {
-    const levelRequest = await fetch("/api/curriculums/levels/" + program);
-    const levels = await levelRequest.json();
-
-    return levels.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getSection = async (level) => {
-  try {
-    const sectionRequest = await fetch("/api/curriculums/sections/" + level);
-    const sections = await sectionRequest.json();
-
-    return sections.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getRooms = async () => {
-  try {
-    const request = await fetch("/api/rooms");
-    const rooms = await request.json();
-
-    return rooms.data;
-  } catch (error) {
-    console.error;
-    return [];
-  }
-};
 
 const isEmptyRoom = () => {
   if (roomForm.val() === null) {
@@ -905,14 +924,17 @@ const getSectionSchedule = async (section) => {
 
 const postSchedule = async (body) => {
   try {
-    const postScheduleRequest = await fetch(`/api/schedules/sections/create/${scheduleSectionForm.val()}`, {
-      method: "POST",
-      headers: {
-        "csrf-token": csrf,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const postScheduleRequest = await fetch(
+      `/api/schedules/sections/create/${scheduleSectionForm.val()}`,
+      {
+        method: "POST",
+        headers: {
+          "csrf-token": csrf,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
     const postScheduleResponse = await postScheduleRequest.json();
     return postScheduleResponse;
   } catch (error) {
@@ -921,20 +943,6 @@ const postSchedule = async (body) => {
       icon: "warning",
       title: "Something went wrong in creating schedule",
     });
-    return false;
-  }
-};
-
-const getSchedule = async (id) => {
-  try {
-    const scheduleRequest = await fetch(`/api/schedules/sections/view/${semester}/${id}`);
-    const schedule = await scheduleRequest.json();
-
-    if (schedule.data.length === 0) return false;
-
-    return schedule.data;
-  } catch (error) {
-    console.error(error);
     return false;
   }
 };
@@ -961,58 +969,87 @@ const putSchedule = async (id, body, split) => {
   }
 };
 
-const removeSchedule = async (id, hours, course, type, section) => {
-  try {
-    const deleteScheduleRequest = fetch(`/api/schedules/sections/delete/${semester}/${id}`, {
-      method: "DELETE",
-      headers: {
-        "csrf-token": csrf,
-        room: roomForm.val(),
-        section: scheduleSectionForm.val(),
-        hours: hours,
-        course: course,
-        type: type,
-      },
+const renderCourses = (data, labList, lectureList) => {
+  const { course, _id: id } = data;
+  currentCourseHourCount[course.courseCode] = {
+    currentLecture: null,
+    maxLecture: null,
+    currentLab: null,
+    maxLab: null,
+  };
+  for (let i = 0; i < 2; i++) {
+    const card = $("<div></div>");
+    card.addClass("card mb-1");
+    const item = $("<li></li>");
+    item.addClass("list-group-item bg-success text-light fc-event");
+    item.attr({
+      course: course.courseCode,
+      program: scheduleProgramForm.children(":selected").text(),
+      section: scheduleSectionForm.children(":selected").text(),
+      new: true,
+      level: scheduleYearLevelForm.children(":selected").text(),
+      overlap: false,
+      durationEditable: true,
+      startEditable: true,
+      "course-id": course._id,
     });
 
-    if (deleteScheduleRequest.status === 500) return false;
-
-    return deleteScheduleRequest;
-  } catch (error) {
-    console.log(error);
-    return false;
+    card.append(item);
+    if (course.lecture !== 0 && i === 0) {
+      item.html(
+        course.courseCode.toUpperCase() +
+          " - " +
+          course.courseDescription.toUpperCase() +
+          " - " +
+          course.lecture +
+          " HOURS"
+      );
+      item.attr("courseType", "lecture");
+      item.attr("color", "#007BFF");
+      item.attr("textColor", "white");
+      item.attr("hour", course.lecture);
+      item.addClass("lecture-event");
+      lectureList.append(card);
+      currentCourseHourCount[course.courseCode].maxLecture = course.lecture;
+      currentCourseHourCount[course.courseCode].currentLecture = 0;
+    }
+    if (course.lab !== 0 && i === 1) {
+      item.html(
+        course.courseCode.toUpperCase() +
+          " - " +
+          course.courseDescription.toUpperCase() +
+          " - " +
+          course.lab +
+          " HOURS"
+      );
+      item.attr("courseType", "lab");
+      item.attr("color", "#5AA2E8");
+      item.attr("textColor", "black");
+      item.attr("hour", course.lab);
+      item.addClass("lab-event");
+      labList.append(card);
+      currentCourseHourCount[course.courseCode].maxLab = course.lab;
+      currentCourseHourCount[course.courseCode].currentLab = 0;
+    }
   }
 };
 
-function renderEvent(info) {
-  const titleEl = info.el.querySelector(".fc-event-title");
-  const timeEl = info.el.querySelector(".fc-event-time");
-  info.el.style.textAlign = "center";
-  const faculty = info.event.extendedProps.faculty ? info.event.extendedProps.faculty.toUpperCase() : "";
-  const course = info.event.extendedProps.course.toUpperCase();
-  const program = info.event.extendedProps.program.toUpperCase();
-  const section = info.event.extendedProps.section.toUpperCase();
-  const room = info.event.extendedProps.room.toUpperCase();
-  const level = info.event.extendedProps.level.toUpperCase();
-  const type = info.event.extendedProps.courseType.toUpperCase();
-
-  titleEl.innerHTML = `${course}<br>${program}${level}-${section}<br>${room}<br>${faculty}`;
-}
-
 socket.on("createSectionSchedule", (data) => {
-  console.log(data);
   if (data.section === scheduleSectionForm.val()) {
     const extendedProps = data.event.extendedProps;
-    if (extendedProps.courseType === "lecture") {
+    if (extendedProps.type === "lecture") {
       currentCourseHourCount[extendedProps.course].currentLecture =
         currentCourseHourCount[extendedProps.course].maxLecture;
     } else {
-      currentCourseHourCount[extendedProps.course].currentLab = currentCourseHourCount[extendedProps.course].maxLab;
+      currentCourseHourCount[extendedProps.course].currentLab =
+        currentCourseHourCount[extendedProps.course].maxLab;
     }
-
+    console.log(currentCourseHourCount)
     $("#external-events")
-      .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
-      .removeClass(`${extendedProps.courseType}-event bg-primary text-light`)
+      .find(
+        `[course='${extendedProps.course}'][courseType='${extendedProps.type}']`
+      )
+      .removeClass(`${extendedProps.type}-event bg-primary text-light`)
       .addClass("bg-warning text-dark")
       .css("cursor", "")
       .attr("hour", "0:00");
@@ -1032,7 +1069,8 @@ socket.on("createSectionSchedule", (data) => {
 
 socket.on("editSectionSchedule", (data) => {
   calendar.getEvents().forEach((e) => {
-    if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID) e.remove();
+    if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID)
+      e.remove();
   });
   if (data.section !== scheduleSectionForm.val()) {
     data.event.extendedProps.current = false;
@@ -1077,7 +1115,12 @@ socket.on("deleteSectionSchedule", (data) => {
 
     $("#external-events")
       .find(`[course='${data.course}'][courseType='${data.type}']`)
-      .attr("hour", `${Math.trunc(maxHours - currentHour)}:${(maxHours - currentHour) % 1 === 0 ? "00" : "30"}`);
+      .attr(
+        "hour",
+        `${Math.trunc(maxHours - currentHour)}:${
+          (maxHours - currentHour) % 1 === 0 ? "00" : "30"
+        }`
+      );
   }
 
   calendar.getEvents().forEach((e) => {
@@ -1088,39 +1131,51 @@ socket.on("deleteSectionSchedule", (data) => {
 socket.on("splitSectionSchedule", (data) => {
   console.log(data);
   calendar.getEvents().forEach((e) => {
-    if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID) e.remove();
+    if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID)
+      e.remove();
   });
   if (data.section === scheduleSectionForm.val()) {
     const event = data.event;
     const extendedProps = event.extendedProps;
     calendar.getEvents().forEach((e) => {
-      if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID) e.remove();
+      if (e.extendedProps.scheduleID === data.event.extendedProps.scheduleID)
+        e.remove();
     });
     if (extendedProps.courseType === "lecture") {
-      currentCourseHourCount[extendedProps.course].currentLecture = data.currentHour;
+      currentCourseHourCount[extendedProps.course].currentLecture =
+        data.currentHour;
     } else {
-      currentCourseHourCount[extendedProps.course].currentLab = data.currentHour;
+      currentCourseHourCount[extendedProps.course].currentLab =
+        data.currentHour;
     }
     console.log(extendedProps.course);
     console.log(currentCourseHourCount[extendedProps.course]);
     if (data.maxHour - data.currentHour === 0) {
       $("#external-events")
-        .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
+        .find(
+          `[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`
+        )
         .removeClass(`${extendedProps.courseType}-event bg-primary text-light`)
         .addClass("bg-warning text-dark")
         .css("cursor", "");
     } else {
       $("#external-events")
-        .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
+        .find(
+          `[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`
+        )
         .addClass(`${extendedProps.courseType}-event bg-primary text-light`)
         .removeClass("bg-success bg-warning text-dark")
         .css("cursor", "move");
     }
     $("#external-events")
-      .find(`[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`)
+      .find(
+        `[course='${extendedProps.course}'][courseType='${extendedProps.courseType}']`
+      )
       .attr(
         "hour",
-        `${Math.trunc(data.maxHour - data.currentHour)}:${(data.maxHour - data.currentHour) % 1 === 0 ? "00" : "30"}`
+        `${Math.trunc(data.maxHour - data.currentHour)}:${
+          (data.maxHour - data.currentHour) % 1 === 0 ? "00" : "30"
+        }`
       );
     data.event.durationEditable = true;
     data.event.startEditable = true;

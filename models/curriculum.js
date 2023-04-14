@@ -32,7 +32,9 @@ const CurriculumSchema = new Schema({
           year: [
             {
               yearLevel: { type: mongoose.Types.ObjectId, ref: "Level" },
-              courses: [{ type: mongoose.Types.ObjectId, ref: "Course", default: null }],
+              courses: [
+                { type: mongoose.Types.ObjectId, ref: "Course", default: null },
+              ],
               sections: [
                 {
                   section: { type: String, required: true },
@@ -57,10 +59,7 @@ const CurriculumSchema = new Schema({
                       day: {
                         type: Number,
                       },
-                      room: {
-                        type: mongoose.Types.ObjectId,
-                        ref: "Room",
-                      },
+                      room: String,
                       faculty: {
                         type: mongoose.Types.ObjectId,
                         ref: "User",

@@ -3,19 +3,19 @@
     <ul>
       <% if (role === "user") { %>
       <li class="menu-item">
-        <a href="/user/profile" class='menu-link'>
+        <a href="/user/profile" class="menu-link">
           <i class="bi bi-person"></i>
           <span>My Profile</span>
         </a>
       </li>
       <li class="menu-item">
-        <a href="/user/schedule" class='menu-link'>
+        <a href="/user/schedule" class="menu-link">
           <i class="bi bi-alarm"></i>
           <span>My Schedule</span>
         </a>
       </li>
       <li class="menu-item">
-        <a href="/user/schedule-preference" class='menu-link'>
+        <a href="/user/schedule-preference" class="menu-link">
           <i class="bi bi-calendar-check"></i>
           <span>Schedule Preference</span>
         </a>
@@ -28,40 +28,42 @@
         </li> -->
       <% } else if (role === "admin") { %>
       <li class="menu-item">
-        <a href="/admin/dashboard" class='menu-link'>
+        <a href="/admin/dashboard" class="menu-link">
           <i class="bi bi-grid-fill"></i>
           <span>Dashboard</span>
         </a>
       </li>
       <li class="menu-item">
-        <a href="/admin/faculty" class='menu-link'>
+        <a href="/admin/faculty" class="menu-link">
           <i class="bi bi-person-circle"></i>
           <span>Faculty</span>
         </a>
       </li>
       <li class="menu-item has-sub">
-        <a href="#" class='menu-link'>
+        <a href="#" class="menu-link">
           <i class="bi bi-stack"></i>
           <span>Curriculum</span>
         </a>
-        <div class="submenu ">
+        <div class="submenu">
           <div class="submenu-group-wrapper">
             <ul class="submenu-group">
-              <li class="submenu-item  ">
-                <a href="/admin/curriculum" class='submenu-link'>Curriculum</a>
+              <li class="submenu-item">
+                <a href="/admin/curriculum" class="submenu-link">Curriculum</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/years" class='submenu-link'>School Year</a>
+              <li class="submenu-item">
+                <a href="/admin/years" class="submenu-link">School Year</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/curriculum/faculty" class='submenu-link'>Active Faculty</a>
+              <li class="submenu-item">
+                <a href="/admin/curriculum/faculty" class="submenu-link"
+                  >Active Faculty</a
+                >
               </li>
             </ul>
           </div>
         </div>
       </li>
       <li class="menu-item has-sub">
-        <a href="#" class='menu-link'>
+        <a href="#" class="menu-link">
           <i class="bi bi-calendar-check"></i>
           <span>Scheduling</span>
         </a>
@@ -69,10 +71,14 @@
           <div class="submenu-group-wrapper">
             <ul class="submenu-group">
               <li class="submenu-item">
-                <a href="/admin/schedules" class='submenu-link'>Assign Schedule</a>
+                <a href="/admin/schedules" class="submenu-link"
+                  >Assign Schedule</a
+                >
               </li>
               <li class="submenu-item">
-                <a href="/admin/schedules/faculty" class='submenu-link'>Faculty Loading</a>
+                <a href="/admin/schedules/faculty" class="submenu-link"
+                  >Faculty Loading</a
+                >
               </li>
             </ul>
           </div>
@@ -80,66 +86,94 @@
       </li>
       <% } else { %>
       <li class="menu-item">
-        <a href="/admin/dashboard" class='menu-link'>
+        <a href="/admin/dashboard" class="menu-link">
           <i class="bi bi-grid-fill"></i>
           <span>Dashboard</span>
         </a>
       </li>
       <li class="menu-item">
-        <a href="/admin/faculty" class='menu-link'>
+        <a href="/admin/faculty" class="menu-link">
           <i class="bi bi-person-circle"></i>
           <span>Faculty</span>
         </a>
       </li>
       <li class="menu-item has-sub">
-        <a href="#" class='menu-link'>
-          <i class="bi bi-stack"></i>
-          <span>Curriculum</span>
+        <a href="#" class="menu-link">
+          <i class="bi bi-calendar-check"></i>
+          <span>Scheduling</span>
         </a>
-        <div class="submenu ">
+        <div class="submenu">
           <div class="submenu-group-wrapper">
             <ul class="submenu-group">
-              <li class="submenu-item  ">
-                <a href="/admin/curriculum" class='submenu-link'>Curriculum</a>
+              <li class="submenu-item">
+                <a href="/admin/schedules" class="submenu-link"
+                  >Assign Schedule</a
+                >
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/years" class='submenu-link'>School Year</a>
-              </li>
-              <li class="submenu-item  ">
-                <a href="/admin/curriculum/faculty" class='submenu-link'>Active Faculty</a>
+              <li class="submenu-item">
+                <a href="/admin/schedules/faculty" class="submenu-link"
+                  >Faculty Loading</a
+                >
               </li>
             </ul>
           </div>
         </div>
       </li>
       <li class="menu-item has-sub">
-        <a href="#" class='menu-link'>
+        <a href="#" class="menu-link">
+          <i class="bi bi-stack"></i>
+          <span>Curriculum</span>
+        </a>
+        <div class="submenu">
+          <div class="submenu-group-wrapper">
+            <ul class="submenu-group">
+              <li class="submenu-item">
+                <a href="/admin/curriculum" class="submenu-link">Curriculum</a>
+              </li>
+              <li class="submenu-item">
+                <a href="/admin/years" class="submenu-link">School Year</a>
+              </li>
+              <li class="submenu-item">
+                <a href="/admin/curriculum/faculty" class="submenu-link"
+                  >Active Faculty</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </li>
+      <li class="menu-item has-sub">
+        <a href="#" class="menu-link">
           <i class="bi bi-gear"></i>
           <span>Maintenance</span>
         </a>
-        <div class="submenu ">
+        <div class="submenu">
           <div class="submenu-group-wrapper">
             <ul class="submenu-group">
-              <li class="submenu-item  ">
-                <a href="/admin/users" class='submenu-link'>User Admin</a>
+              <li class="submenu-item">
+                <a href="/admin/users" class="submenu-link">User Admin</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/aq" class='submenu-link'>Academic Qualification</a>
+              <li class="submenu-item">
+                <a href="/admin/aq" class="submenu-link"
+                  >Academic Qualification</a
+                >
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/programs" class='submenu-link'>Programs</a>
+              <li class="submenu-item">
+                <a href="/admin/programs" class="submenu-link">Programs</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/courses" class='submenu-link'>Courses</a>
+              <li class="submenu-item">
+                <a href="/admin/courses" class="submenu-link">Courses</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/levels" class='submenu-link'>Year Level</a>
+              <li class="submenu-item">
+                <a href="/admin/levels" class="submenu-link">Year Level</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/rooms" class='submenu-link'>Rooms</a>
+              <li class="submenu-item">
+                <a href="/admin/rooms" class="submenu-link">Rooms</a>
               </li>
-              <li class="submenu-item  ">
-                <a href="/admin/faculty-types" class='submenu-link'>Faculty Type</a>
+              <li class="submenu-item">
+                <a href="/admin/faculty-types" class="submenu-link"
+                  >Faculty Type</a
+                >
               </li>
               <!-- <li class="submenu-item  ">
                   <a href="/admin/tags" class='submenu-link'></a>
@@ -149,11 +183,6 @@
         </div>
       </li>
       <% } %>
-
-
-
-
-
     </ul>
   </div>
 </nav>

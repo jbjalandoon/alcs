@@ -67,11 +67,8 @@ router.get("/schedules/assignable-schedules/:semester", schedule.getAllAssignabl
 
 router.put("/schedules/load/:schedule", schedule.loadSchedule);
 
-router.get("/schedules/room/:semester/:room", schedule.getRoomSchedule);
-
 router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/finished/:semester/:room", schedule.getFinishedRoomSchedule);
-router.get("/schedules/rooms/:semester", schedule.getRoomsSchedule);
 router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
 router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
 
