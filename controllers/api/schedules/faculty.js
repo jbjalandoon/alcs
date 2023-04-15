@@ -97,7 +97,7 @@ exports.getSchedules = async (req, res, next) => {
 
 exports.getUnits = async (req, res, next) => {
   try {
-    const schedules = await Schedule.aggregate([
+    const [schedules] = await Schedule.aggregate([
       {
         $match: {
           "semesters._id": mongoose.Types.ObjectId(req.params.semester),
@@ -156,13 +156,14 @@ exports.getUnits = async (req, res, next) => {
         },
       },
     ]);
-    if (schedules.length === 0) {
-      return res.json({ status: 200, data: 0 });
+    console.log(schedules);
+    if (!schedules) {
+      return res.json({ units: 0 });
     }
-    return res.json({ status: 200, data: schedules[0].units });
+    res.json({ units: schedules.units });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 

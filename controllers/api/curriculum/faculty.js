@@ -75,7 +75,7 @@ exports.getActiveFacultyCounts = async (req, res, next) => {
       },
       {
         $group: {
-          _id: "$faculty.userInformation.facultyType",
+          _id: "$faculty.facultyInformation.facultyType",
           count: { $count: {} },
         },
       },
@@ -91,7 +91,7 @@ exports.getActiveFacultyCounts = async (req, res, next) => {
         $unwind: "$facultyType",
       },
     ]);
-
+    console.log(facultyCounts);
     res.status(200).json({ facultyCounts });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
@@ -103,6 +103,7 @@ exports.getActiveFacultyType = async (req, res, next) => {
     const activeFaculty = await FacultyType.findOne({
       facultyType: req.params.type,
     });
+    console.log(activeFaculty);
     const faculty = await Curriculum.aggregate([
       {
         $match: {
@@ -133,7 +134,7 @@ exports.getActiveFacultyType = async (req, res, next) => {
       },
       {
         $match: {
-          "faculty.userInformation.facultyType": mongoose.Types.ObjectId(
+          "faculty.facultyInformation.facultyType": mongoose.Types.ObjectId(
             activeFaculty._id
           ),
         },
@@ -141,11 +142,11 @@ exports.getActiveFacultyType = async (req, res, next) => {
       {
         $project: {
           _id: "$faculty._id",
-          facultyInformation: "$faculty.userInformation",
+          userInformation: "$faculty.userInformation",
+          facultyInformation: "$faculty.facultyInformation",
         },
       },
     ]);
-
     res.status(200).json({ faculty });
   } catch (error) {
     console.error(error);

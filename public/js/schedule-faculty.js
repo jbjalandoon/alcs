@@ -259,23 +259,26 @@ const calendar = new FullCalendar.Calendar(calendarContainer, config);
     $(document).on("select2:open", () => {
       document.querySelector(".select2-search__field").focus();
     });
-    // const facultyCounts = await getFacultyCounts();
-    // const facultyTypeLists = $("#facultyTypeLists");
-    // facultyCounts.map((e) =>
-    //   facultyTypeLists.append(`<div class="card mb-4 text-white bg-primary flex-fill m-2">
-    //       <div class="card-body pb-4 d-flex justify-content-between align-items-start">
-    //         <div>
-    //           <div class="fs-4 fw-semibold"><span id="${
-    //             e.facultyType.facultyType
-    //           }">${e.count}</span>
-    //             <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="${
-    //               e.facultyType.facultyType
-    //             }">${e.facultyType.facultyType.toUpperCase()}</a></div>
-    //           </div>
-    //         </div>
-    //       </div>
-    //     </div>`)
-    // );
+    const { data: facultyCountsData } = await axios.get(
+      `/api/curriculums/faculty/counts/${semester}`
+    );
+    const { facultyCounts } = facultyCountsData;
+    const facultyTypeLists = $("#facultyTypeLists");
+    facultyCounts.map((e) =>
+      facultyTypeLists.append(`<div class="card mb-4 text-white bg-primary flex-fill m-2">
+          <div class="card-body pb-4 d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fs-4 fw-semibold"><span id="${
+                e.facultyType.facultyType
+              }">${e.count}</span>
+                <div><a class="text-white" role="button" href="#facultyModalToggle" data-bs-toggle="modal" data-bs-target="#facultyModal" data-bs-type="${
+                  e.facultyType.facultyType
+                }">${e.facultyType.facultyType.toUpperCase()}</a></div>
+              </div>
+            </div>
+          </div>
+        </div>`)
+    );
     faculty.trigger("change");
   } catch (error) {
     console.log(error);
@@ -371,59 +374,90 @@ const getCourseSchedule = async (course) => {
 };
 
 $(facultyModal._element).on("show.bs.modal", async (event) => {
-  $(event.currentTarget)
-    .find("#modalLabel")
-    .html(
-      $(event.relatedTarget).attr("data-bs-type").toUpperCase() +
-        " FACULTY MEMBERS"
+  try {
+    const type = $(event.relatedTarget).attr("data-bs-type");
+    $(event.currentTarget)
+      .find("#modalLabel")
+      .html(type.toUpperCase() + " FACULTY MEMBERS");
+    const tbody = $(event.currentTarget).find("tbody");
+    tbody.empty();
+    const { data } = await axios.get(
+      `/api/curriculums/faculty/type/${type}/${semester}`
     );
-  const tbody = $(event.currentTarget).find("tbody");
-
-  fetch(
-    `/api/curriculums/faculty/type/${$(event.relatedTarget).attr(
-      "data-bs-type"
-    )}/${semester}`
-  )
-    .then((response) => {
-      return response.json();
-    })
-    .then((result) => {
-      tbody.empty();
-      result.data.forEach(async (element) => {
-        const unitsCount = await fetch(
-          `/api/schedules/faculty/units/${semester}/${element._id}`
-        );
-        const units = await unitsCount.json();
-        const tr = $("<tr></tr>");
-        tbody.append(
-          tr
-            .append(
-              $("<td></td>")
-                .attr("id", element._id)
-                .html(element.facultyInformation.facultyCode.toUpperCase())
-            )
-            .append(
-              $("<td></td>")
-                .attr("id", element._id)
-                .html(element.facultyInformation.lastName.toUpperCase())
-            )
-            .append(
-              $("<td></td>")
-                .attr("id", element._id)
-                .html(units.status === 200 ? units.data : 0)
-            )
-          // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
-        );
-        tr.css("cursor", "pointer");
-        tr.on("click", () => {
-          faculty.val(element._id).trigger("change");
-          facultyModal.hide();
-        });
+    data.faculty.forEach(async (element) => {
+      const { data: unitsCounts } = await axios.get(
+        `/api/schedules/faculty/units/${semester}/${element._id}`
+      );
+      const { units } = unitsCounts;
+      const { lastName, firstName, middleName } = element.userInformation;
+      const { facultyCode } = element.facultyInformation;
+      const tr = $("<tr></tr>");
+      tbody.append(
+        tr
+          .append($("<td></td>").attr("id", element._id).html(`${facultyCode}`))
+          .append(
+            $("<td></td>")
+              .attr("id", element._id)
+              .html(
+                `${firstName.toUpperCase()} ${middleName.toUpperCase()} ${lastName.toUpperCase()}`
+              )
+          )
+          .append($("<td></td>").attr("id", element._id).html(units))
+        // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
+      );
+      tr.css("cursor", "pointer");
+      tr.on("click", () => {
+        faculty.val(element._id).trigger("change");
+        facultyModal.hide();
       });
-    })
-    .catch((error) => {
-      console.log(error);
     });
+  } catch (error) {
+    displayToast(error.response);
+  }
+
+  // fetch(
+  //   `/api/curriculums/faculty/type/${type}/${semester}`
+  // )
+  //   .then((response) => {
+  //     return response.json();
+  //   })
+  //   .then((result) => {
+  //     tbody.empty();
+  //     result.data.forEach(async (element) => {
+  //       const unitsCount = await fetch(
+  //         `/api/schedules/faculty/units/${semester}/${element._id}`
+  //       );
+  //       const units = await unitsCount.json();
+  //       const tr = $("<tr></tr>");
+  //       tbody.append(
+  //         tr
+  //           .append(
+  //             $("<td></td>")
+  //               .attr("id", element._id)
+  //               .html(element.facultyInformation.facultyCode.toUpperCase())
+  //           )
+  //           .append(
+  //             $("<td></td>")
+  //               .attr("id", element._id)
+  //               .html(element.facultyInformation.lastName.toUpperCase())
+  //           )
+  //           .append(
+  //             $("<td></td>")
+  //               .attr("id", element._id)
+  //               .html(units.status === 200 ? units.data : 0)
+  //           )
+  //         // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
+  //       );
+  //       tr.css("cursor", "pointer");
+  //       tr.on("click", () => {
+  //         faculty.val(element._id).trigger("change");
+  //         facultyModal.hide();
+  //       });
+  //     });
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   });
 });
 
 faculty.on("change", async (e) => {
@@ -440,12 +474,14 @@ faculty.on("change", async (e) => {
     const { data: facultySchedules } = await axios.get(
       `/api/schedules/faculty/${semester}/${facultyValue}`
     );
-    const facultyUnits = await getFacultyUnits(facultyValue);
-
+    const { data: unitsCounts } = await axios.get(
+      `/api/schedules/faculty/units/${semester}/${facultyValue}`
+    );
+    const { units } = unitsCounts;
     hoursCount = facultySchedules.schedules
       .map((e) => e.hour)
       .reduce((a, b) => a + b, 0);
-    unitsCount = facultyUnits;
+    unitsCount = units;
 
     $("#spanUnits").html(unitsCount);
     $("#spanHours").html(hoursCount);
