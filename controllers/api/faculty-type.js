@@ -52,7 +52,6 @@ exports.post = async (req, res, next) => {
       facultyType: newFacultyType,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -70,7 +69,6 @@ exports.put = async (req, res, next) => {
       .status(200)
       .json({ msg: "Faculty type successfully edited", facultyType });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };

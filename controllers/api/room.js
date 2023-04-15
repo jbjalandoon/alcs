@@ -23,7 +23,6 @@ exports.getOne = async (req, res, next) => {
 
     res.status(200).json({ room });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -87,7 +86,6 @@ exports.postSpreadsheet = (req, res, next) => {
   //     const roomName = e[0];
   //     const isLaboratory = e[1];
   //   });
-  //   console.log(rows);
   // } catch (error) {
   //   res.status(500).json({ msg: "Something went wrong" });
   // }
@@ -110,7 +108,6 @@ exports.postSpreadsheet = (req, res, next) => {
       // });
       return Room.bulkWrite(
         rows.map((element) => {
-          console.log(element[1]);
           return {
             updateOne: {
               filter: { roomName: element[0] },
@@ -132,6 +129,5 @@ exports.postSpreadsheet = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ status: 500, data: error });
-      console.log(error);
     });
 };

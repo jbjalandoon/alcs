@@ -58,7 +58,6 @@ exports.changePassword = (req, res, next) => {
   bcrypt
     .hash(req.body.newPassword, 12)
     .then((result) => {
-      console.log(result);
       return User.updateOne(
         { email: req.session.user.email },
         {
@@ -67,11 +66,9 @@ exports.changePassword = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
       res.json({ status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ status: 500, data: error });
     });
 };
@@ -106,7 +103,6 @@ exports.postForgotPassword = (req, res, next) => {
         return res.redirect("/authentication/login?forgot=true");
       })
       .catch((error) => {
-        console.log(error);
         return res.redirect("/authentication/login?forgot=false");
       });
   });
@@ -127,13 +123,10 @@ exports.reset = (req, res, next) => {
       return res.redirect("/authentication/login");
     })
     .catch((error) => {
-      console.log(error);
     });
 };
 
 exports.postReset = (req, res, next) => {
-  console.log(req.body);
-  console.log(req.body);
   bcrypt
     .hash(req.body.newPassword, 12)
     .then((password) => {
@@ -147,7 +140,6 @@ exports.postReset = (req, res, next) => {
       );
     })
     .then((result) => {
-      console.log(result);
       res.redirect("/authentication/login?reset=true");
     })
     .catch((error) => {

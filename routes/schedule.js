@@ -14,6 +14,17 @@ router.delete("/sections/delete/:semester/:schedule", Section.deleteSchedule);
 
 router.get("/faculty/:semester/:faculty", Faculty.getSchedules);
 router.get("/faculty/units/:semester/:faculty", Faculty.getUnits);
+router.get(
+  "/faculty/loadable/courses/:semester/:faculty",
+  Faculty.getLoadableCourses
+);
+router.get(
+  "/faculty/loadable/schedules/:semester/:course",
+  Faculty.getLoadableSchedules
+);
+router.put("/faculty/load/:schedule", Faculty.loadSchedule);
+router.delete("/faculty/unload/:schedule", Faculty.unloadSchedule);
+
 
 router.get("/rooms/:semester/:room", Room.getSchedule);
 router.get("/rooms/:semester", Room.getSchedules);

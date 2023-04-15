@@ -109,6 +109,5 @@ exports.postSpreadsheet = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false });
-      console.log(error);
     });
 };

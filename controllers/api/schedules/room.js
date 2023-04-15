@@ -1,5 +1,6 @@
 const Schedule = require("../../../models/curriculum");
 const mongoose = require("mongoose");
+
 exports.getSchedules = async (req, res, next) => {
   try {
     const schedules = await Schedule.aggregate([
@@ -27,8 +28,7 @@ exports.getSchedules = async (req, res, next) => {
         $match: {
           "semesters._id": mongoose.Types.ObjectId(req.params.semester),
           // "semesters.programs.year.sections.schedules.faculty": { $ne: null },
-          "semesters.programs.year.sections.schedules.room":
-            mongoose.Types.ObjectId(req.params.room),
+          "semesters.programs.year.sections.schedules.room": req.params.room,
         },
       },
 
@@ -95,7 +95,6 @@ exports.getSchedules = async (req, res, next) => {
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
     ]);
-
     res.status(200).json({ schedules });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
@@ -122,8 +121,9 @@ exports.getSchedule = async (req, res, next) => {
       },
       {
         $match: {
-          // "semesters.programs.year.sections.schedules.faculty": { $ne: null },
+          // "semesters.programs.year.sections.schedules.room": req.params.room,
           "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+          "semesters.programs.year.sections.schedules.room": req.params.room,
         },
       },
       {
@@ -187,9 +187,11 @@ exports.getSchedule = async (req, res, next) => {
         },
       },
     ]);
-    console.log(schedules);
-    res.status(200).json({ ...schedules });
+    if (schedules) return res.status(200).json({ ...schedules });
+
+    res.status(200).json({ schedules: [] });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };

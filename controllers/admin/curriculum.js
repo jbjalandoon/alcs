@@ -183,7 +183,6 @@ exports.addCurriculum = (req, res, next) => {
         }
       })
       .then((result) => {
-        console.log(result);
         res.redirect("/admin/curriculums");
       })
       .catch((error) => {
@@ -417,7 +416,6 @@ exports.postProgram = (req, res, next) => {
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ ok: false });
     });
 };
@@ -434,15 +432,12 @@ exports.getSemester = (req, res, next) => {
       res.json({ ok: true, data: data.semesters });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ ok: false });
     });
 };
 
 exports.postYearLevel = (req, res, next) => {
   const schedules = [];
-  console.log(req.body);
-  console.log(req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ ok: false, errors: errors.mapped() });
@@ -508,7 +503,6 @@ exports.postYearLevel = (req, res, next) => {
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ ok: false });
     });
 

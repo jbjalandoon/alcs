@@ -112,7 +112,6 @@ exports.post = async (req, res, next) => {
 
     res.status(201).json({ msg: "Faculty successfully added", faculty });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -147,7 +146,6 @@ exports.put = async (req, res, next) => {
 
     res.status(200).json({ msg: "Faculty successfully edited", faculty });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -180,7 +178,6 @@ exports.postCourse = async (req, res, next) => {
 
     res.status(200).json({ msg: "Course successfully added", faculty });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -207,7 +204,6 @@ exports.getFacultyType = (req, res, next) => {
 
 exports.postSpreadsheet = async (req, res, next) => {
   try {
-    console.log(req.body);
     const rows = await readXlsxFile(Buffer.from(req.file.buffer));
     rows.shift();
     const facultyType = await FacultyType.find();
@@ -215,7 +211,6 @@ exports.postSpreadsheet = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const data = rows.map((element) => {
       const type = facultyType.find((e) => e.facultyType === element[6]);
-      console.log(type ? e._id : facultyType[0]._id);
       return {
         facultyCode: element[1].toLowerCase(),
         lastName: element[2] ? element[2].toLowerCase() : "",
@@ -250,16 +245,13 @@ exports.postSpreadsheet = async (req, res, next) => {
       })
     );
 
-    console.log(bulkWrite);
     res.status(200).json({ msg: "Successfully Uploaded" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
 exports.postSchedulePreference = (req, res, next) => {
-  console.log(req.body);
   Faculty.findOneAndUpdate(
     { _id: req.params.id },
     {
@@ -282,7 +274,6 @@ exports.postSchedulePreference = (req, res, next) => {
 };
 
 exports.putSchedulePreference = (req, res, next) => {
-  console.log(req.body);
   Faculty.updateOne(
     { _id: req.params.id },
     {
@@ -295,7 +286,6 @@ exports.putSchedulePreference = (req, res, next) => {
     { arrayFilters: [{ "schedule._id": req.params.preference }] }
   )
     .then((result) => {
-      console.log(result);
       res.status(201).json({ status: 201, data: result });
     })
     .catch((error) => {
@@ -304,7 +294,6 @@ exports.putSchedulePreference = (req, res, next) => {
 };
 
 exports.deleteSchedulePreference = (req, res, next) => {
-  console.log(req.body);
   Faculty.updateOne(
     { _id: req.params.id },
     {
@@ -315,11 +304,9 @@ exports.deleteSchedulePreference = (req, res, next) => {
     // { arrayFilters: [{ "schedule._id": req.params.preference }] }
   )
     .then((result) => {
-      console.log(result);
       res.status(201).json({ status: 201, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.status(500).json({ status: 500, data: error });
     });
 };
@@ -329,7 +316,6 @@ exports.sendNewPassword = async (req, res, next) => {
     const password = Crypto.randomBytes(8).toString("base64").slice(0, 9);
     const hashedPassword = await bcrypt.hash(password, 12);
     const { id } = req.params;
-    console.log(req.params);
     const faculty = await Faculty.findOneAndUpdate(
       { _id: id },
       { password: hashedPassword }
@@ -340,10 +326,8 @@ exports.sendNewPassword = async (req, res, next) => {
       "Schedula - Random Password",
       password
     );
-    console.log(mail);
     res.status(200).json({ msg: "Password successfully sent." });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };

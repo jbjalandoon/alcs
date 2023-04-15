@@ -60,16 +60,12 @@ router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 // router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
-router.get("/schedules", schedule.getSchedule);
 
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules);
 router.get("/schedules/assignable-schedules/:semester", schedule.getAllAssignableSchedules);
 
-router.put("/schedules/load/:schedule", schedule.loadSchedule);
-
 router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/finished/:semester/:room", schedule.getFinishedRoomSchedule);
-router.delete("/schedules/unassign/:schedule", schedule.unassignSchedule);
 router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
 
 router.get("/schedules/section/:semester/:program", schedule.getGroupedSectionSchedule);
@@ -83,7 +79,6 @@ router.get("/schedules/faculty/grouped/course/:semester", schedule.getGroupedCou
 router.get("/schedules/section/grouped/course/:semester/:section", schedule.getGroupedCourseScheduleSection);
 router.get("/schedules/section/grouped/course/:semester", schedule.getGroupedCourseAllScheduleSection);
 
-router.get("/schedules/loadable-schedules/:sem/:faculty", schedule.getFacultyLoadableSchedules); // Routes for getting loadable scheduels for faculty
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules); // Routes for getting all of the loadable schedules
 
 router.get("/schedules/faculties/:semester", schedule.getFacultiesSchedule);

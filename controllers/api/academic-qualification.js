@@ -31,8 +31,6 @@ exports.getOne = async (req, res, next) => {
 };
 
 exports.getMultiple = (req, res, next) => {
-  // console.log(typeof req.params.academicQualification)
-  console.log(req.params.academicQualification);
   AcademicQualification.find({
     deleted: false,
     _id: { $in: req.params.academicQualification.split(",") },
@@ -61,7 +59,6 @@ exports.post = async (req, res, next) => {
       .status(200)
       .json({ msg: "Academic Qualification Succcessfully Added", aq });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong", error });
   }
 };

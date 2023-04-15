@@ -289,7 +289,7 @@ const editSchedule = async (info) => {
         startTime:
           ("0" + event.start.getHours()).slice(-2) + ":" + startMinutes,
         endTime: ("0" + event.end.getHours()).slice(-2) + ":" + endMinutes,
-        room: $("#roomForm").find(":selected").text(),
+        room: $("#roomForm").val(),
         event: event,
       },
       { headers: { "csrf-token": csrf } }
@@ -528,7 +528,7 @@ const config = {
     left: "",
     right: "",
   },
-  eventClassNames: [ 'overflow-auto' ],
+  eventClassNames: ["overflow-auto"],
   slotMinTime: "7:00:00",
   slotMaxTime: "22:00:00",
   validRange: {
@@ -697,19 +697,18 @@ scheduleSectionForm.on("change", async (event) => {
       placeholder: "Select a Room",
       width: "100%",
     });
-
+    roomForm.find("option").remove();
     roomData.room.forEach((element) => {
+      const newOption = $("<option></option>");
+      newOption.html(element.roomName.toUpperCase());
+      newOption.attr("value", element.roomName);
+      newOption.attr("isLaboratory", element.isLaboratory);
       if (element.isLaboratory) {
-        roomForm
-          .find("#optLab")
-          .append(new Option(element.roomName.toUpperCase(), element._id));
+        roomForm.find("#optLab").append(newOption);
       } else {
-        roomForm
-          .find("#optLecture")
-          .append(new Option(element.roomName.toUpperCase(), element._id));
+        roomForm.find("#optLecture").append(newOption);
       }
     });
-
     roomForm.trigger("change");
 
     const { data: scheduleData } = await axios.get(
@@ -797,13 +796,11 @@ roomForm.on("change", async (event) => {
     if (current.val() === null) {
       return;
     }
-
-    const { data: roomData } = await axios.get(`/api/rooms/${current.val()}`);
-    isLaboratorySelect = roomData.room.isLaboratory;
+    isLaboratorySelect =
+      current.find(":selected").attr("isLaboratory") === "true" ? true : false;
     const { data: roomScheduleData } = await axios.get(
       `/api/schedules/rooms/${semester}/${roomValue}`
     );
-    console.log(roomScheduleData);
     const events = calendar.getEvents();
     events.forEach((element) => {
       if (!element.extendedProps.current) {
@@ -830,7 +827,7 @@ roomForm.on("change", async (event) => {
           level: element.yearLevel.display,
           faculty: element.faculty
             ? element.faculty.userInformation.facultyCode
-            : '',
+            : "",
           current: false,
           color: "#FFC107",
           textColor: "black",
@@ -872,7 +869,7 @@ roomForm.on("change", async (event) => {
           courseId: info.getAttribute("course-id"),
           program: info.getAttribute("program"),
           section: info.getAttribute("section"),
-          room: $("#roomForm").find(":selected").text(),
+          room: $("#roomForm").val(),
           level: info.getAttribute("level"),
           type: info.getAttribute("courseType"),
         };
@@ -898,65 +895,6 @@ const isTimeGapValid = (milliseconds) => {
   if (milliseconds === null) return true;
   if (milliseconds >= 5400 || milliseconds === 0) return false;
   return true;
-};
-
-const getSectionSchedule = async (section) => {
-  try {
-    const schedulesRequest = await fetch(`/api/schedules/sections/${section}`);
-    const schedules = await schedulesRequest.json();
-
-    return schedules;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const postSchedule = async (body) => {
-  try {
-    const postScheduleRequest = await fetch(
-      `/api/schedules/sections/create/${scheduleSectionForm.val()}`,
-      {
-        method: "POST",
-        headers: {
-          "csrf-token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
-    const postScheduleResponse = await postScheduleRequest.json();
-    return postScheduleResponse;
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in creating schedule",
-    });
-    return false;
-  }
-};
-
-const putSchedule = async (id, body, split) => {
-  try {
-    url = split
-      ? `/api/schedules/sections/split/${semester}/${id}`
-      : `/api/schedules/sections/edit/${scheduleSectionForm.val()}/${id}`;
-    const putScheduleRequest = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "csrf-token": csrf,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    const putScheduleResponse = await putScheduleRequest.json();
-
-    return putScheduleResponse;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
 };
 
 const renderCourses = (data, labList, lectureList) => {

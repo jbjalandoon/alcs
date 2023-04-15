@@ -119,7 +119,6 @@ exports.getSchedules = async (req, res, next) => {
         },
       },
     ]);
-    console.log(schedules);
     return res.status(200).json({ schedules });
   } catch (error) {
     console.error(error);
@@ -211,7 +210,6 @@ exports.getSchedule = async (req, res, next) => {
       { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
     ]);
-
     res.status(200).json({ schedule });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
@@ -223,7 +221,6 @@ exports.createSchedule = async (req, res, next) => {
     const { section } = req.params;
     const { courseType, course, day, startTime, endTime, room, hour, event } =
       req.body;
-    const { roomName } = await Room.findOne({ _id: room });
     const id = new mongoose.Types.ObjectId();
     const createSchedule = await Schedule.updateOne(
       {
@@ -239,14 +236,13 @@ exports.createSchedule = async (req, res, next) => {
             startTime: startTime,
             endTime: endTime,
             day: day,
-            room: roomName,
+            room: room,
             faculty: null,
           },
         },
       },
       { arrayFilters: [{ "section._id": section }] }
     );
-    console.log(courseType);
     if (createSchedule.modifiedCount === 0)
       return res.status(500).json({ msg: "Something went wrong" });
 
@@ -288,7 +284,6 @@ exports.editSchedule = async (req, res, next) => {
     if (editSchedule.modifiedCount === 0) {
       return res.status(500).json({ msg: "Something went wrong" });
     }
-    console.log(req.body.room);
     io.getIO()
       .to(req.params.section)
       .to(req.body.room)

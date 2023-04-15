@@ -31,7 +31,6 @@ exports.getOne = async (req, res, next) => {
 
     res.status(200).json({ course });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -136,7 +135,6 @@ exports.edit = async (req, res, next) => {
 
     res.status(200).json({ msg: "Course succesfully edited", course });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -156,13 +154,11 @@ exports.delete = async (req, res, next) => {
 };
 
 exports.getFiltered = (req, res, next) => {
-  console.log(req.params.courses.split(","));
   Course.find({ _id: { $nin: req.params.courses.split(",") } })
     .then((result) => {
       res.json({ status: 200, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res
         .status(500)
         .json({ msg: "Something went wrong" })
@@ -255,10 +251,8 @@ exports.postSpreadsheet = async (req, res, next) => {
         };
       })
     );
-    console.log(course);
     res.status(201).json({ msg: "Course successfully uploaded" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 
@@ -377,7 +371,6 @@ exports.postSpreadsheet = async (req, res, next) => {
   //     });
   //     return AcademicQualification.bulkWrite(
   //       academicQualificationUnique.map((e) => {
-  //         console.log(e);
   //         return {
   //           updateOne: {
   //             filter: { academicQualification: e.academicQualification },
@@ -392,7 +385,6 @@ exports.postSpreadsheet = async (req, res, next) => {
   //     );
   //   })
   //   .then((result) => {
-  //     console.log(result);
   //     return Tag.find();
   //   })
   //   .then((result) => {
@@ -400,7 +392,6 @@ exports.postSpreadsheet = async (req, res, next) => {
   //     return AcademicQualification.find();
   //   })
   //   .then((result) => {
-  //     // console.log(data);
   //     data = data.map((e) => {
   //       return {
   //         courseCode: e.courseCode,
@@ -456,7 +447,6 @@ exports.postSpreadsheet = async (req, res, next) => {
   //     res.json({ status: 201, data: result });
   //   })
   //   .catch((error) => {
-  //     console.log(error);
   //     res.json({ status: 500, data: error });
   //   });
 };

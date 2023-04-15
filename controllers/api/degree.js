@@ -5,14 +5,12 @@ exports.get = (req, res, next) => {
   Degree.find()
     .populate("tags")
     .then((result) => {
-      console.log(result)
       // if (!result) {
       //   return res.json({ ok: false, data: result });
       // }
       res.json({ ok: true, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ ok: false, data: error });
     });
 };
@@ -54,10 +52,8 @@ exports.post = (req, res, next) => {
     })
     .catch((error) => {
       res.json({ ok: false, data: error });
-      console.log(error);
     });
 
-  // console.log(tags);
 };
 
 exports.edit = (req, res, next) => {};

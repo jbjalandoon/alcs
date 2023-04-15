@@ -141,7 +141,6 @@ exports.getActiveRoom = (req, res, next) => {
       res.json({ status: 200, data: result });
     })
     .catch((error) => {
-      console.log(error);
       res.json({ status: 500, data: error });
     });
 };

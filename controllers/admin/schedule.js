@@ -199,7 +199,6 @@ exports.setSchedule = (req, res, next) => {
 
 exports.assignFaculty = (req, res, next) => {
   const days = ["m", "t", "w", "th", "f", "s", null];
-  console.log(req.body);
   Curriculum.updateOne(
     {
       school_year: req.body.school_year,
@@ -221,7 +220,6 @@ exports.assignFaculty = (req, res, next) => {
     }
   )
     .then((result) => {
-      console.log(result);
       res.json({ message: result });
     })
     .catch((error) => {
@@ -276,7 +274,6 @@ exports.getRoomSchedules = (req, res, next) => {
     },
   ])
     .then((room_schedules) => {
-      console.log(room_schedules);
       const days = ["m", "t", "w", "th", "f", "s"];
       const response = room_schedules.map((e) => {
         return {
