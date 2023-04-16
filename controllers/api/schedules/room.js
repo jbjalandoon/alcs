@@ -195,3 +195,47 @@ exports.getSchedule = async (req, res, next) => {
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
+
+exports.getActiveRoom = async (req, res, next) => {
+  try {
+    const rooms = await Schedule.aggregate([
+      {
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $unwind: "$semesters",
+      },
+      {
+        $unwind: "$semesters.programs",
+      },
+      {
+        $unwind: "$semesters.programs.year",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections.schedules",
+      },
+      {
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $project: {
+          room: "$semesters.programs.year.sections.schedules.room",
+        },
+      },
+      {
+        $unwind: "$room",
+      },
+      { $group: { _id: "$room" } },
+    ]);
+    res.status(200).json({ rooms });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};

@@ -26,6 +26,7 @@ router.put("/faculty/load/:schedule", Faculty.loadSchedule);
 router.delete("/faculty/unload/:schedule", Faculty.unloadSchedule);
 
 
+router.get("/rooms/active/:semester", Room.getActiveRoom);
 router.get("/rooms/:semester/:room", Room.getSchedule);
 router.get("/rooms/:semester", Room.getSchedules);
 

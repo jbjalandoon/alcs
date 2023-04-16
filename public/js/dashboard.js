@@ -18,23 +18,31 @@ const config = {
     start: "7:00:00",
     end: "22:00:00",
   },
-  eventDidMount: (info) => {
-    const titleEl = info.el.querySelector(".fc-event-title");
-    const timeEl = info.el.querySelector(".fc-event-time");
-    info.el.style.textAlign = "center";
+  eventContent: (info) => {
+    const { course, program, section, room, level, type } =
+      info.event.extendedProps;
+    const div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.flexDirection = "column";
+    div.style.justifyContent = "center";
+    div.style.alignItems = "center";
+    div.style.overflow = "hidden";
 
-    const course = info.event.extendedProps.course.toUpperCase();
-    const program = info.event.extendedProps.program.toUpperCase();
-    const section = info.event.extendedProps.section.toUpperCase();
-    const room = info.event.extendedProps.room.toUpperCase();
-    const level = info.event.extendedProps.level.toUpperCase();
-    const facultyCode = info.event.extendedProps.faculty.toUpperCase();
-    // info.setExtendedProp(
-    //   "customTitle",
-    //   `${course}<br>${program}${level}-${section}<br>${room}<br>${initials}`
-    // );
-    timeEl.innerHTML = "";
-    titleEl.innerHTML = `${course}<br>${program}${level}-${section}<br>${room}<br>${facultyCode}`;
+    // const faculty = info.event.extendedProps.faculty
+    //   ? info.event.extendedProps.faculty.toUpperCase()
+    //   : "";
+    const courseEl = document.createElement("span");
+    courseEl.innerHTML = course.toUpperCase();
+    const programEl = document.createElement("span");
+    programEl.innerHTML = `${program.toUpperCase()} ${level} - ${section}`;
+    const roomEl = document.createElement("span");
+    roomEl.innerHTML = room.toUpperCase();
+    const typeEl = document.createElement("span");
+    typeEl.innerHTML = type.toUpperCase();
+    div.append(courseEl, programEl, roomEl, typeEl);
+
+    let arrayOfDomNodes = [div];
+    return { domNodes: arrayOfDomNodes };
   },
 };
 
@@ -50,6 +58,7 @@ const facultyCalendar = new FullCalendar.Calendar(
   document.querySelector("#facultyCalendar"),
   config
 );
+
 const roomCalendar = new FullCalendar.Calendar(
   document.querySelector("#roomCalendar"),
   config
@@ -80,81 +89,76 @@ const facultyModal = new bootstrap.Modal($("#activeFacultyModal"));
 const activeFacultyCard = $("#activeFacultyCard");
 (async () => {
   try {
-    // $(".owl-carousel").owlCarousel({
-    //   nav: true,
-    //   items: 1,
-    //   margin: 10,
-    // });
-    const activeSemester = await getActiveSemester();
-    if (!activeSemester) {
-      spinner.addClass("d-none");
-      content.removeClass("d-none");
-      content.find(".btn-download").addClass("disabled");
-      facultyCalendar.render();
-      roomCalendar.render();
-      sectionCalendar.render();
-      return Toast.fire({
-        icon: "warning",
-        title: "There is no active semester",
-      });
-    }
-
-    semester = activeSemester.id;
-    schoolYearName = activeSemester.year;
-    semesterName = activeSemester.sem;
-
-    $("#contentHeader").html(
-      `Dasboard (SY ${schoolYearName} - ${semesterName.toUpperCase()} SEMESTER)`
+    const { data, status } = await axios.get(
+      `/api/curriculums/semesters/active`
     );
-    const unassignedScheduleCount = await getUnassignedScheduleCount(semester);
-    const unloadedScheduleCount = await getUnloadedScheduleCount(semester);
-    const activeFaculty = await getActiveFaculty(semester);
-    const activeRoom = await getActiveRoom(semester);
-    $("#activeFaculty").html(activeFaculty.length);
-    $("#activeRoom").html(activeRoom.length);
-    $("#unloadedSchedules").html(unloadedScheduleCount);
-    $("#unassignedSchedule").html(unassignedScheduleCount);
+    semester = data.semester._id;
+    $("#contentHeader").html(
+      `S.Y. ${data.year.year.toUpperCase()} (${data.semester.sem.toUpperCase()} SEMESTER)`
+    );
+    const { data: unassignedSchedule } = await axios.get(
+      `/api/dashboard/analytics/unassigned-schedule/${semester}`
+    );
+    const { data: unloadedSchedule } = await axios.get(
+      `/api/dashboard/analytics/unloaded-schedule/${semester}`
+    );
+    $("#unloadedSchedules").html(unassignedSchedule.count);
+    $("#unassignedSchedule").html(unloadedSchedule.count);
 
-    if (activeFaculty.length !== 0) {
-      activeFaculty.forEach((element) => {
-        const information = element.userInformation;
-        facultyView.append(
-          new Option(
-            information.firstName.toUpperCase() +
-              " " +
-              information.lastName.toUpperCase(),
-            element._id
-          )
-        );
-      });
+    const { data: activeFaculty } = await axios.get(
+      `/api/curriculums/faculty/${semester}`
+    );
+    const { data: activeRoom } = await axios.get(
+      `/api/schedules/rooms/active/${semester}`
+    );
+    $("#activeFaculty").html(activeFaculty.faculty.length);
+    $("#activeRoom").html(activeRoom.rooms.length);
 
-      facultyView.on("change", renderFacultyCalendar);
-      facultyView.on("change", renderFacultyTable);
-      facultyView.trigger("change");
-    } else {
-      facultyView.attr("disabled", true);
-    }
-    if (activeRoom.length !== 0) {
-      activeRoom.forEach((element) => {
-        roomView.append(
-          new Option(element.room.roomName.toUpperCase(), element._id)
-        );
-      });
-      roomView.on("change", renderRoomCalendar);
-      roomView.trigger("change");
-    } else {
-      roomView.attr("disabled", true);
-      roomCalendar.render();
-    }
+    activeFaculty.faculty.forEach((element) => {
+      const information = element.userInformation;
+      facultyView.append(
+        new Option(
+          information.firstName.toUpperCase() +
+            " " +
+            information.lastName.toUpperCase(),
+          element._id
+        )
+      );
+    });
 
-    // renderSectionForm();
-    // sectionView.on("change", renderSectionCalendar);
-    // sectionView.on("change", renderSectionTable);
+    facultyView.on("change", renderFacultyCalendar);
+    facultyView.on("change", renderFacultyTable);
 
-    spinner.addClass("d-none");
-    content.removeClass("d-none");
+    activeRoom.rooms.forEach((element) => {
+      roomView.append(new Option(element._id.toUpperCase(), element._id));
+    });
+
+    roomView.on("change", renderRoomCalendar);
+
+    const { data: programData } = await axios.get(
+      `/api/curriculums/programs/${semester}`
+    );
+
+    programData.programs.forEach((element) => {
+      programView.append(
+        new Option(element.program.programCode.toUpperCase(), element._id)
+      );
+    });
+    programView.trigger("change");
   } catch (error) {
     console.error(error);
+    displayToast(error.response);
+  } finally {
+    $(".owl-carousel").owlCarousel({
+      nav: true,
+      items: 1,
+      margin: 10,
+    });
+    spinner.addClass("d-none");
+    content.removeClass("d-none");
+    facultyCalendar.render();
+    roomCalendar.render();
+    sectionCalendar.render();
   }
 })();
 
@@ -311,57 +315,96 @@ $(facultyModal._element).on("show.bs.modal", async (event) => {
   });
 });
 
-const getActiveFaculty = async () => {
+programView.on("change", async (event) => {
   try {
-    const activeFaculty = await axios.get(
-      `/api/curriculums/faculty/${semester}`
+    yearView.empty();
+    sectionView.empty();
+    const programValue = $(event.currentTarget).val();
+    const { data: levelData } = await axios.get(
+      `/api/curriculums/levels/${programValue}`
+    );
+    yearView.attr("disabled", false);
+    sectionView.attr("disabled", false);
+    levelData.levels.forEach((element) => {
+      yearView.append(
+        new Option(element.level.display.toUpperCase(), element._id)
+      );
+    });
+    yearView.trigger("change");
+  } catch (error) {
+    yearView.attr("disabled", true);
+    sectionView.attr("disabled", true);
+    displayToast(error.response);
+  }
+});
+
+yearView.on("change", async (event) => {
+  try {
+    const level = $(event.currentTarget).val();
+    const { data: sectionData } = await axios.get(
+      `/api/curriculums/sections/${level}`
     );
 
-    console.log("test");
-    return activeFaculty;
+    sectionView.empty();
+    sectionData.sections.forEach((element) => {
+      sectionView.append(
+        new Option(element.section.toUpperCase(), element._id)
+      );
+    });
+    sectionView.attr("disabled", false);
+    sectionView.trigger("change");
   } catch (error) {
-    console.log("test");
-    return error;
+    console.log(error);
+    scheduleSectionForm.attr("disabled", true);
+    displayToast(error.response);
   }
-};
+});
 
-const getActiveRoom = async () => {
+sectionView.on("change", async (event) => {
   try {
-    const request = await fetch(`/api/curriculums/room/${semester}`);
-    const response = await request.json();
+    const current = $(event.currentTarget);
+    const section = current.val();
 
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
+    const events = sectionCalendar.getEvents();
+    events.forEach((element) => {
+      element.remove();
+    });
 
-const getUnloadedScheduleCount = async () => {
-  try {
-    const request = await fetch(
-      `/api/dashboard/analytics/unloaded-schedule/${semester}`
+    const { data: scheduleData } = await axios.get(
+      `/api/schedules/sections/${section}`
     );
-    const response = await request.json();
-    return response.data;
+    scheduleData.schedules.forEach((element) => {
+      element.schedules.forEach((schedule) => {
+        sectionCalendar.addEvent({
+          scheduleID: schedule._id,
+          hourDuration: schedule.hour,
+          daysOfWeek: [schedule.day],
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          courseType: schedule.type,
+          overlap: false,
+          durationEditable: true,
+          color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
+          textColor: schedule.type === "lecture" ? "white" : "black",
+          startEditable: true,
+          course: element.course.courseCode,
+          program: element.program.programCode,
+          type: schedule.type,
+          faculty:
+            element.faculty != null
+              ? element.faculty.userInformation.facultyCode
+              : null,
+          section: element.sectionName,
+          room: schedule.room,
+          level: element.yearLevel.display,
+          current: true,
+        });
+      });
+    });
   } catch (error) {
-    console.error(error);
-    return 0;
+    displayToast(error.response);
   }
-};
-
-const getUnassignedScheduleCount = async () => {
-  try {
-    const request = await fetch(
-      `/api/dashboard/analytics/unassigned-schedule/${semester}`
-    );
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return 0;
-  }
-};
+});
 
 const getFacultySchedules = async (grouped) => {
   try {

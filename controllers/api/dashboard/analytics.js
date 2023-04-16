@@ -13,7 +13,9 @@ exports.getUnloadedSchedule = async (req, res, next) => {
   try {
     const unloadedSchedule = await Curriculum.aggregate([
       {
-        $match: { "semesters._id": mongoose.Types.ObjectId(req.params.semester) },
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
       },
       {
         $unwind: "$semesters",
@@ -38,10 +40,9 @@ exports.getUnloadedSchedule = async (req, res, next) => {
         },
       },
     ]);
-    res.status(200).json({ status: 200, data: unloadedSchedule.length });
+    res.status(200).json({ count: unloadedSchedule.length });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: 500, data: 0 });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };
 
@@ -104,13 +105,16 @@ exports.getUnassgiendSchedule = async (req, res, next) => {
 
       element.schedules.forEach((schedule) => {
         if (schedule.type === "lecture") {
-          currentCourseHourCount[element._id][schedule.course].currentLecture += schedule.hour;
+          currentCourseHourCount[element._id][schedule.course].currentLecture +=
+            schedule.hour;
           hour = Math.abs(
-            currentCourseHourCount[element._id][schedule.course].currentLecture -
+            currentCourseHourCount[element._id][schedule.course]
+              .currentLecture -
               currentCourseHourCount[element._id][schedule.course].maxLecture
           );
         } else {
-          currentCourseHourCount[element._id][schedule.course].currentLab += schedule.hour;
+          currentCourseHourCount[element._id][schedule.course].currentLab +=
+            schedule.hour;
           hour = Math.abs(
             currentCourseHourCount[element._id][schedule.course].currentLab -
               currentCourseHourCount[element._id][schedule.course].maxLab
@@ -122,10 +126,12 @@ exports.getUnassgiendSchedule = async (req, res, next) => {
     for (const key in currentCourseHourCount) {
       for (const otherKey in currentCourseHourCount[key]) {
         const lab = Math.abs(
-          currentCourseHourCount[key][otherKey].currentLab - currentCourseHourCount[key][otherKey].maxLab
+          currentCourseHourCount[key][otherKey].currentLab -
+            currentCourseHourCount[key][otherKey].maxLab
         );
         const lecture = Math.abs(
-          currentCourseHourCount[key][otherKey].currentLecture - currentCourseHourCount[key][otherKey].maxLecture
+          currentCourseHourCount[key][otherKey].currentLecture -
+            currentCourseHourCount[key][otherKey].maxLecture
         );
         if (lab !== 0) {
           ctr++;
@@ -135,9 +141,9 @@ exports.getUnassgiendSchedule = async (req, res, next) => {
         }
       }
     }
-    res.json({ status: 200, data: ctr });
+    res.status(200).json({ count: ctr });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: 0 });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };

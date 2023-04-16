@@ -464,7 +464,6 @@ const viewSchedule = async (info) => {
       `/api/schedules/sections/view/${semester}/${id}`
     );
     const { schedule } = data;
-    console.log(schedule);
     const { isDenied } = await Swal.fire({
       icon: "info",
       title: `${schedule.course.courseCode.toUpperCase()} (${schedule.program.programCode.toUpperCase()} ${

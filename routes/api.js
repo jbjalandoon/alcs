@@ -1,31 +1,13 @@
 const express = require("express");
 
-const program = require("../controllers/api/program");
-const year = require("../controllers/api/year");
-const level = require("../controllers/api/level");
-const room = require("../controllers/api/room");
-const course = require("../controllers/api/course");
+
 const faculty = require("../controllers/api/faculty");
-const facultyType = require("../controllers/api/faculty-type");
-const degree = require("../controllers/api/degree");
 const schedule = require("../controllers/api/schedule");
-const academicQualification = require("../controllers/api/academic-qualification");
-const tag = require("../controllers/api/tag");
+
+
 const curriculum = require("../controllers/api/curriculum");
 
-const curriculumValidation = require("../validations/curriculum");
-const validation = require("../validations/maintenance");
-
 const router = express.Router();
-
-
-
-
-// router.get("/users", user.get);
-// router.get("/users/:id", user.getOne);
-// router.post("/users", validation.user, user.post);
-// router.put("/users/:id", validation.user, user.edit);
-// router.delete("/users/:id", user.delete);
 
 router.get("/faculty/type/:id", faculty.getFacultyType);
 
@@ -38,25 +20,8 @@ router.post("/faculty/upload", faculty.postSpreadsheet);
 
 // Faculty Type Endw
 
-router.get("/degree", degree.get);
-router.get("/degree/:id", degree.getOne);
-router.post("/degree", degree.post);
-
-router.get("/tags", tag.get);
-// router.get("/tags/:id", faculty.getOne);
-// router.post("/tags", validation.postFaculty, faculty.post);
-// // router.put("/tags/:id", validation.putCourse, faculty.edit);
-// router.delete("/tags/:id", faculty.delete);
-
-// router.get("/curriculums/school-year", curriculum.getSchoolYears);
-
-// router.get("/curriculums/year-levels/:program", curriculum.getYearLevels);
-
-// router.post("/curriculums/copy/:active/:sem", curriculum.copySemester);
-
 router.get("/curriculums/schedules/:section", curriculum.getSectionSchedules);
 
-router.get("/curriculums/room/:sem", curriculum.getActiveRoom);
 
 // router.post("/curriculums/year/:program", validation.postYearLevel, curriculum.addYearLevel);
 
