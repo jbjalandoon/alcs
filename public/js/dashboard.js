@@ -7,6 +7,7 @@ const config = {
   slotLabelInterval: { minutes: 30 },
   slotLabelFormat: { hour: "numeric", minute: "2-digit" },
   height: "auto",
+  eventClassNames: ["overflow-auto text-center"],
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "",
@@ -126,15 +127,12 @@ const activeFacultyCard = $("#activeFacultyCard");
       );
     });
 
-    facultyView.on("change", renderFacultyCalendar);
-    facultyView.on("change", renderFacultyTable);
+    facultyView.trigger("change");
 
     activeRoom.rooms.forEach((element) => {
       roomView.append(new Option(element._id.toUpperCase(), element._id));
     });
-
-    roomView.on("change", renderRoomCalendar);
-
+    roomView.trigger("change");
     const { data: programData } = await axios.get(
       `/api/curriculums/programs/${semester}`
     );
@@ -406,25 +404,103 @@ sectionView.on("change", async (event) => {
   }
 });
 
+roomView.on("change", async (event) => {
+  try {
+    const { data } = await axios.get(
+      `/api/schedules/rooms/${semester}/${roomView.val()}`
+    );
+    roomCalendar.getEvents().forEach((element) => {
+      element.remove();
+    });
+    data.schedules.forEach((element) => {
+      roomCalendar.addEvent({
+        scheduleID: element._id,
+        hourDuration: element.hour,
+        daysOfWeek: [element.day],
+        startTime: element.startTime,
+        endTime: element.endTime,
+        courseType: element.type,
+        overlap: false,
+        durationEditable: false,
+        startEditable: false,
+        course: element.course.courseCode,
+        program: element.program.programCode,
+        section: element.sectionName,
+        room: element.room,
+        type: element.type,
+        level: element.yearLevel.display,
+        faculty: element.faculty
+          ? element.faculty.userInformation.facultyCode
+          : "",
+        current: false,
+        color: "#007BFF",
+        textColor: "white",
+      });
+    });
+    roomCalendar.render();
+  } catch (error) {
+    displayToast(error.response);
+  }
+});
+
+facultyView.on("change", async (event) => {
+  try {
+    const facultyValue = event.currentTarget.value;
+    facultyCalendar.getEvents().forEach((element) => {
+      element.remove();
+    });
+    const { data: facultyData } = await axios.get(
+      `/api/faculty/${facultyValue}`
+    );
+    const { data: facultySchedules } = await axios.get(
+      `/api/schedules/faculty/${semester}/${facultyValue}`
+    );
+    const { data: unitsCounts } = await axios.get(
+      `/api/schedules/faculty/units/${semester}/${facultyValue}`
+    );
+    const { units } = unitsCounts;
+    hoursCount = facultySchedules.schedules
+      .map((e) => e.hour)
+      .reduce((a, b) => a + b, 0);
+    unitsCount = units;
+    const { facultyType } = facultyData.faculty.facultyInformation;
+    $("#facultyHours").html(hoursCount);
+    $("#facultyUnits").html(unitsCount);
+    $("#facultyTypes").html(facultyType.facultyType.toUpperCase());
+    facultySchedules.schedules.forEach((element) => {
+      facultyCalendar.addEvent({
+        id: element._id,
+        hourDuration: element.hour,
+        daysOfWeek: [element.day],
+        startTime: element.startTime,
+        endTime: element.endTime,
+        overlap: false,
+        editabe: false,
+        units: element.course.units,
+        course: element.course.courseCode,
+        type: element.type,
+        program: element.program.programCode,
+        section: element.sectionName,
+        room: element.room,
+        level: element.level.display,
+        faculty: element.faculty,
+        color: "#007BFF",
+        textColor: "white",
+      });
+    });
+    facultyCalendar.render();
+  } catch (error) {
+    console.log(error)
+    displayToast(error.response);
+  }
+});
+
 const getFacultySchedules = async (grouped) => {
   try {
     const url = grouped
       ? `/api/schedules/faculty/grouped/course/${semester}/${facultyView.val()}`
       : `/api/schedules/faculty/${semester}/${facultyView.val()}`;
     const request = await fetch(url);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getRoomSchedules = async () => {
-  try {
-    const request = await fetch(
-      `/api/schedules/room/${semester}/${roomView.val()}`
-    );
     const response = await request.json();
     return response.data;
   } catch (error) {

@@ -414,50 +414,6 @@ $(facultyModal._element).on("show.bs.modal", async (event) => {
   } catch (error) {
     displayToast(error.response);
   }
-
-  // fetch(
-  //   `/api/curriculums/faculty/type/${type}/${semester}`
-  // )
-  //   .then((response) => {
-  //     return response.json();
-  //   })
-  //   .then((result) => {
-  //     tbody.empty();
-  //     result.data.forEach(async (element) => {
-  //       const unitsCount = await fetch(
-  //         `/api/schedules/faculty/units/${semester}/${element._id}`
-  //       );
-  //       const units = await unitsCount.json();
-  //       const tr = $("<tr></tr>");
-  //       tbody.append(
-  //         tr
-  //           .append(
-  //             $("<td></td>")
-  //               .attr("id", element._id)
-  //               .html(element.facultyInformation.facultyCode.toUpperCase())
-  //           )
-  //           .append(
-  //             $("<td></td>")
-  //               .attr("id", element._id)
-  //               .html(element.facultyInformation.lastName.toUpperCase())
-  //           )
-  //           .append(
-  //             $("<td></td>")
-  //               .attr("id", element._id)
-  //               .html(units.status === 200 ? units.data : 0)
-  //           )
-  //         // .append($("<td></td>").attr('id', element._id).html(element.facultyInformation.facultyCode))
-  //       );
-  //       tr.css("cursor", "pointer");
-  //       tr.on("click", () => {
-  //         faculty.val(element._id).trigger("change");
-  //         facultyModal.hide();
-  //       });
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   });
 });
 
 faculty.on("change", async (e) => {
@@ -467,7 +423,6 @@ faculty.on("change", async (e) => {
     $("#courseList").empty();
     $("#contentRow").removeClass("d-none");
     unavailableTime.length = 0;
-    const tags = [];
     const { data: facultyData } = await axios.get(
       `/api/faculty/${facultyValue}`
     );

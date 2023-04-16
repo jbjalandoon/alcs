@@ -187,6 +187,7 @@ exports.getSchedule = async (req, res, next) => {
         },
       },
     ]);
+    console.log({ ...schedules });
     if (schedules) return res.status(200).json({ ...schedules });
 
     res.status(200).json({ schedules: [] });
