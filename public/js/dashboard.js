@@ -381,10 +381,10 @@ sectionView.on("change", async (event) => {
           endTime: schedule.endTime,
           courseType: schedule.type,
           overlap: false,
-          durationEditable: true,
+          durationEditable: false,
           color: schedule.type === "lecture" ? "#007BFF" : "#3399FF",
           textColor: schedule.type === "lecture" ? "white" : "black",
-          startEditable: true,
+          startEditable: false,
           course: element.course.courseCode,
           program: element.program.programCode,
           type: schedule.type,
@@ -455,6 +455,9 @@ facultyView.on("change", async (event) => {
     const { data: facultySchedules } = await axios.get(
       `/api/schedules/faculty/${semester}/${facultyValue}`
     );
+    const { data: facultySchedulesGrouped } = await axios.get(
+      `/api/schedules/faculty/grouped/course/${semester}/${facultyView.val()}`
+    );
     const { data: unitsCounts } = await axios.get(
       `/api/schedules/faculty/units/${semester}/${facultyValue}`
     );
@@ -489,8 +492,39 @@ facultyView.on("change", async (event) => {
       });
     });
     facultyCalendar.render();
+    const facultyScheduleTable = $("#facultyScheduleTable");
+    const tBody = facultyScheduleTable.find("tbody");
+    facultyScheduleTable.find("tbody").empty();
+    facultySchedulesGrouped.courses.forEach((element) => {
+      const tRow = $("<tr></tr>");
+      tRow
+        .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
+        .append(
+          $("<td></td>").html(element.course.courseDescription.toUpperCase())
+        )
+        .append($("<td></td>").html(element.course.units))
+        .append($("<td></td>").html(element.course.lecture))
+        .append($("<td></td>").html(element.course.lab))
+        .append(
+          $("<td></td>").html(
+            "<ul>" +
+              element.schedules
+                .map((e) => {
+                  facultyCode = e.faculty.userInformation.facultyCode;
+                  return `<li>[${e.room}] ${days[e.day]} ${e.startTime} - ${
+                    e.endTime
+                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
+                    e.sectionName
+                  })</li>`;
+                })
+                .join("") +
+              "</ul>"
+          )
+        );
+      tBody.append(tRow);
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     displayToast(error.response);
   }
 });
@@ -568,7 +602,6 @@ const renderFacultyTable = async () => {
     const facultyScheduleTable = $("#facultyScheduleTable");
     const tBody = facultyScheduleTable.find("tbody");
     facultyScheduleTable.find("tbody").empty();
-    let facultyCode;
     facultySchedules.forEach((element) => {
       const tRow = $("<tr></tr>");
       tRow

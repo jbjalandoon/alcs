@@ -475,3 +475,95 @@ exports.unloadSchedule = async (req, res, next) => {
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
+
+exports.getSchedulesByCourse = async (req, res, next) => {
+  try {
+    const courses = await Schedule.aggregate([
+      {
+        $match: {
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $unwind: "$semesters",
+      },
+      {
+        $unwind: "$semesters.programs",
+      },
+      {
+        $unwind: "$semesters.programs.year",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections",
+      },
+      {
+        $unwind: "$semesters.programs.year.sections.schedules",
+      },
+      {
+        $match: {
+          "semesters.programs.year.sections.schedules.faculty":
+            mongoose.Types.ObjectId(req.params.faculty),
+          "semesters._id": mongoose.Types.ObjectId(req.params.semester),
+        },
+      },
+      {
+        $project: {
+          _id: "$semesters.programs.year.sections.schedules._id",
+          section: "$semesters.programs.year.sections._id",
+          yearLevel: "$semesters.programs.year.yearLevel",
+          sectionName: "$semesters.programs.year.sections.section",
+          program: "$semesters.programs.program",
+          course: "$semesters.programs.year.sections.schedules.course",
+          type: "$semesters.programs.year.sections.schedules.type",
+          hour: "$semesters.programs.year.sections.schedules.hour",
+          day: "$semesters.programs.year.sections.schedules.day",
+          startTime: "$semesters.programs.year.sections.schedules.startTime",
+          endTime: "$semesters.programs.year.sections.schedules.endTime",
+          room: "$semesters.programs.year.sections.schedules.room",
+          faculty: "$semesters.programs.year.sections.schedules.faculty",
+        },
+      },
+      {
+        $lookup: {
+          from: "programs",
+          localField: "program",
+          foreignField: "_id",
+          as: "program",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "faculty",
+          foreignField: "_id",
+          as: "faculty",
+        },
+      },
+      {
+        $lookup: {
+          from: "levels",
+          localField: "yearLevel",
+          foreignField: "_id",
+          as: "level",
+        },
+      },
+      { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
+      { $group: { _id: "$course", schedules: { $push: "$$ROOT" } } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
+    ]);
+    console.log(courses);
+    res.status(200).json({ courses });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};

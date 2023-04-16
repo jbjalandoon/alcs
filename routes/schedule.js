@@ -24,7 +24,10 @@ router.get(
 );
 router.put("/faculty/load/:schedule", Faculty.loadSchedule);
 router.delete("/faculty/unload/:schedule", Faculty.unloadSchedule);
-
+router.get(
+  "/faculty/grouped/course/:semester/:faculty/",
+  Faculty.getSchedulesByCourse
+);
 
 router.get("/rooms/active/:semester", Room.getActiveRoom);
 router.get("/rooms/:semester/:room", Room.getSchedule);
