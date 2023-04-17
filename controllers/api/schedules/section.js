@@ -35,7 +35,7 @@ exports.getSchedules = async (req, res, next) => {
         $project: {
           _id: "$semesters.programs.year.sections._id",
           program: "$semesters.programs.program",
-          yearLevel: "$semesters.programs.year.yearLevel",
+          level: "$semesters.programs.year.yearLevel",
           sectionName: "$semesters.programs.year.sections.section",
           schedules: "$semesters.programs.year.sections.schedules",
         },
@@ -52,19 +52,19 @@ exports.getSchedules = async (req, res, next) => {
       {
         $lookup: {
           from: "levels",
-          localField: "yearLevel",
+          localField: "level",
           foreignField: "_id",
-          as: "yearLevel",
+          as: "level",
         },
       },
-      { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$schedules", preserveNullAndEmptyArrays: false } },
       {
         $project: {
           _id: "$schedules._id",
           program: "$program",
-          yearLevel: "$yearLevel",
+          level: "$level",
           sectionName: "$sectionName",
           sectionId: "$_id",
           course: "$schedules.course",
@@ -94,13 +94,12 @@ exports.getSchedules = async (req, res, next) => {
         },
       },
       { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: "$course._id",
           program: { $first: "$program" },
-          yearLevel: { $first: "$yearLevel" },
+          level: { $first: "$level" },
           sectionName: { $first: "$sectionName" },
           course: { $first: "$course" },
           faculty: { $first: "$faculty" },
@@ -118,6 +117,7 @@ exports.getSchedules = async (req, res, next) => {
         },
       },
     ]);
+    console.log("test", schedules);
     return res.status(200).json({ schedules });
   } catch (error) {
     console.error(error);
@@ -499,7 +499,7 @@ exports.getSchedulesByCourse = async (req, res, next) => {
         $project: {
           _id: "$semesters.programs.year.sections._id",
           program: "$semesters.programs.program",
-          yearLevel: "$semesters.programs.year.yearLevel",
+          level: "$semesters.programs.year.yearLevel",
           sectionName: "$semesters.programs.year.sections.section",
           schedules: "$semesters.programs.year.sections.schedules",
         },
@@ -516,19 +516,19 @@ exports.getSchedulesByCourse = async (req, res, next) => {
       {
         $lookup: {
           from: "levels",
-          localField: "yearLevel",
+          localField: "level",
           foreignField: "_id",
-          as: "yearLevel",
+          as: "level",
         },
       },
-      { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$schedules", preserveNullAndEmptyArrays: false } },
       {
         $project: {
           _id: "$schedules._id",
           program: "$program",
-          level: "$yearLevel",
+          level: "$level",
           sectionName: "$sectionName",
           sectionId: "$_id",
           course: "$schedules.course",

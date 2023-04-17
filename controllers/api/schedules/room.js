@@ -130,7 +130,7 @@ exports.getSchedule = async (req, res, next) => {
         $project: {
           _id: "$semesters.programs.year.sections.schedules._id",
           section: "$semesters.programs.year.sections._id",
-          yearLevel: "$semesters.programs.year.yearLevel",
+          level: "$semesters.programs.year.yearLevel",
           sectionName: "$semesters.programs.year.sections.section",
           program: "$semesters.programs.program",
           course: "$semesters.programs.year.sections.schedules.course",
@@ -163,9 +163,9 @@ exports.getSchedule = async (req, res, next) => {
       {
         $lookup: {
           from: "levels",
-          localField: "yearLevel",
+          localField: "level",
           foreignField: "_id",
-          as: "yearLevel",
+          as: "level",
         },
       },
       {
@@ -179,7 +179,7 @@ exports.getSchedule = async (req, res, next) => {
       { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$program", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$faculty", preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: "$yearLevel", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$level", preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: "$room",

@@ -134,7 +134,7 @@ exports.deleteSection = async (req, res, next) => {
 
 exports.getTotalUnits = async (req, res, next) => {
   try {
-    const sections = await Curriculum.aggregate([
+    const [count] = await Curriculum.aggregate([
       {
         $match: {
           "semesters.programs.year.sections._id": mongoose.Types.ObjectId(
@@ -175,11 +175,10 @@ exports.getTotalUnits = async (req, res, next) => {
         },
       },
     ]);
-    if (sections.length === 0)
-      return res.status(404).json({ status: 404, data: sections });
-    res.status(200).json({ status: 200, data: sections });
+    // return res.status(404).json({ status: 404, data: sections });
+    res.status(200).json({ count });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 500, data: error });
+    res.status(500).json({ msg: "Something went wrong" });
   }
 };

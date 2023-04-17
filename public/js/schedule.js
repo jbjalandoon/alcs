@@ -753,7 +753,7 @@ scheduleSectionForm.on("change", async (event) => {
               : null,
           section: element.sectionName,
           room: schedule.room,
-          level: element.yearLevel.display,
+          level: element.level.display,
           current: true,
         });
         if (hour === 0) {
@@ -823,7 +823,7 @@ roomForm.on("change", async (event) => {
           section: element.sectionName,
           room: element.room,
           type: element.type,
-          level: element.yearLevel.display,
+          level: element.level.display,
           faculty: element.faculty
             ? element.faculty.userInformation.facultyCode
             : "",
