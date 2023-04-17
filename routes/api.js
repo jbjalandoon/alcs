@@ -40,7 +40,6 @@ router.get("/schedules/room/:semester/", schedule.getGroupedRoomSchedule);
 
 router.get("/schedules/faculty/grouped/course/:semester", schedule.getGroupedCourseAllScheduleFaculty);
 
-router.get("/schedules/section/grouped/course/:semester/:section", schedule.getGroupedCourseScheduleSection);
 router.get("/schedules/section/grouped/course/:semester", schedule.getGroupedCourseAllScheduleSection);
 
 router.get("/schedules/loadable-schedules/:sem", schedule.getAllLoadableSchedules); // Routes for getting all of the loadable schedules

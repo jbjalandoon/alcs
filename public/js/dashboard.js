@@ -94,6 +94,8 @@ const activeFacultyCard = $("#activeFacultyCard");
       `/api/curriculums/semesters/active`
     );
     semester = data.semester._id;
+    schoolYearName = data.year.year.toUpperCase();
+    semesterName = data.semester.sem.toUpperCase();
     $("#contentHeader").html(
       `S.Y. ${data.year.year.toUpperCase()} (${data.semester.sem.toUpperCase()} SEMESTER)`
     );
@@ -371,6 +373,9 @@ sectionView.on("change", async (event) => {
     const { data: scheduleData } = await axios.get(
       `/api/schedules/sections/${section}`
     );
+    const { data: scheduleGroupedData } = await axios.get(
+      `/api/schedules/sections/grouped/course/${semester}/${sectionView.val()}`
+    );
     scheduleData.schedules.forEach((element) => {
       element.schedules.forEach((schedule) => {
         sectionCalendar.addEvent({
@@ -398,6 +403,44 @@ sectionView.on("change", async (event) => {
           current: true,
         });
       });
+    });
+
+    const sectionScheduleTable = $("#sectionScheduleTable");
+    const tBody = sectionScheduleTable.find("tbody");
+    tBody.empty();
+    scheduleGroupedData.courses.forEach((element) => {
+      const tRow = $("<tr></tr>");
+      tRow
+        .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
+        .append(
+          $("<td></td>").html(element.course.courseDescription.toUpperCase())
+        )
+        .append($("<td></td>").html(element.course.units))
+        .append($("<td></td>").html(element.course.lecture))
+        .append($("<td></td>").html(element.course.lab))
+        .append(
+          $("<td></td>").html(
+            element.schedules[0].faculty
+              ? `${element.schedules[0].faculty.userInformation.firstName.toUpperCase()} ${element.schedules[0].faculty.userInformation.lastName.toUpperCase()}`
+              : "NA"
+          )
+        )
+        .append(
+          $("<td></td>").html(
+            "<ul>" +
+              element.schedules
+                .map((e) => {
+                  return `<li>[${e.room}] ${days[e.day]} ${e.startTime} - ${
+                    e.endTime
+                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
+                    e.sectionName
+                  })</li>`;
+                })
+                .join("") +
+              "</ul>"
+          )
+        );
+      tBody.append(tRow);
     });
   } catch (error) {
     displayToast(error.response);
@@ -529,6 +572,133 @@ facultyView.on("change", async (event) => {
   }
 });
 
+$(".btn-download").on("click", async (e) => {
+  try {
+    const caseData = $(e.currentTarget).attr("case-data");
+    let requestUrl, schedules, headers, title;
+    switch (caseData) {
+      case "facultyCalendar":
+        requestUrl = `/api/schedules/faculty/${semester}/${facultyView.val()}`;
+        const { data: scheduleData } = await axios.get(requestUrl);
+        schedules = scheduleData.schedules;
+        skip = 7;
+        const {
+          facultyInformation,
+          userInformation,
+          _id: id,
+        } = schedules[0].faculty;
+        const facultyCode = facultyInformation.facultyCode;
+        title = facultyCode;
+        const facultyName = `${userInformation.firstName} ${userInformation.middleName} ${userInformation.lastName}`;
+        const facultyID = id;
+        const { data: facultyType } = await axios.get(
+          `/api/faculty/type/${facultyID}`
+        );
+        const { data: facultyUnits } = await axios.get(
+          `/api/schedules/faculty/units/${semester}/${facultyID}`
+        );
+        if (schedules.length !== 0)
+          hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
+        headers = headersToDataSheets([
+          facultyCode.toUpperCase(),
+          facultyName.toUpperCase(),
+          facultyType.facultyType.toUpperCase(),
+          facultyUnits.units,
+          hoursCount,
+        ]);
+        break;
+      default:
+        break;
+    }
+    const wb = XLSX.utils.book_new();
+    const { data, merges, mergedCells, lectureCell, labCells, overLoadCells } =
+      schedulesToDataSheets(schedules, headers.length);
+    const ws = XLSX.utils.aoa_to_sheet([
+      ...headers,
+      [
+        cellData("Time"),
+        cellData(""),
+        cellData("Monday"),
+        cellData(""),
+        cellData("Tuesday"),
+        cellData(""),
+        cellData("Wednesday"),
+        cellData(""),
+        cellData("Thursday"),
+        cellData(""),
+        cellData("Friday"),
+        cellData(""),
+        cellData("Saturday"),
+        cellData(""),
+        cellData("Sunday"),
+      ],
+      ...data,
+    ]);
+    for (let i = 0; i <= headers.length - 1; i++) {
+      merges.push({
+        s: { r: i, c: 0 },
+        e: {
+          r: i,
+          c: 14,
+        },
+      });
+    }
+    ws["!merges"] = merges;
+    mergedCells.forEach((element) => {
+      element.forEach((element) => {
+        ws[element].s = {
+          alignment: {
+            horizontal: "center",
+            vertical: "top",
+            wrapText: true,
+          },
+          border: {
+            top: { style: "thick", color: { rgb: "#000000" } },
+            bottom: { style: "thick", color: { rgb: "#000000" } },
+            left: { style: "thick", color: { rgb: "#000000" } },
+            right: { style: "thick", color: { rgb: "#000000" } },
+          },
+          font: {
+            color: { rgb: "FFFFFF" },
+          },
+        };
+      });
+    });
+    lectureCell.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+    });
+    labCells.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
+    });
+    overLoadCells.forEach((element) => {
+      ws[element].s.fill = { fgColor: { rgb: "DC3545" } };
+    });
+    ws["!cols"] = [
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+      { wch: 3 },
+      { wch: 20 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, title);
+    XLSX.writeFile(wb, `${title}.xlsx`);
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
+});
+
 const getFacultySchedules = async (grouped) => {
   try {
     const url = grouped
@@ -543,173 +713,128 @@ const getFacultySchedules = async (grouped) => {
   }
 };
 
-const renderFacultyCalendar = async () => {
-  try {
-    const facultySchedules = await getFacultySchedules(false);
-    const facultyType = await getFacultyType(facultyView.val());
-    $("#facultyUnits").html(await getFacultyUnitsCount(facultyView.val()));
-    if (facultySchedules.length !== 0)
-      $("#facultyHours").html(
-        facultySchedules.map((e) => e.hour).reduce((a, b) => a + b)
-      );
-    $("#facultyTypes").html(facultyType.facultyType.toUpperCase());
-    facultyCalendar.getEvents().forEach((element) => {
-      element.remove();
-    });
-    facultySchedules.forEach((element) => {
-      let color;
-      if (element.isOverload) {
-        color = "#DC3545";
-      } else {
-        color = element.type === "lecture" ? "#007BFF" : "#0DCAF0";
+const schedulesToDataSheets = (schedules, skip) => {
+  const times = [];
+  const data = [];
+  const mergedCells = [];
+  const merges = [];
+  const overLoadCells = [];
+  const labCells = [];
+  const lectureCell = [];
+  const cols = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+  ];
+  for (let i = 7; i < 22; i++) {
+    for (let j = 0; j < 2; j++) {
+      let hour = i.toString().padStart(2, "0");
+      let minute = (j * 30).toString().padStart(2, "0");
+      let hour2 = hour;
+      let minute2 = "30";
+      if (j * 30 === 30) {
+        hour2 = (i + 1).toString().padStart(2, "0");
+        minute2 = "00";
       }
-      facultyCalendar.addEvent({
-        scheduleID: element._id,
-        hourDuration: element.hour,
-        daysOfWeek: [element.day],
-        startTime: element.startTime,
-        endTime: element.endTime,
-        courseType: element.type,
-        overlap: false,
-        durationEditable: false,
-        color: color,
-        startEditable: false,
-        course: element.course.courseCode,
-        program: element.program.programCode,
-        faculty: element.faculty
-          ? element.faculty.userInformation.facultyCode
-          : "",
-        section: element.sectionName,
-        room: element.room.roomName,
-        level: element.level.display,
-      });
-      facultyCode = element.faculty.userInformation.facultyCode;
-    });
-    facultyCalendar.render();
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in faculty calendar",
-    });
-    facultyCalendar.render();
+      times.push(hour + ":" + minute + "-" + hour2 + ":" + minute2);
+    }
   }
+
+  for (let i = 0; i < times.length; i++) {
+    let rowData = [
+      cellData(times[i].split("-")[0] + " - " + times[i].split("-")[1]),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+      cellData(""),
+    ];
+    schedules.forEach((element, index) => {
+      const course = element.course.courseCode.toUpperCase();
+      const program = element.program.programCode.toUpperCase();
+      const section = element.sectionName.toUpperCase();
+      const room = element.room.toUpperCase();
+      const level = element.level.display.toUpperCase();
+      const eventTime = element.startTime;
+      const day = element.day === 0 ? 7 : element.day;
+
+      if (times[i].split("-")[0] === eventTime) {
+        rowData[day * 2] = {
+          v: `${course}\n${program}${level}-${section}\n${room}`,
+          t: "s",
+          s: {
+            alignment: {
+              horizontal: "center",
+              vertical: "top",
+              wrapText: true,
+            },
+            border: {
+              top: { style: "thick", color: { rgb: "#000000" } },
+              bottom: { style: "thick", color: { rgb: "#000000" } },
+              left: { style: "thick", color: { rgb: "#000000" } },
+              right: { style: "thick", color: { rgb: "#000000" } },
+            },
+          },
+        };
+        merges.push({
+          s: { r: i + skip + 1, c: day * 2 },
+          e: {
+            r: i + skip + element.hour * 2,
+            c: day * 2,
+          },
+        });
+        const mergeCell = [];
+        for (let j = i + 2; j <= i + 1 + element.hour * 2; j++) {
+          let singleCell = `${cols[day * 2]}${j + skip}`;
+          mergeCell.push(singleCell);
+          if (element.isOverload) {
+            overLoadCells.push(singleCell);
+          }
+          if (element.type === "lecture" && !element.isOverload) {
+            lectureCell.push(singleCell);
+          }
+          if (element.type === "lab" && !element.isOverload) {
+            labCells.push(singleCell);
+          }
+        }
+        mergedCells.push(mergeCell);
+      }
+    });
+    data.push(rowData);
+  }
+
+  return { data, merges, mergedCells, lectureCell, labCells, overLoadCells };
 };
 
-const renderFacultyTable = async () => {
-  try {
-    const facultySchedules = await getFacultySchedules(semester, true);
-    const facultyScheduleTable = $("#facultyScheduleTable");
-    const tBody = facultyScheduleTable.find("tbody");
-    facultyScheduleTable.find("tbody").empty();
-    facultySchedules.forEach((element) => {
-      const tRow = $("<tr></tr>");
-      tRow
-        .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
-        .append(
-          $("<td></td>").html(element.course.courseDescription.toUpperCase())
-        )
-        .append($("<td></td>").html(element.course.units))
-        .append($("<td></td>").html(element.course.lecture))
-        .append($("<td></td>").html(element.course.lab))
-        .append(
-          $("<td></td>").html(
-            "<ul>" +
-              element.data
-                .map((e) => {
-                  facultyCode = e.faculty.userInformation.facultyCode;
-                  return `<li>${days[e.day]} ${e.startTime} - ${
-                    e.endTime
-                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
-                    e.sectionName
-                  })</li>`;
-                })
-                .join("") +
-              "</ul>"
-          )
-        );
-      tBody.append(tRow);
-    });
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in faculty table",
-    });
-  }
-};
-
-const renderRoomCalendar = async () => {
-  try {
-    const roomSchedules = await getRoomSchedules(semester);
-    roomCalendar.getEvents().forEach((element) => {
-      element.remove();
-    });
-
-    roomSchedules.forEach((element) => {
-      roomCalendar.addEvent({
-        scheduleID: element._id,
-        hourDuration: element.hour,
-        daysOfWeek: [element.day],
-        startTime: element.startTime,
-        endTime: element.endTime,
-        courseType: element.type,
-        overlap: false,
-        durationEditable: false,
-        color: "#007BFF",
-        startEditable: false,
-        course: element.course.courseCode,
-        program: element.program.programCode,
-        faculty: element.faculty
-          ? element.faculty.userInformation.facultyCode
-          : "",
-        section: element.sectionName,
-        room: element.room.roomName,
-        level: element.level.display,
-      });
-    });
-
-    roomCalendar.render();
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in room calendar",
-    });
-  }
-};
-
-const getPrograms = async (semester) => {
-  try {
-    const request = await fetch(`/api/curriculums/programs/${semester}`);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getYearLevels = async (program) => {
-  try {
-    const request = await fetch(`/api/curriculums/levels/${program}`);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const getSections = async (yearLevel) => {
-  try {
-    const request = await fetch(`/api/curriculums/sections/${yearLevel}`);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+const headersToDataSheets = (headers) => {
+  headers.unshift(
+    `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
+  );
+  return headers.map((e) => [cellHeaderText(e)]);
 };
 
 const getSectionsTotalUnits = async (section) => {
@@ -722,157 +847,6 @@ const getSectionsTotalUnits = async (section) => {
   } catch (error) {
     console.error(error);
     return false;
-  }
-};
-
-const renderSectionForm = async () => {
-  const programs = await getPrograms(semester);
-  programs.forEach((element) => {
-    programView.append(
-      new Option(element.program.programCode.toUpperCase(), element._id)
-    );
-  });
-
-  programView.on("change", async () => {
-    const yearLevels = await getYearLevels(programView.val());
-    yearView.empty();
-    if (yearLevels.length === 0) {
-      yearView.attr("disabled", true);
-      sectionView.attr("disabled", true);
-      return Toast.fire({ icon: "warning", title: "Year Level is empty" });
-    }
-    yearView.attr("disabled", false);
-    sectionView.attr("disabled", false);
-    yearLevels.forEach((element) => {
-      yearView.append(
-        new Option(element.level.display.toUpperCase(), element._id)
-      );
-    });
-    yearView.trigger("change");
-  });
-  programView.trigger("change");
-
-  yearView.on("change", async () => {
-    const sections = await getSections(yearView.val());
-    sectionCalendar.getEvents().forEach((element) => {
-      element.remove();
-    });
-    sectionView.empty();
-    if (sections.length === 0) {
-      sectionView.attr("disabled", true);
-      return Toast.fire({ icon: "warning", title: "Section is empty" });
-    }
-    sectionView.attr("disabled", false);
-    sections.forEach((element) => {
-      sectionView.append(
-        new Option(element.section.toUpperCase(), element._id)
-      );
-    });
-    sectionView.trigger("change");
-  });
-};
-
-const getSectionSchedules = async (grouped) => {
-  try {
-    const url = grouped
-      ? `/api/schedules/section/grouped/course/${semester}/${sectionView.val()}`
-      : `/api/schedules/sections/${sectionView.val()}`;
-    const request = await fetch(url);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const renderSectionCalendar = async () => {
-  try {
-    const sectionSchedules = await getSectionSchedules(false);
-    sectionCalendar.getEvents().forEach((element) => {
-      element.remove();
-    });
-    sectionSchedules.forEach((element) => {
-      element.schedules.forEach((schedule) => {
-        sectionCalendar.addEvent({
-          scheduleID: schedule._id,
-          hourDuration: schedule.hour,
-          daysOfWeek: [schedule.day],
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          courseType: schedule.type,
-          overlap: false,
-          durationEditable: false,
-          color: "#007BFF",
-          textColor: "white",
-          startEditable: false,
-          course: element.course.courseCode,
-          program: element.program.programCode,
-          faculty: element.faculty
-            ? element.faculty.userInformation.facultyCode
-            : "",
-          section: element.sectionName,
-          room: schedule.room.roomName,
-          level: element.yearLevel.display,
-        });
-      });
-    });
-    sectionCalendar.render();
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in faculty calendar",
-    });
-  }
-};
-
-const renderSectionTable = async () => {
-  try {
-    const sectionSchedules = await getSectionSchedules(true);
-    const sectionScheduleTable = $("#sectionScheduleTable");
-    const tBody = sectionScheduleTable.find("tbody");
-    tBody.empty();
-    sectionSchedules.forEach((element) => {
-      const tRow = $("<tr></tr>");
-      tRow
-        .append($("<td></td>").html(element.course.courseCode.toUpperCase()))
-        .append(
-          $("<td></td>").html(element.course.courseDescription.toUpperCase())
-        )
-        .append($("<td></td>").html(element.course.units))
-        .append($("<td></td>").html(element.course.lecture))
-        .append($("<td></td>").html(element.course.lab))
-        .append(
-          $("<td></td>").html(
-            element.data[0].faculty
-              ? `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
-              : "NA"
-          )
-        )
-        .append(
-          $("<td></td>").html(
-            "<ul>" +
-              element.data
-                .map((e) => {
-                  return `<li>${days[e.day]} ${e.startTime} - ${
-                    e.endTime
-                  } (${e.program.programCode.toUpperCase()}${e.level.display}-${
-                    e.sectionName
-                  })</li>`;
-                })
-                .join("") +
-              "</ul>"
-          )
-        );
-      tBody.append(tRow);
-    });
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong in section table",
-    });
   }
 };
 
@@ -1201,7 +1175,6 @@ const downloadFacultyCalendarXLSX = async () => {
         cellData(""),
       ];
       schedules.forEach((element, index) => {
-        console.log(element);
         const course = element.course.courseCode.toUpperCase();
         const program = element.program.programCode.toUpperCase();
         const section = element.sectionName.toUpperCase();

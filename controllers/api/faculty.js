@@ -182,24 +182,22 @@ exports.postCourse = async (req, res, next) => {
   }
 };
 
-exports.getFacultyType = (req, res, next) => {
-  Faculty.findOne({ deleted: false, _id: req.params.id })
-    .populate("userInformation.facultyType")
-    .select("userInformation.facultyType")
-    .then((faculty) => {
-      const facultyType = faculty.userInformation.facultyType;
-      res.json({
-        status: 200,
-        data: {
-          facultyType: facultyType.facultyType,
-          maxUnits: facultyType.unitsCap,
-          maxHours: facultyType.hoursCap,
-        },
-      });
+exports.getFacultyType = async (req, res, next) => {
+  try {
+    const { facultyInformation } = await Faculty.findOne({
+      deleted: false,
+      _id: req.params.id,
     })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
+      .populate("facultyInformation.facultyType")
+      .select("facultyInformation.facultyType");
+    res.status(200).json({
+      facultyType: facultyInformation.facultyType.facultyType,
+      maxUnits: facultyInformation.facultyType.unitsCap,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.postSpreadsheet = async (req, res, next) => {

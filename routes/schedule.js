@@ -11,6 +11,7 @@ router.put("/sections/edit/:section/:schedule", Section.editSchedule);
 router.put("/sections/split/:semester/:schedule", Section.splitSchedule);
 router.get("/sections/view/:semester/:schedule", Section.getSchedule);
 router.delete("/sections/delete/:semester/:schedule", Section.deleteSchedule);
+router.get("/sections/grouped/course/:semester/:section", Section.getSchedulesByCourse);
 
 router.get("/faculty/:semester/:faculty", Faculty.getSchedules);
 router.get("/faculty/units/:semester/:faculty", Faculty.getUnits);
