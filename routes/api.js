@@ -33,7 +33,6 @@ router.get("/schedules/year-level/:yearLevel", schedule.getYearLevelSchedules);
 router.get("/schedules/room/finished/:semester/:room", schedule.getFinishedRoomSchedule);
 router.get("/schedules/faculty/unit-hour/:faculty/:semester", schedule.getFacultyScheduleUnitHour);
 
-router.get("/schedules/faculty/grouped/course/:semester", schedule.getGroupedCourseAllScheduleFaculty);
 
 router.get("/schedules/section/grouped/course/:semester", schedule.getGroupedCourseAllScheduleSection);
 

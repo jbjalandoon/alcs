@@ -12,7 +12,14 @@ router.put("/sections/edit/:section/:schedule", Section.editSchedule);
 router.put("/sections/split/:semester/:schedule", Section.splitSchedule);
 router.get("/sections/view/:semester/:schedule", Section.getSchedule);
 router.delete("/sections/delete/:semester/:schedule", Section.deleteSchedule);
-router.get("/sections/grouped/course/:semester/:section", Section.getSchedulesByCourse);
+router.get(
+  "/sections/grouped/course/:semester/:section",
+  Section.getSchedulesByCourse
+);
+router.get(
+  "/sections/grouped/course/:semester",
+  Section.getAllSchedulesByCourse
+);
 
 router.get("/faculty/:semester/", Faculty.getAllSchedules);
 router.get("/faculty/:semester/:faculty", Faculty.getSchedules);
@@ -31,6 +38,7 @@ router.get(
   "/faculty/grouped/course/:semester/:faculty/",
   Faculty.getSchedulesByCourse
 );
+router.get("/faculty/grouped/course/:semester", Faculty.getAllScheduleByCourse);
 
 router.get("/rooms/:semester", Room.getSchedules);
 router.get("/rooms/active/:semester", Room.getActiveRoom);
