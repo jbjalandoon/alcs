@@ -724,6 +724,178 @@ $(".btn-download-calendar").on("click", async (e) => {
   }
 });
 
+$(".btn-download-all-calendar").on("click", async (e) => {
+  try {
+    const caseData = $(e.currentTarget).attr("case-data");
+    let schedules;
+    switch (caseData) {
+      case "faculty":
+        const { data: facultySchedule } = await axios.get(
+          `/api/schedules/faculty/${semester}`
+        );
+        schedules = facultySchedule.schedules;
+        break;
+      case "room":
+        const { data: roomSchedule } = await axios.get(
+          `/api/schedules/rooms/${semester}`
+        );
+        schedules = roomSchedule.schedules;
+        break;
+      case "section":
+        const { data: sectionSchedule } = await axios.get(
+          `/api/schedules/sections/${semester}/${programView.val()}`
+        );
+        schedules = sectionSchedule.schedules;
+        break;
+      default:
+        break;
+    }
+    const wb = XLSX.utils.book_new();
+    let title;
+    for (let i = 0; i < schedules.length; i++) {
+      let headers;
+      switch (caseData) {
+        case "faculty":
+          const { firstName, lastName, middleName } =
+            schedules[i].faculty.userInformation;
+          const { _id: id } = schedules[i].faculty;
+          const { facultyCode } = schedules[i].faculty.facultyInformation;
+          const facultyName = `${firstName} ${middleName} ${lastName}`;
+          const { data: facultyType } = await axios.get(
+            `/api/faculty/type/${id}`
+          );
+          title = facultyCode;
+          const { data: facultyUnits } = await axios.get(
+            `/api/schedules/faculty/units/${semester}/${id}`
+          );
+          if (schedules.length !== 0)
+            hoursCount = schedules[i].schedules
+              .map((e) => e.hour)
+              .reduce((a, b) => a + b);
+          headers = headersToDataSheets([
+            facultyCode.toUpperCase(),
+            facultyName.toUpperCase(),
+            facultyType.facultyType.toUpperCase(),
+            facultyUnits.units,
+            hoursCount,
+          ]);
+          break;
+        case "room":
+          const { _id: room } = schedules[i];
+          headers = headersToDataSheets([room.toUpperCase()]);
+          title = room;
+          break;
+        case "section":
+          const { program, level, sectionName, section } = schedules[i];
+          const yearSection = `${program} ${level}-${sectionName}`;
+          const { data: unitsCount } = await axios.get(
+            `/api/curriculums/sections/units/${section}`
+          );
+          title = yearSection.toUpperCase();
+          headers = headersToDataSheets([
+            yearSection.toUpperCase(),
+            `UNITS: ${unitsCount.count.totalUnits}`,
+          ]);
+          break;
+        default:
+          break;
+      }
+
+      const {
+        data,
+        merges,
+        mergedCells,
+        lectureCell,
+        labCells,
+        overLoadCells,
+      } = schedulesToDataSheets(schedules[i].schedules, headers.length);
+      const ws = XLSX.utils.aoa_to_sheet([
+        ...headers,
+        [
+          cellData("Time"),
+          cellData(""),
+          cellData("Monday"),
+          cellData(""),
+          cellData("Tuesday"),
+          cellData(""),
+          cellData("Wednesday"),
+          cellData(""),
+          cellData("Thursday"),
+          cellData(""),
+          cellData("Friday"),
+          cellData(""),
+          cellData("Saturday"),
+          cellData(""),
+          cellData("Sunday"),
+        ],
+        ...data,
+      ]);
+      for (let i = 0; i <= headers.length - 1; i++) {
+        merges.push({
+          s: { r: i, c: 0 },
+          e: {
+            r: i,
+            c: 14,
+          },
+        });
+      }
+      ws["!merges"] = merges;
+      mergedCells.forEach((element) => {
+        element.forEach((element) => {
+          ws[element].s = {
+            alignment: {
+              horizontal: "center",
+              vertical: "top",
+              wrapText: true,
+            },
+            border: {
+              top: { style: "thick", color: { rgb: "#000000" } },
+              bottom: { style: "thick", color: { rgb: "#000000" } },
+              left: { style: "thick", color: { rgb: "#000000" } },
+              right: { style: "thick", color: { rgb: "#000000" } },
+            },
+            font: {
+              color: { rgb: "FFFFFF" },
+            },
+          };
+        });
+      });
+      lectureCell.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "007BFF" } };
+      });
+      labCells.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "0DCAF0" } };
+      });
+      overLoadCells.forEach((element) => {
+        ws[element].s.fill = { fgColor: { rgb: "DC3545" } };
+      });
+      ws["!cols"] = [
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+        { wch: 3 },
+        { wch: 20 },
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, title);
+    }
+    XLSX.writeFile(wb, `test.xlsx`);
+  } catch (error) {
+    console.log(error);
+    displayToast(error.response);
+  }
+});
+
 const getFacultySchedules = async (grouped) => {
   try {
     const url = grouped
