@@ -221,56 +221,6 @@ $(addModal._element).on("show.bs.modal", async (event) => {
     submit.addClass("disabled");
     displayToast(error.response);
   }
-
-  // fetch("/api/curriculums/school-year")
-  //   .then((response) => {
-  //     return response.json();
-  //   })
-  //   .then((result) => {
-  //     activeYear.off("change");
-  //     activeYear.append(
-  //       $("<option>--Select Year--</option>").attr({
-  //         selected: true,
-  //         disabled: true,
-  //       })
-  //     );
-  //     result.data.forEach((element) => {
-  //       activeYear.append(
-  //         new Option(element.schoolYear.toUpperCase(), element._id)
-  //       );
-  //     });
-  //     activeYear.on("change", (event) => {
-  //       fetch("/api/curriculums/semesters/" + activeYear.val())
-  //         .then((response) => {
-  //           return response.json();
-  //         })
-  //         .then((result) => {
-  //           $("#addButton").addClass("disabled");
-  //           activeSemester.empty();
-  //           activeSemester.append(
-  //             $("<option>--Select Semester--</option>").attr({
-  //               selected: true,
-  //               disabled: true,
-  //             })
-  //           );
-  //           result.data.forEach((element) => {
-  //             activeSemester.append(
-  //               new Option(element.sem.toUpperCase(), element._id)
-  //             );
-  //           });
-  //           activeSemester.removeAttr("disabled");
-  //         })
-  //         .catch((error) => {
-  //           console.error(error);
-  //         });
-  //     });
-  //     activeSemester.on("change", (event) => {
-  //       $("#addButton").removeClass("disabled");
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //   });
 });
 
 activeFacultyCard.on("click", (event) => {
@@ -727,25 +677,32 @@ $(".btn-download-calendar").on("click", async (e) => {
 $(".btn-download-all-calendar").on("click", async (e) => {
   try {
     const caseData = $(e.currentTarget).attr("case-data");
-    let schedules;
+    let schedules, filename;
     switch (caseData) {
       case "faculty":
         const { data: facultySchedule } = await axios.get(
           `/api/schedules/faculty/${semester}`
         );
         schedules = facultySchedule.schedules;
+        filename = "FACULTY SCHEDULES";
         break;
       case "room":
         const { data: roomSchedule } = await axios.get(
           `/api/schedules/rooms/${semester}`
         );
         schedules = roomSchedule.schedules;
+        filename = "ROOM SCHEDULES";
+
         break;
       case "section":
         const { data: sectionSchedule } = await axios.get(
           `/api/schedules/sections/${semester}/${programView.val()}`
         );
         schedules = sectionSchedule.schedules;
+        filename = `${programView.find(":selected").text()} ${yearView
+          .find(":selected")
+          .text()} SCHEDULES`;
+
         break;
       default:
         break;
@@ -889,7 +846,7 @@ $(".btn-download-all-calendar").on("click", async (e) => {
 
       XLSX.utils.book_append_sheet(wb, ws, title);
     }
-    XLSX.writeFile(wb, `test.xlsx`);
+    XLSX.writeFile(wb, `${filename}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -899,7 +856,7 @@ $(".btn-download-all-calendar").on("click", async (e) => {
 $(".btn-download-table").on("click", async (e) => {
   try {
     const caseData = $(e.currentTarget).attr("case-data");
-    let courses;
+    let courses, title;
     switch (caseData) {
       case "faculty":
         const { data: facultySchedule } = await axios.get(
@@ -925,7 +882,6 @@ $(".btn-download-table").on("click", async (e) => {
         courses.forEach((e) => {
           schedules.push(...e.schedules);
         });
-
         const hoursCount = schedules.map((e) => e.hour).reduce((a, b) => a + b);
         headers = headersToDataSheets([
           facultyCode.toUpperCase(),
@@ -1011,8 +967,8 @@ $(".btn-download-table").on("click", async (e) => {
       { wch: 10 },
       { wch: 40 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, "test");
-    XLSX.writeFile(wb, `${"test"}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, title);
+    XLSX.writeFile(wb, `${title}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -1022,24 +978,27 @@ $(".btn-download-table").on("click", async (e) => {
 $(".btn-download-all-table").on("click", async (e) => {
   try {
     const caseData = $(e.currentTarget).attr("case-data");
-    let sheet;
+    let sheet, filename;
     switch (caseData) {
       case "faculty":
         const { data: facultyData } = await axios.get(
           `/api/schedules/faculty/grouped/course/${semester}`
         );
         sheet = facultyData.faculty;
+        filename = `FACULTY SCHEDULES`;
         break;
       case "section":
         const { data: sectionData } = await axios.get(
           `/api/schedules/sections/grouped/course/${semester}`
         );
         sheet = sectionData.section;
+        filename = `${programView.find(":selected").text()} ${yearView
+          .find(":selected")
+          .text()} SCHEDULES`;
         break;
       default:
         break;
     }
-    console.log(sheet);
     const wb = XLSX.utils.book_new();
     for (let i = 0; i < sheet.length; i++) {
       const data = [];
@@ -1135,7 +1094,7 @@ $(".btn-download-all-table").on("click", async (e) => {
       ];
       XLSX.utils.book_append_sheet(wb, ws, title);
     }
-    XLSX.writeFile(wb, `SCHEDULES.xlsx`);
+    XLSX.writeFile(wb, `${filename}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -1280,19 +1239,6 @@ const headersToDataSheets = (headers) => {
   return headers.map((e) => [cellHeaderText(e)]);
 };
 
-const getSectionsTotalUnits = async (section) => {
-  try {
-    const sectionUnitsRequest = await fetch(
-      `/api/curriculums/sections/units/${section}`
-    );
-    const sectionUnits = await sectionUnitsRequest.json();
-    return sectionUnits.data[0].totalUnits;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
-
 const getFacultyUnitsCount = async (faculty) => {
   try {
     const unitsRequest = await fetch(
@@ -1306,203 +1252,6 @@ const getFacultyUnitsCount = async (faculty) => {
   }
 };
 
-const getFacultyType = async (faculty) => {
-  try {
-    const typeRequest = await fetch(`/api/faculty/type/${faculty}`);
-    const type = await typeRequest.json();
-    return type.data;
-  } catch (error) {
-    console.error(error);
-    return 0;
-  }
-};
-
-const downloadAllFacultyTableXLSX = async () => {
-  try {
-    const schedulesRequest = await fetch(
-      `/api/schedules/faculty/grouped/course/${semester}`
-    );
-    const schedules = await schedulesRequest.json();
-    const wb = XLSX.utils.book_new();
-    for (let i = 0; i < schedules.data.length; i++) {
-      const data = [];
-      let facultyID, facultyCode, facultyName, facultyUnits;
-      schedules.data[i].schedule.forEach((element) => {
-        data.push([
-          cellData(element.course.courseCode.toUpperCase()),
-          cellData(element.course.courseDescription.toUpperCase()),
-          cellData(element.course.units),
-          cellData(element.course.lecture),
-          cellData(element.course.lab),
-          cellData(
-            element.data
-              .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${
-                  element.endTime
-                } (${element.program.programCode.toUpperCase()}${
-                  element.level.display
-                }-${element.sectionName} ${element.room.roomName}) `;
-              })
-              .join("\n")
-          ),
-        ]);
-      });
-      facultyID = facultyView.val();
-      facultyCode = schedules.data[i].faculty.userInformation.facultyCode;
-      facultyName = `${schedules.data[i].faculty.userInformation.firstName} ${schedules.data[i].faculty.userInformation.lastName}`;
-      facultyUnits = await getFacultyUnitsCount(facultyID);
-
-      const ws = XLSX.utils.aoa_to_sheet([
-        [
-          cellHeaderText(
-            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
-          ),
-        ],
-        [cellHeaderText(facultyCode.toUpperCase())],
-        [cellHeaderText(facultyName.toUpperCase())],
-        [cellHeaderText(`${facultyUnits} UNITS`)],
-        [],
-        [
-          cellData("Course Code"),
-          cellData("Course"),
-          cellData("Units"),
-          cellData("Lecture"),
-          cellData("Lab"),
-          cellData("Schedule"),
-        ],
-        ...data,
-      ]);
-      const merges = [];
-      for (let i = 0; i < 5; i++) {
-        merges.push({
-          s: { r: i, c: 0 },
-          e: {
-            r: i,
-            c: 5,
-          },
-        });
-      }
-      ws["!merges"] = merges;
-      ws["!cols"] = [
-        { wch: 25 },
-        { wch: 30 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 40 },
-      ];
-      XLSX.utils.book_append_sheet(wb, ws, facultyCode.toUpperCase());
-    }
-    XLSX.writeFile(wb, `FACULTY SCHEDULES.xlsx`);
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something Went Wrong",
-    });
-  }
-};
-
-const downloadAllSectionTableXLSX = async () => {
-  try {
-    let programName, yearLevel, section, unitsCount;
-    const wb = XLSX.utils.book_new();
-    const schedulesRequest = await fetch(
-      `/api/schedules/section/grouped/course/${semester}`
-    );
-    const schedules = await schedulesRequest.json();
-    for (let i = 0; i < schedules.data.length; i++) {
-      const data = [];
-      schedules.data[i].schedule.forEach((element) => {
-        data.push([
-          cellData(element.course.courseCode.toUpperCase()),
-          cellData(element.course.courseDescription.toUpperCase()),
-          cellData(element.course.units),
-          cellData(element.course.lecture),
-          cellData(element.course.lab),
-          cellData(
-            `${element.data[0].faculty.userInformation.firstName.toUpperCase()} ${element.data[0].faculty.userInformation.lastName.toUpperCase()}`
-          ),
-          cellData(
-            element.data
-              .map((element) => {
-                return `${days[element.day]} ${element.startTime} - ${
-                  element.endTime
-                } (${element.program.programCode.toUpperCase()}${
-                  element.level.display
-                }-${element.sectionName} ${element.room.roomName}) `;
-              })
-              .join("\n")
-          ),
-        ]);
-      });
-      programName = schedules.data[i].schedule[0].data[0].program.programCode;
-      yearLevel = schedules.data[i].schedule[0].data[0].level.display;
-      section = schedules.data[i].schedule[0].data[0].sectionName;
-      unitsCount = await getSectionsTotalUnits(
-        schedules.data[i].schedule[0].data[0].section
-      );
-      const ws = XLSX.utils.aoa_to_sheet([
-        [
-          cellHeaderText(
-            `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
-          ),
-        ],
-        [
-          cellHeaderText(
-            `${programName.toUpperCase()} ${yearLevel} - ${section}`
-          ),
-        ],
-        [cellHeaderText(`${unitsCount} UNITS`)],
-        [],
-        [
-          cellData("Course Code"),
-          cellData("Course"),
-          cellData("Units"),
-          cellData("Lecture"),
-          cellData("Lab"),
-          cellData("Faculty"),
-          cellData("Schedule"),
-        ],
-        ...data,
-      ]);
-      const merges = [];
-      for (let i = 0; i < 4; i++) {
-        merges.push({
-          s: { r: i, c: 0 },
-          e: {
-            r: i,
-            c: 6,
-          },
-        });
-      }
-
-      ws["!merges"] = merges;
-      ws["!cols"] = [
-        { wch: 25 },
-        { wch: 40 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 10 },
-        { wch: 40 },
-        { wch: 40 },
-      ];
-      XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        `${programName.toUpperCase()} ${yearLevel} - ${section}`
-      );
-    }
-    XLSX.writeFile(wb, `${programView.find(":selected").text()}.xlsx`);
-  } catch (error) {
-    console.error(error);
-    Toast.fire({
-      icon: "warning",
-      title: "Something went wrong",
-    });
-  }
-};
-
 const cellData = (data) => {
   return {
     v: data,
@@ -1511,26 +1260,6 @@ const cellData = (data) => {
       alignment: {
         horizontal: "center",
         vertical: "top",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "#000000" } },
-        bottom: { style: "thin", color: { rgb: "#000000" } },
-        left: { style: "thin", color: { rgb: "#000000" } },
-        right: { style: "thin", color: { rgb: "#000000" } },
-      },
-    },
-  };
-};
-
-const cellHeader = (data) => {
-  return {
-    v: data,
-    t: "s",
-    s: {
-      alignment: {
-        horizontal: "right",
-        vertical: "center",
         wrapText: true,
       },
       border: {
