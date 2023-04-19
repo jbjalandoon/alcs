@@ -24,7 +24,7 @@ exports.login = async (req, res) => {
   const correctPassword = await bcrypt.compare(password, user.password);
 
   if (!correctPassword)
-    return res.redirect("authentication/login?valid=false&email=" + email);
+    return res.redirect("/authentication/login?valid=false&email=" + email);
 
   req.session.user = {
     email: user.email,
@@ -34,18 +34,13 @@ exports.login = async (req, res) => {
 
   return req.session.save((error) => {
     const { role } = req.session.user;
-
-    if (req.body.landing) {
-      return res.redirect(req.body.landing);
-    }
-    if (role === "admin") {
-      return res.redirect("/admin/dashboard");
-    }
     if (role === "superadmin") {
       return res.redirect("/admin/dashboard");
     }
     if (role === "user") {
       return res.redirect("/user/schedule");
+    } else {
+      return res.redirect("/admin/dashboard");
     }
   });
 };

@@ -375,7 +375,6 @@ exports.faculty = [
     .isAlpha("en-US", { ignore: " -" })
     .withMessage("Numbers and Special characters are not allowed")
     .trim(),
-  check("academicQualifications").notEmpty(),
 ];
 
 exports.postYearLevel = [

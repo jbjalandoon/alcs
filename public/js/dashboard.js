@@ -1101,20 +1101,6 @@ $(".btn-download-all-table").on("click", async (e) => {
   }
 });
 
-const getFacultySchedules = async (grouped) => {
-  try {
-    const url = grouped
-      ? `/api/schedules/faculty/grouped/course/${semester}/${facultyView.val()}`
-      : `/api/schedules/faculty/${semester}/${facultyView.val()}`;
-    const request = await fetch(url);
-    const response = await request.json();
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
 const schedulesToDataSheets = (schedules, skip) => {
   const times = [];
   const data = [];
