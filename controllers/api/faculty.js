@@ -249,64 +249,63 @@ exports.postSpreadsheet = async (req, res, next) => {
   }
 };
 
-exports.postSchedulePreference = (req, res, next) => {
-  Faculty.findOneAndUpdate(
-    { _id: req.params.id },
-    {
-      $push: {
-        "userInformation.schedulePreference": {
-          day: req.body.day,
-          startTime: req.body.startTime,
-          endTime: req.body.endTime,
+exports.postSchedulePreference = async (req, res, next) => {
+  try {
+    const faculty = await Faculty.findOneAndUpdate(
+      { _id: req.params.id },
+      {
+        $push: {
+          "facultyInformation.schedulePreference": {
+            day: req.body.day,
+            startTime: req.body.startTime,
+            endTime: req.body.endTime,
+          },
         },
       },
-    },
-    { new: true }
-  )
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
+      { new: true }
+    );
+
+    res.status(200).json({ msg: "Successfully added", faculty });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
-exports.putSchedulePreference = (req, res, next) => {
-  Faculty.updateOne(
-    { _id: req.params.id },
-    {
-      "userInformation.schedulePreference.$[schedule].day": req.body.day,
-      "userInformation.schedulePreference.$[schedule].startTime":
-        req.body.startTime,
-      "userInformation.schedulePreference.$[schedule].endTime":
-        req.body.endTime,
-    },
-    { arrayFilters: [{ "schedule._id": req.params.preference }] }
-  )
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
-};
-
-exports.deleteSchedulePreference = (req, res, next) => {
-  Faculty.updateOne(
-    { _id: req.params.id },
-    {
-      $pull: {
-        "userInformation.schedulePreference": { _id: req.params.preference },
+exports.putSchedulePreference = async (req, res, next) => {
+  try {
+    const faculty = await Faculty.updateOne(
+      { _id: req.params.id },
+      {
+        "facultyInformation.schedulePreference.$[schedule].day": req.body.day,
+        "facultyInformation.schedulePreference.$[schedule].startTime":
+          req.body.startTime,
+        "facultyInformation.schedulePreference.$[schedule].endTime":
+          req.body.endTime,
       },
-    }
-    // { arrayFilters: [{ "schedule._id": req.params.preference }] }
-  )
-    .then((result) => {
-      res.status(201).json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.status(500).json({ status: 500, data: error });
-    });
+      { arrayFilters: [{ "schedule._id": req.params.preference }] }
+    );
+    res.status(200).json({ msg: "Successfully edited" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
+};
+
+exports.deleteSchedulePreference = async (req, res, next) => {
+  try {
+    const faculty = await Faculty.updateOne(
+      { _id: req.params.id },
+      {
+        $pull: {
+          "facultyInformation.schedulePreference": { _id: req.params.preference },
+        },
+      }
+      // { arrayFilters: [{ "schedule._id": req.params.preference }] }
+    );
+
+    res.status(200).json({ msg: "Successfully deleted" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.sendNewPassword = async (req, res, next) => {
