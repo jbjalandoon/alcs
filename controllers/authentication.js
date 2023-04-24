@@ -2,13 +2,13 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const crypto = require("crypto");
+const { sendMail } = require("../helper/email");
 
 exports.login = async (req, res) => {
   const { method } = req;
   if (method === "GET") {
     return res.render("authentication/login");
   }
-
   const { validationResult } = require("express-validator");
 
   errors = validationResult(req);
@@ -89,35 +89,52 @@ exports.getForgotPassword = (req, res, next) => {
   return res.render("authentication/forgot");
 };
 
-exports.postForgotPassword = (req, res, next) => {
-  let token;
-  crypto.randomBytes(32, (err, buffer) => {
-    token = buffer.toString("hex");
-    return User.findOne({ email: req.body.email })
-      .then((result) => {
-        if (result == null) {
-          return Promise.reject();
+exports.postForgotPassword = async (req, res, next) => {
+  try {
+    console.log(req.body.email);
+    errors = validationResult(req);
+    console.log(errors.mapped());
+    if (!errors.isEmpty()) {
+      const mappedErrors = errors.mapped();
+      const returnErrors = [];
+      for (var key in mappedErrors) {
+        if (mappedErrors.hasOwnProperty(key)) {
+          returnErrors.push(mappedErrors[key].msg);
         }
-        result.resetToken = token;
-        result.resetTokenExpiration = Date.now() + 3600000;
-        return result.save();
-      })
-      .then((result) => {
-        const emailDetails = {
-          from: "sticaschedula@gmail.com",
-          to: req.body.email,
-          subject: "No Reply - Forgot Password",
-          html: `<a href="http://localhost:3000/authentication/reset/${token}">Link</a>`,
-        };
-        return mailTransporter.sendMail(emailDetails);
-      })
-      .then((result) => {
-        return res.redirect("/authentication/login?forgot=true");
-      })
-      .catch((error) => {
-        return res.redirect("/authentication/login?forgot=false");
-      });
-  });
+      }
+      return res
+        .status(400)
+        .json({ msg: "Validation Error", errors: returnErrors });
+    }
+    crypto.randomBytes(32, async (err, buffer) => {
+      const token = buffer.toString("hex");
+      try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+          return res
+            .status(400)
+            .json({ msg: "Validation Error", errors: ["User is not found"] });
+        }
+
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        await user.save();
+
+        const sendMailData = await sendMail(
+          email,
+          "Schedula - Password Reset",
+          `<a href="http://localhost:3000/authentication/reset/${token}">Link</a>`
+        );
+
+        res.status(200).json({ msg: "Successfully Sent" });
+      } catch (error) {
+        res.status(500).json({ msg: "Something went wrong" });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
 
 exports.reset = (req, res, next) => {
