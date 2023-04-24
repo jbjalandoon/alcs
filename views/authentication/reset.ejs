@@ -1,52 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <link rel="stylesheet" href="/assets/css/main/app.css" />
+    <link rel="stylesheet" href="/assets/css/pages/auth.css" />
+    <link
+      rel="shortcut icon"
+      href="/assets/images/logo/favicon.svg"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      href="/assets/images/logo/favicon.png"
+      type="image/png"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Password</title>
-  <link rel="stylesheet" href="/assets/css/main/app.css">
-  <link rel="stylesheet" href="/assets/css/pages/auth.css">
-  <link rel="shortcut icon" href="/assets/images/logo/favicon.svg" type="image/x-icon">
-  <link rel="shortcut icon" href="/assets/images/logo/favicon.png" type="image/png">
-</head>
-
-<body>
-  <div id="auth">
-    <div class="row h-100">
-      <div class="col-lg-5 col-12">
-        <div id="auth-left">
-          <div class="auth-logo">
-            <img src="/assets/images/logo/logo.svg" alt="Logo">
+  <body>
+    <div id="auth">
+      <div class="row h-100">
+        <div class="col-lg-5 col-12">
+          <div id="auth-left">
+            <div class="auth-logo">
+              <img src="/assets/images/logo/logo.svg" alt="Logo" />
+            </div>
+            <h1 class="auth-title">Reset Password</h1>
+            <form id="resetForm">
+              <input type="hidden" name="_csrf" id="csrf" value="<%=csrf%>" />
+              <input type="hidden" name="id" id="id" value="<%= userId %>" />
+              <div class="form-group position-relative has-icon-left mb-4">
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  class="form-control form-control-xl"
+                  placeholder="New Password"
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-person"></i>
+                </div>
+              </div>
+              <div class="form-group position-relative has-icon-left mb-4">
+                <input
+                  type="password"
+                  id="retypePassword"
+                  name="retypePassword"
+                  class="form-control form-control-xl"
+                  placeholder="Retype Password"
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-shield-lock"></i>
+                </div>
+              </div>
+              <div class="alert alert-danger d-none" id="alert">
+                <h4 class="alert-heading">Login Failed</h4>
+                <ul id="alertList"></ul>
+              </div>
+              <div class="alert alert-success d-none" id="successAlert">
+                <h4 class="alert-heading">Successfully Reset</h4>
+              </div>
+              <button
+                type="submit"
+                id="submit"
+                class="btn btn-primary btn-block btn-lg shadow-lg mt-3"
+              >
+                Submit
+              </button>
+            </form>
           </div>
-          <h1 class="auth-title">Reset Password</h1>
-          <form action="/authentication/reset" method="POST">
-            <input type="hidden" name="_csrf" value="<%=csrf%>">
-            <input type="hidden" name="id" value="<%= userId %>">
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input type="password" name="newPassword" class="form-control form-control-xl" placeholder="New Password">
-              <div class="form-control-icon">
-                <i class="bi bi-person"></i>
-              </div>
-            </div>
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input type="password" name="retypePassword" class="form-control form-control-xl" placeholder="Retype Password">
-              <div class="form-control-icon">
-                <i class="bi bi-shield-lock"></i>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-3">Submit</button>
-          </form>
         </div>
-      </div>
-      <div class="col-lg-7 d-none d-lg-block">
-        <div id="auth-right">
-
+        <div class="col-lg-7 d-none d-lg-block">
+          <div id="auth-right"></div>
         </div>
       </div>
     </div>
-  </div>
-
-  <script src="/js/authentication.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/reset.js"></script>
+  </body>
 </html>

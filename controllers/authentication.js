@@ -91,9 +91,7 @@ exports.getForgotPassword = (req, res, next) => {
 
 exports.postForgotPassword = async (req, res, next) => {
   try {
-    console.log(req.body.email);
     errors = validationResult(req);
-    console.log(errors.mapped());
     if (!errors.isEmpty()) {
       const mappedErrors = errors.mapped();
       const returnErrors = [];
@@ -154,7 +152,42 @@ exports.reset = (req, res, next) => {
     .catch((error) => {});
 };
 
-exports.postReset = (req, res, next) => {
+exports.postReset = async (req, res, next) => {
+  try {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const mappedErrors = errors.mapped();
+      const returnErrors = [];
+      for (var key in mappedErrors) {
+        if (mappedErrors.hasOwnProperty(key)) {
+          returnErrors.push(mappedErrors[key].msg);
+        }
+      }
+      return res
+        .status(400)
+        .json({ msg: "Validation Error", errors: returnErrors });
+    }
+
+    if (req.body.newPassword !== req.body.retypePassword) {
+      return res
+        .status(400)
+        .json({ msg: "Validation Error", errors: ["Password not match"] });
+    }
+
+    const password = await bcrypt.hash(req.body.newPassword, 12);
+    const user = await User.updateOne(
+      { _id: req.body.id },
+      {
+        password: password,
+        resetToken: null,
+        resetTokenExpiration: null,
+      }
+    );
+
+    return res.status(200).json({ msg: "Successfully reset" });
+  } catch (error) {
+    res.status(500).json({ msg: "Something went wrong" });
+  }
   bcrypt
     .hash(req.body.newPassword, 12)
     .then((password) => {

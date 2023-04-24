@@ -18,3 +18,14 @@ exports.forgot = [
     .isEmail()
     .withMessage("Please enter valid email"),
 ];
+
+exports.reset = [
+  check("newPassword")
+    .not()
+    .isEmpty()
+    .withMessage("New Password field is required"),
+  check("retypePassword")
+    .not()
+    .isEmpty()
+    .withMessage("Retype Password field is required"),
+];

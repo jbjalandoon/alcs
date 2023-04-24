@@ -11,7 +11,7 @@ router.post("/login", validation.login, authentication.login);
 router.get("/forgot", authentication.getForgotPassword);
 router.post("/forgot", validation.forgot, authentication.postForgotPassword);
 router.get("/reset/:token", authentication.reset);
-router.post("/reset", authentication.postReset);
+router.post("/reset", validation.reset, authentication.postReset);
 
 router.put("/password", authentication.changePassword);
 

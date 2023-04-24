@@ -1,29 +1,33 @@
-const form = document.querySelector("#forgotForm");
+const form = document.querySelector("#resetForm");
 const submit = document.querySelector("#submit");
 const alert = document.querySelector("#alert");
 const successAlert = document.querySelector("#successAlert");
 const alertList = document.querySelector("#alertList");
 const csrf = document.querySelector("#csrf");
+
 form.addEventListener("submit", async (e) => {
   try {
     e.preventDefault();
+    submit.innerHTML = "Submitting...";
+    submit.classList.add("disabled");
     alert.classList.add("d-none");
     successAlert.classList.add("d-none");
-    submit.innerHTML = "Sending...";
-    submit.classList.add("disabled");
-
-    const email = document.querySelector("#email");
-
+    const newPassword = document.querySelector("#newPassword");
+    const retypePassword = document.querySelector("#retypePassword");
+    const id = document.querySelector("#id");
     const { data, status } = await axios.post(
-      `/authentication/forgot`,
+      `/authentication/reset`,
       {
-        email: email.value,
+        newPassword: newPassword.value,
+        retypePassword: retypePassword.value,
+        id: id.value,
       },
       { headers: { "csrf-token": csrf.value } }
     );
 
-    successAlert.classList.remove("d-none");
+    window.location.replace('/authentication/login')
   } catch (error) {
+    console.log(error);
     alertList.innerHTML = "";
     if (error.response.status === 400) {
       error.response.data.errors.forEach((e) => {
@@ -34,7 +38,7 @@ form.addEventListener("submit", async (e) => {
     }
     alert.classList.remove("d-none");
   } finally {
-    submit.innerHTML = "Send";
+    submit.innerHTML = "Submit";
     submit.classList.remove("disabled");
   }
 });
