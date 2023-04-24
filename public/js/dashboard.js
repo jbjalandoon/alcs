@@ -128,13 +128,16 @@ const activeFacultyCard = $("#activeFacultyCard");
         )
       );
     });
-
-    facultyView.trigger("change");
+    if(activeFaculty.faculty.length !== 0) {
+      facultyView.trigger("change");
+    }
 
     activeRoom.rooms.forEach((element) => {
       roomView.append(new Option(element._id.toUpperCase(), element._id));
     });
-    roomView.trigger("change");
+    if(activeRoom.rooms.length !== 0) {
+      roomView.trigger("change");
+    }
     const { data: programData } = await axios.get(
       `/api/curriculums/programs/${semester}`
     );
@@ -144,7 +147,9 @@ const activeFacultyCard = $("#activeFacultyCard");
         new Option(element.program.programCode.toUpperCase(), element._id)
       );
     });
-    programView.trigger("change");
+    if(programData.programs.length !== 0) {
+      programView.trigger("change");
+    } 
   } catch (error) {
     console.error(error);
     displayToast(error.response);

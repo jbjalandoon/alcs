@@ -1,59 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link rel="stylesheet" href="/assets/css/main/app.css" />
+    <link rel="stylesheet" href="/assets/css/pages/auth.css" />
+    <link
+      rel="shortcut icon"
+      href="/assets/images/logo/favicon.svg"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      href="/assets/images/logo/favicon.png"
+      type="image/png"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <link rel="stylesheet" href="/assets/css/main/app.css">
-  <link rel="stylesheet" href="/assets/css/pages/auth.css">
-  <link rel="shortcut icon" href="/assets/images/logo/favicon.svg" type="image/x-icon">
-  <link rel="shortcut icon" href="/assets/images/logo/favicon.png" type="image/png">
-</head>
-
-<body>
-  <div id="auth">
-    <div class="row h-100">
-      <div class="col-lg-5 col-12">
-        <div id="auth-left">
-          <div class="auth-logo">
-            <img src="/assets/images/logo/logo.svg" class="img-fluid" alt="Logo">
-          </div>
-          <h1 class="auth-title">Log in</h1>
-          <form action="/authentication/login" method="POST">
-            <input type="hidden" name="_csrf" value="<%=csrf%>">
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input type="text" name="email" class="form-control form-control-xl" placeholder="Email">
-              <div class="form-control-icon">
-                <i class="bi bi-person"></i>
+  <body>
+    <div id="auth">
+      <div class="row h-100">
+        <div class="col-lg-5 col-12">
+          <div id="auth-left">
+            <div class="auth-logo">
+              <img
+                src="/assets/images/logo/logo.svg"
+                class="img-fluid"
+                alt="Logo"
+              />
+            </div>
+            <h1 class="auth-title">Log in</h1>
+            <form id="loginForm">
+              <input type="hidden" name="_csrf" id="csrf" value="<%=csrf%>" />
+              <div class="form-group position-relative has-icon-left mb-4">
+                <input
+                  type="text"
+                  name="email"
+                  class="form-control form-control-xl"
+                  placeholder="Email"
+                  id="email"
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-person"></i>
+                </div>
               </div>
-            </div>
-            <div class="form-group position-relative has-icon-left mb-4">
-              <input type="password" name="password" class="form-control form-control-xl" placeholder="Password">
-              <div class="form-control-icon">
-                <i class="bi bi-shield-lock"></i>
+              <div class="form-group position-relative has-icon-left mb-4">
+                <input
+                  type="password"
+                  name="password"
+                  class="form-control form-control-xl"
+                  placeholder="Password"
+                  id="password"
+                />
+                <div class="form-control-icon">
+                  <i class="bi bi-shield-lock"></i>
+                </div>
               </div>
+              <div class="alert alert-danger d-none" id="alert">
+                <h4 class="alert-heading">Login Failed</h4>
+                <ul id="alertList"></ul>
+              </div>
+              <button
+                class="btn btn-primary btn-block btn-lg shadow-lg mt-3"
+                id="submit"
+                type="submit"
+              >
+                Log in
+              </button>
+            </form>
+            <div class="text-center mt-3 text-lg fs-4">
+              <p>
+                <a class="font-bold" href="/authentication/forgot"
+                  >Forgot password?</a
+                >
+              </p>
             </div>
-            <div class="alert alert-danger d-none" id="alert">
-              <h4 class="alert-heading">Login Failed</h4>
-              <p>Email or Password is incorrect</p>
-            </div>
-            <button class="btn btn-primary btn-block btn-lg shadow-lg mt-3">Log in</button>
-          </form>
-          <div class="text-center mt-3 text-lg fs-4">
-            <p><a class="font-bold" href="/authentication/forgot">Forgot password?</a></p>
           </div>
         </div>
-      </div>
-      <div class="col-lg-7 d-none d-lg-block">
-        <div id="auth-right">
-
+        <div class="col-lg-7 d-none d-lg-block">
+          <div id="auth-right"></div>
         </div>
       </div>
     </div>
-  </div>
-
-  <script src="/js/authentication.js"></script>
-</body>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/authentication.js"></script>
+  </body>
 </html>

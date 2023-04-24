@@ -68,9 +68,8 @@ $(addModal._element).on("show.bs.modal", (event) => {
       displayToast({ status, data });
     } catch (error) {
       console.log(error);
-      console.log(error.response.data.errors);
-      displayValidationError(error.response.data.errors, event.currentTarget);
       displayToast(error.response);
+      displayValidationError(error.response.data.errors, event.currentTarget);
     } finally {
       buttons.removeClass("disabled");
       submit.html("Submit");

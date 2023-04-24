@@ -473,7 +473,7 @@ const viewSchedule = async (info) => {
         schedule.endTime
       } (${schedule.room.toUpperCase()}${
         schedule.faculty
-          ? "/" + schedule.faculty.userInformation.facultyCode.toUpperCase()
+          ? "/" + schedule.faculty.facultyInformation.facultyCode.toUpperCase()
           : ""
       })`,
       width: "50%",

@@ -6,42 +6,59 @@ const crypto = require("crypto");
 exports.login = async (req, res) => {
   const { method } = req;
   if (method === "GET") {
-    return res.render("authentication/login", {
-      landing: req.query.landing,
-    });
+    return res.render("authentication/login");
+  }
+
+  const { validationResult } = require("express-validator");
+
+  errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const mappedErrors = errors.mapped();
+    const returnErrors = [];
+    for (var key in mappedErrors) {
+      if (mappedErrors.hasOwnProperty(key)) {
+        returnErrors.push(mappedErrors[key].msg);
+      }
+    }
+    return res
+      .status(400)
+      .json({ msg: "Validation Error", errors: returnErrors });
   }
 
   const { email, password } = req.body;
   const user = await User.findOne({
     email: email,
   }).select("+password");
+
   if (!user) {
-    return res.redirect(
-      "/authentication/login/?valid=false&email=" + req.body.email
-    );
+    return res
+      .status(400)
+      .json({ msg: "Validation Error", errors: ["User is not found"] });
   }
 
   const correctPassword = await bcrypt.compare(password, user.password);
 
   if (!correctPassword)
-    return res.redirect("/authentication/login?valid=false&email=" + email);
+    return res
+      .status(400)
+      .json({ msg: "Validation Error", errors: ["Incorrect Password"] });
 
   req.session.user = {
     email: user.email,
     userId: user._id,
     role: user.role,
   };
-
   return req.session.save((error) => {
     const { role } = req.session.user;
-    if (role === "superadmin") {
-      return res.redirect("/admin/dashboard");
-    }
-    if (role === "user") {
-      return res.redirect("/user/schedule");
-    } else {
-      return res.redirect("/admin/dashboard");
-    }
+    res.status(200).json({ role });
+    // if (role === "superadmin") {
+    //   return res.redirect("/admin/dashboard");
+    // }
+    // if (role === "user") {
+    //   return res.redirect("/user/schedule");
+    // } else {
+    //   return res.redirect("/admin/dashboard");
+    // }
   });
 };
 
@@ -117,8 +134,7 @@ exports.reset = (req, res, next) => {
       }
       return res.redirect("/authentication/login");
     })
-    .catch((error) => {
-    });
+    .catch((error) => {});
 };
 
 exports.postReset = (req, res, next) => {

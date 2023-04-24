@@ -59,6 +59,7 @@ exports.post = async (req, res, next) => {
       .status(200)
       .json({ msg: "Academic Qualification Succcessfully Added", aq });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong", error });
   }
 };

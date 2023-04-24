@@ -147,7 +147,6 @@ $(addModal._element).on("show.bs.modal", async (event) => {
     form.off("submit");
     form.on("submit", async (formEvent) => {
       try {
-        alert("test");
         formEvent.preventDefault();
         submit.html("Submitting...");
         buttons.addClass("disabled");

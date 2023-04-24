@@ -36,10 +36,9 @@ exports.post = async (req, res, next) => {
     });
     let newYearLevel;
     if (existingYearLevel) {
-      existingYearLevel = {
-        deleted: false,
-      };
-
+      existingYearLevel.deleted = false;
+      existingYearLevel.yearLevel = yearLevel;
+      existingYearLevel.display = display;
       newYearLevel = await existingYearLevel.save();
     } else {
       newYearLevel = await new Level({
@@ -51,6 +50,7 @@ exports.post = async (req, res, next) => {
       .status(201)
       .json({ msg: "Year level successfully added", yearLevel: newYearLevel });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
   }
 };
@@ -76,7 +76,10 @@ exports.edit = async (req, res, next) => {
 exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const yearLevel = await Level.findOneAndUpdate({ _id: id }, { deleted: true });
+    const yearLevel = await Level.findOneAndUpdate(
+      { _id: id },
+      { deleted: true }
+    );
     res.status(200).json({ msg: "Year level successfully deleted" });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });

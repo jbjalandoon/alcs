@@ -215,7 +215,7 @@ exports.postSpreadsheet = async (req, res, next) => {
         units: element[4],
         lecture: element[5],
         lab: element[6],
-        qualification : {
+        qualification: {
           experience: element[7],
           degree: element[8],
           academicQualification: aq,

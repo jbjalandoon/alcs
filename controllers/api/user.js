@@ -62,7 +62,9 @@ exports.post = async (req, res, next) => {
       password
     );
 
-    res.status(201).json({ user, sendMailData });
+    res
+      .status(201)
+      .json({ msg: "User successfully added", user, sendMailData });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "Something went wrong", error });
@@ -86,7 +88,7 @@ exports.edit = async (req, res, next) => {
       { new: true }
     );
 
-    res.status(200).json({ user });
+    res.status(200).json({ msg: "User successfully edited", user });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "Something went wrong" });
@@ -98,7 +100,7 @@ exports.delete = async (req, res, next) => {
     const { id } = req.params;
     const user = await User.findOneAndUpdate({ _id: id }, { deleted: true });
 
-    res.status(204).json({ msg: "User Successfully Deleted", user });
+    res.status(200).json({ msg: "User Successfully Deleted", user });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
   }

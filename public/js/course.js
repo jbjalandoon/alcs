@@ -319,7 +319,7 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
       formEvent.preventDefault();
       const file = $(event.currentTarget).find("#spreadsheet")[0].files[0];
       buttons.addClass("disabled");
-      submit.html("Submit");
+      submit.html("submitting...");
       const body = new FormData();
       body.append("spreadsheet", file);
 
@@ -340,7 +340,7 @@ $(uploadModal._element).on("show.bs.modal", (event) => {
       }
       displayToast(error.response);
     } finally {
-      submit.html("Uploading...");
+      submit.html("Submit");
       buttons.removeClass("disabled");
     }
   });

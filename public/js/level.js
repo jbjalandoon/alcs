@@ -41,7 +41,7 @@ $(addModal._element).on("show.bs.modal", (event) => {
       const { data, status } = await axios.post(
         "/api/levels",
         {
-          yearLevel: display.val().toLowerCase(),
+          yearLevel: yearLevel.val().toLowerCase(),
           display: display.val().toLowerCase(),
         },
         { headers: { "csrf-token": csrf } }

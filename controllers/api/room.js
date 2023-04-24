@@ -78,56 +78,40 @@ exports.delete = async (req, res, next) => {
   }
 };
 
-exports.postSpreadsheet = (req, res, next) => {
-  // try {
-  //   const { buffer } = req.file;
-  //   const rows = await readXlsxFile(Buffer.from(buffer));
-  //   rows.forEach((e, i) => {
-  //     const roomName = e[0];
-  //     const isLaboratory = e[1];
-  //   });
-  // } catch (error) {
-  //   res.status(500).json({ msg: "Something went wrong" });
-  // }
-  let data;
-  readXlsxFile(Buffer.from(req.file.buffer))
-    .then((rows) => {
-      rows.shift();
-      // rows.map((element) => {
-      //   return {
-      //     updateOne: {
-      //       filter: { courseCode: e.courseCode },
-      //       update: e,
-      //       upsert: true,
-      //     },
-      //   };
-      //   return {
-      //     roomName: element[0],
-      //     laborator: element[1] === "TRUE" ? true : false,
-      //   };
-      // });
-      return Room.bulkWrite(
-        rows.map((element) => {
-          return {
-            updateOne: {
-              filter: { roomName: element[0] },
-              update: {
-                roomName: element[0],
-                laboratory: element[1],
-              },
-              upsert: true,
-            },
-          };
-        })
-      );
-    })
-    .then((result) => {
-      return Room.find({ deleted: false });
-    })
-    .then((result) => {
-      res.json({ status: 201, data: result });
-    })
-    .catch((error) => {
-      res.json({ status: 500, data: error });
+exports.postSpreadsheet = async (req, res, next) => {
+  try {
+    console.log(req.file);
+    const { buffer } = req.file;
+    const rows = await readXlsxFile(Buffer.from(buffer));
+    rows.shift();
+    const data = rows.map((e) => {
+      const roomName = e[0];
+      const isLaboratory = e[1];
+
+      return {
+        roomName,
+        isLaboratory,
+      };
     });
+
+    await Room.bulkWrite(
+      data.map((e) => {
+        return {
+          updateOne: {
+            filter: { roomName: e.roomName },
+            update: {
+              roomName: e.roomName,
+              isLaboratory: e.isLaboratory,
+            },
+            upsert: true,
+          },
+        };
+      })
+    );
+
+    res.status(200).json({ msg: "Successfully Added" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Something went wrong" });
+  }
 };
