@@ -128,14 +128,14 @@ const activeFacultyCard = $("#activeFacultyCard");
         )
       );
     });
-    if(activeFaculty.faculty.length !== 0) {
+    if (activeFaculty.faculty.length !== 0) {
       facultyView.trigger("change");
     }
 
     activeRoom.rooms.forEach((element) => {
       roomView.append(new Option(element._id.toUpperCase(), element._id));
     });
-    if(activeRoom.rooms.length !== 0) {
+    if (activeRoom.rooms.length !== 0) {
       roomView.trigger("change");
     }
     const { data: programData } = await axios.get(
@@ -147,9 +147,9 @@ const activeFacultyCard = $("#activeFacultyCard");
         new Option(element.program.programCode.toUpperCase(), element._id)
       );
     });
-    if(programData.programs.length !== 0) {
+    if (programData.programs.length !== 0) {
       programView.trigger("change");
-    } 
+    }
   } catch (error) {
     console.error(error);
     displayToast(error.response);
@@ -614,6 +614,8 @@ $(".btn-download-calendar").on("click", async (e) => {
         cellData("Sunday"),
       ],
       ...data,
+      [],
+      ...footerToDataSheets("calendar"),
     ]);
     for (let i = 0; i <= headers.length - 1; i++) {
       merges.push({
@@ -672,8 +674,8 @@ $(".btn-download-calendar").on("click", async (e) => {
       { wch: 20 },
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, title);
-    XLSX.writeFile(wb, `${title}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, title.toUpperCase());
+    XLSX.writeFile(wb, `${title.toUpperCase()}.xlsx`);
   } catch (error) {
     displayToast(error.response);
   }
@@ -791,6 +793,8 @@ $(".btn-download-all-calendar").on("click", async (e) => {
           cellData("Sunday"),
         ],
         ...data,
+        [],
+        ...footerToDataSheets("calendar"),
       ]);
       for (let i = 0; i <= headers.length - 1; i++) {
         merges.push({
@@ -849,9 +853,9 @@ $(".btn-download-all-calendar").on("click", async (e) => {
         { wch: 20 },
       ];
 
-      XLSX.utils.book_append_sheet(wb, ws, title);
+      XLSX.utils.book_append_sheet(wb, ws, title.toUpperCase());
     }
-    XLSX.writeFile(wb, `${filename}.xlsx`);
+    XLSX.writeFile(wb, `${filename.toUpperCase()}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -951,6 +955,8 @@ $(".btn-download-table").on("click", async (e) => {
         cellData("Schedule"),
       ],
       ...data,
+      [],
+      ...footerToDataSheets("table"),
     ]);
     const merges = [];
     for (let i = 0; i < headers.length; i++) {
@@ -972,8 +978,8 @@ $(".btn-download-table").on("click", async (e) => {
       { wch: 10 },
       { wch: 40 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, title);
-    XLSX.writeFile(wb, `${title}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, title.toUpperCase());
+    XLSX.writeFile(wb, `${title.toUpperCase()}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -1077,6 +1083,8 @@ $(".btn-download-all-table").on("click", async (e) => {
           cellData("Schedule"),
         ],
         ...data,
+        [],
+        ...footerToDataSheets("table"),
       ]);
       const merges = [];
       for (let i = 0; i < headers.length; i++) {
@@ -1097,9 +1105,9 @@ $(".btn-download-all-table").on("click", async (e) => {
         { wch: 10 },
         { wch: 40 },
       ];
-      XLSX.utils.book_append_sheet(wb, ws, title);
+      XLSX.utils.book_append_sheet(wb, ws, title.toUpperCase());
     }
-    XLSX.writeFile(wb, `${filename}.xlsx`);
+    XLSX.writeFile(wb, `${filename.toUpperCase()}.xlsx`);
   } catch (error) {
     console.log(error);
     displayToast(error.response);
@@ -1228,6 +1236,50 @@ const headersToDataSheets = (headers) => {
     `SY ${schoolYearName.toUpperCase()} ${semesterName.toUpperCase()} SEM`
   );
   return headers.map((e) => [cellHeaderText(e)]);
+};
+
+const footerToDataSheets = (variation) => {
+  const footerData = [];
+  const userName = $("#userName").val();
+  if (variation === "calendar") {
+    footerData.push([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Prepared By:",
+      "",
+    ]);
+    footerData.push([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      userName.toUpperCase(),
+      "",
+    ]);
+  } else {
+    footerData.push(["", "", "", "", "", "Prepared By:"]);
+    footerData.push(["", "", "", "", "", userName.toUpperCase()]);
+  }
+
+  return footerData;
 };
 
 const getFacultyUnitsCount = async (faculty) => {

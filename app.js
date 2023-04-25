@@ -13,7 +13,7 @@ const db_uri = process.env.DB;
 const apiRoutes = require("./routes/api");
 const curriculumRoutes = require("./routes/curriculum");
 const dashboardRoutes = require("./routes/dashboard");
-const http = require('http');
+const http = require("http");
 
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
@@ -59,6 +59,7 @@ app.use((req, res, next) => {
   res.locals.csrf = req.csrfToken();
   res.locals.isActive = req.session.user ? true : false;
   res.locals.email = req.session.user?.email;
+  res.locals.name = req.session.user?.name;
   res.locals.userId = req.session.user?.userId;
   res.locals.role = req.session.user?.role;
   res.locals.errorMessage = req.flash("errorMessage")[0];
@@ -83,7 +84,7 @@ app.use("/api", apiRoutes, maintenanceRoutes);
 app.use("/api/curriculums", curriculumRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/schedules", scheduleRoutes);
-app.use("/", get404);
+app.use("/", validateAuthentication, get404);
 
 mongoose.set("strictQuery", false);
 /* SERVER INITIALIZATION */

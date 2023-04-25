@@ -45,6 +45,7 @@ exports.login = async (req, res) => {
 
   req.session.user = {
     email: user.email,
+    name: `${user.userInformation.firstName} ${user.userInformation.middleName} ${user.userInformation.lastName}`,
     userId: user._id,
     role: user.role,
   };

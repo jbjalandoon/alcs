@@ -1,4 +1,5 @@
 exports.validateAuthentication = (req, res, next) => {
+  console.log(res.locals.isActive);
   if (res.locals.isActive) {
     next();
   } else {
