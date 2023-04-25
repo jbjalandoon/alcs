@@ -113,6 +113,26 @@ server.listen(port, async () => {
           socket.leave(section);
         }
       });
+      socket.on("joinFaculty", (faculty) => {
+        console.log(`joined faculty - ${faculty} `);
+        socket.join(faculty);
+      });
+      socket.on("leaveFaculty", (faculty) => {
+        if (faculty) {
+          console.log(`leaved faculty - ${faculty} `);
+          socket.leave(faculty);
+        }
+      });
+      socket.on("joinCourse", (course) => {
+        console.log(`joined course - ${course} `);
+        socket.join(course);
+      });
+      socket.on("leaveCourse", (course) => {
+        if (course) {
+          console.log(`leaved course - ${course} `);
+          socket.leave(course);
+        }
+      });
     });
   } catch (error) {
     console.log(error);

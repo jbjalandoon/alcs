@@ -8,6 +8,18 @@ let totalUnit,
 let maxUnits, maxHours;
 let unavailableTime = [];
 let courseValue;
+const urlHost = window.location.hostname;
+const socket = io(`http://${urlHost}:3000`, {
+  autoConnect: false,
+  reconnection: true,
+  reconnectionDelay: 0,
+  reconnectionDelayMax: 500,
+  reconnectionAttempts: 99999,
+});
+
+let previousFaculty = "";
+let previousCourse = "";
+
 const courseSearch = $("#courseSearch");
 const calendarContainer = document.querySelector("#calendarContainer");
 const config = {
@@ -83,13 +95,12 @@ const config = {
             {
               headers: {
                 "csrf-token": csrf,
+                faculty: faculty.val(),
                 isOverload:
                   unitsCount - info.event.extendedProps.units >= maxUnits,
               },
             }
           );
-          faculty.trigger("change");
-          courseValue = courseSearch.val();
           displayToast({ data, status });
         }
       }
@@ -98,93 +109,6 @@ const config = {
       console.log(error);
       displayToast(error.response);
     }
-    // fetch()
-    //   .then((response) => {
-    //     return response.json();
-    //   })
-    //   .then((result) => {
-    //     deleteEvents.push(info.event);
-    //     calendar.getEvents().forEach((element) => {
-    //       const sameID = element.id !== info.event.id;
-    //       const sameProgram =
-    //         element.extendedProps.program === eventInfo.program;
-    //       const sameYear = element.extendedProps.year === eventInfo.year;
-    //       const sameSection =
-    //         element.extendedProps.section === eventInfo.section;
-    //       const sameCourse = element.extendedProps.course === eventInfo.course;
-
-    //       if (sameID && sameProgram && sameYear && sameSection && sameCourse) {
-    //         deleteEvents.push(element);
-    //       }
-    //     });
-    //     Swal.fire({
-    //       icon: "info",
-    //       title: `${result.data.course.courseCode.toUpperCase()} (${result.data.program.programCode.toUpperCase()} ${
-    //         result.data.level.display
-    //       }-${result.data.sectionName})- ${result.data.type.toUpperCase()}`,
-    //       text: `${days[result.data.day]} ${result.data.startTime} - ${
-    //         result.data.endTime
-    //       } (${result.data.room.roomName.toUpperCase()}${
-    //         result.data.faculty
-    //           ? "/" +
-    //             result.data.faculty.userInformation.facultyCode.toUpperCase()
-    //           : ""
-    //       })`,
-    //       width: "50%",
-    //       showCancelButton: true,
-    //       showDenyButton: true,
-    //       showConfirmButton: false,
-    //       denyButtonText: `Remove`,
-    //       cancelButtonText: `Close`,
-    //     }).then((clicked) => {
-    //       if (clicked.isDenied) {
-    //         Swal.fire({
-    //           title: "Are you sure?",
-    //           text: "You won't be able to revert this!",
-    //           icon: "warning",
-    //           showCancelButton: true,
-    //           confirmButtonColor: "#3085d6",
-    //           cancelButtonColor: "#d33",
-    //           confirmButtonText: "Yes, delete it!",
-    //           preConfirm: () => {
-    //             return fetch(
-    //               "/api/schedules/unassign/" + deleteEvents.map((e) => e.id),
-    //               {
-    //                 method: "DELETE",
-    //                 headers: {
-    //                   "csrf-token": csrf,
-    //                   isOverload:
-    //                     unitsCount - info.event.extendedProps.units >= maxUnits,
-    //                 },
-    //               }
-    //             )
-    //               .then((response) => {
-    //                 return response.json();
-    //               })
-    //               .catch((error) => {
-    //                 console.log(error);
-    //               });
-    //           },
-    //         }).then((clicked) => {
-    //           if (clicked.isConfirmed) {
-    //             courseValue = courseSearch.val();
-    //             faculty.trigger("change");
-    //             Toast.fire({
-    //               icon: "success",
-    //               title: "Successfully Removed",
-    //             });
-    //           }
-    //         });
-    //       }
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     Toast.fire({
-    //       icon: "error",
-    //       title: "Something went wrong",
-    //     });
-    //   });
   },
   // eventDidMount: (info) => {
   //   if (info.event.display === "background") {
@@ -418,6 +342,7 @@ $(facultyModal._element).on("show.bs.modal", async (event) => {
 
 faculty.on("change", async (e) => {
   try {
+    socket.connect();
     const facultyValue = e.currentTarget.value;
     sameDayHours.fill(0);
     $("#courseList").empty();
@@ -503,6 +428,11 @@ faculty.on("change", async (e) => {
     if (courseSearch.has("option").length !== 0) {
       courseSearch.trigger("change");
     }
+
+    socket.emit("leaveFaculty", previousFaculty);
+    socket.emit("joinFaculty", facultyValue);
+
+    previousFaculty = facultyValue;
   } catch (error) {
     console.error(error);
     displayToast(error.response);
@@ -520,6 +450,11 @@ courseSearch.on("change", async (e) => {
     schedules.forEach((element) => {
       renderSchedules(element);
     });
+
+    socket.emit("leaveCourse", previousCourse);
+    socket.emit("joinCourse", courseValue);
+
+    previousCourse = courseValue;
   } catch (error) {
     console.error(error);
     displayToast(error.response);
@@ -685,12 +620,7 @@ const assignFaculty = async (eventArgs) => {
     });
 
     if (isConfirmed) {
-      const { data, status } = await axios.put(
-        `/api/schedules/faculty/load/${schedules}`,
-        { faculty: faculty.val(), isOverload: aboveMax },
-        { headers: { "csrf-token": csrf } }
-      );
-
+      const events = [];
       courseList.each(function (i, obj) {
         const button = $(obj);
 
@@ -700,7 +630,7 @@ const assignFaculty = async (eventArgs) => {
         } else {
           color = "#DC3545";
         }
-        calendar.addEvent({
+        events.push({
           id: button.attr("id"),
           hourDuration: button.attr("hourDuration"),
           daysOfWeek: [button.attr("daysOfWeek")],
@@ -723,10 +653,18 @@ const assignFaculty = async (eventArgs) => {
         units = parseInt(button.attr("units"));
       });
       unitsCount += units;
-
-      $("#spanUnits").html(unitsCount);
-      $("#spanHours").html(hoursCount);
-      courseSearch.trigger("change");
+      const { data, status } = await axios.put(
+        `/api/schedules/faculty/load/${schedules}`,
+        {
+          faculty: faculty.val(),
+          courseSearch: courseSearch.val(),
+          isOverload: aboveMax,
+          events,
+          unitsCount,
+          hoursCount,
+        },
+        { headers: { "csrf-token": csrf } }
+      );
       calendar.getEvents().forEach((element) => {
         if (element.extendedProps.preview) {
           element.remove();
@@ -740,6 +678,23 @@ const assignFaculty = async (eventArgs) => {
     displayToast(error.response);
   }
 };
+
+socket.on("loadFaculty", (data) => {
+  const { events, units, hours } = data;
+  events.forEach((e) => calendar.addEvent(e));
+  $("#spanUnits").html(units);
+  $("#spanHours").html(hours);
+  courseSearch.trigger("change");
+});
+
+socket.on("deleteFacultySchedule", (data) => {
+  faculty.trigger("change");
+  courseValue = courseSearch.val();
+});
+
+socket.on("resetCourse", (data) => {
+  courseSearch.trigger("change");
+});
 
 const previewSchedule = (event) => {
   const courseList = $(event.currentTarget).parent().find("ul").children();

@@ -429,7 +429,13 @@ exports.loadSchedule = async (req, res, next) => {
         ],
       }
     );
-
+    io.getIO().to(req.body.faculty).emit("loadFaculty", {
+      events: req.body.events,
+      units: req.body.unitsCount,
+      hours: req.body.hoursCount,
+    });
+    console.log(req.body.courseSearch);
+    io.getIO().to(req.body.courseSearch).emit("resetCourse");
     res.status(200).json({ msg: "Successfully Loaded" });
   } catch (error) {
     res.status(500).json({ msg: "Something went wrong" });
@@ -468,7 +474,7 @@ exports.unloadSchedule = async (req, res, next) => {
         ],
       }
     );
-
+    io.getIO().to(req.headers.faculty).emit("deleteFacultySchedule");
     res.status(200).json({ msg: "Successfully unloaded the schedule" });
   } catch (error) {
     console.log(error);
