@@ -593,7 +593,7 @@ $(".btn-download-calendar").on("click", async (e) => {
     }
     const wb = XLSX.utils.book_new();
     const { data, merges, mergedCells, lectureCell, labCells, overLoadCells } =
-      schedulesToDataSheets(schedules, headers.length);
+      schedulesToDataSheets(schedules, headers.length, caseData);
     const ws = XLSX.utils.aoa_to_sheet([
       ...headers,
       [
@@ -677,6 +677,7 @@ $(".btn-download-calendar").on("click", async (e) => {
     XLSX.utils.book_append_sheet(wb, ws, title.toUpperCase());
     XLSX.writeFile(wb, `${title.toUpperCase()}.xlsx`);
   } catch (error) {
+    console.log(error);
     displayToast(error.response);
   }
 });
@@ -772,7 +773,7 @@ $(".btn-download-all-calendar").on("click", async (e) => {
         lectureCell,
         labCells,
         overLoadCells,
-      } = schedulesToDataSheets(schedules[i].schedules, headers.length);
+      } = schedulesToDataSheets(schedules[i].schedules, headers.length, caseData);
       const ws = XLSX.utils.aoa_to_sheet([
         ...headers,
         [
@@ -1114,7 +1115,8 @@ $(".btn-download-all-table").on("click", async (e) => {
   }
 });
 
-const schedulesToDataSheets = (schedules, skip) => {
+const schedulesToDataSheets = (schedules, skip, caseData) => {
+  console.log(caseData);
   const times = [];
   const data = [];
   const mergedCells = [];
@@ -1142,6 +1144,10 @@ const schedulesToDataSheets = (schedules, skip) => {
     "Q",
     "R",
   ];
+  const hoursPerDay = [0, 0, 0, 0, 0, 0, 0];
+  const endTimePerDay = [0, 0, 0, 0, 0, 0, 0];
+  const startTimePerDay = [0, 0, 0, 0, 0, 0, 0];
+  const roomEfficiencyPerDay = [0, 0, 0, 0, 0, 0, 0];
   for (let i = 7; i < 22; i++) {
     for (let j = 0; j < 2; j++) {
       let hour = i.toString().padStart(2, "0");
@@ -1174,7 +1180,7 @@ const schedulesToDataSheets = (schedules, skip) => {
       cellData(""),
       cellData(""),
     ];
-    schedules.forEach((element, index) => {
+    schedules.forEach((element) => {
       const course = element.course.courseCode.toUpperCase();
       const program = element.program.programCode.toUpperCase();
       const section = element.sectionName.toUpperCase();
@@ -1182,7 +1188,6 @@ const schedulesToDataSheets = (schedules, skip) => {
       const level = element.level.display.toUpperCase();
       const eventTime = element.startTime;
       const day = element.day === 0 ? 7 : element.day;
-
       if (times[i].split("-")[0] === eventTime) {
         rowData[day * 2] = {
           v: `${course}\n${program}${level}-${section}\n${room}`,
@@ -1221,13 +1226,53 @@ const schedulesToDataSheets = (schedules, skip) => {
           if (element.type === "lab" && !element.isOverload) {
             labCells.push(singleCell);
           }
+          if (caseData === "roomCalendar" || caseData === "room") {
+            if (j === i + 1 + element.hour * 2) {
+              endTimePerDay[day - 1] = times[j - 1].split("-")[0];
+            }
+            if (j === i + 2 && startTimePerDay[day - 1] === 0) {
+              startTimePerDay[day - 1] = times[i].split("-")[0];
+            }
+            hoursPerDay[day - 1] += 30 / 60;
+          }
         }
         mergedCells.push(mergeCell);
       }
     });
     data.push(rowData);
   }
-
+  if (caseData === "roomCalendar" || caseData === "room") {
+    for (let i = 0; i < 7; i++) {
+      if (startTimePerDay[i] === 0) {
+        continue;
+      }
+      const [startHours, startMinutes] = startTimePerDay[i].split(":");
+      const [endHours, endMinutes] = endTimePerDay[i].split(":");
+      const start = new Date();
+      start.setHours(startHours, startMinutes);
+      const end = new Date();
+      end.setHours(endHours, endMinutes);
+      const totalHours = Math.abs(start - end) / 36e5;
+      roomEfficiencyPerDay[i] = (hoursPerDay[i] / totalHours) * 100;
+    }
+    data.push([
+      "",
+      "",
+      `Utilization: ${roomEfficiencyPerDay[0].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[1].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[2].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[3].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[4].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[5].toFixed(2)}%`,
+      "",
+      `Utilization: ${roomEfficiencyPerDay[6].toFixed(2)}%`,
+    ]);
+  }
   return { data, merges, mergedCells, lectureCell, labCells, overLoadCells };
 };
 
