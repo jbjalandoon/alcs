@@ -1,5 +1,0 @@
-NODE_ENV = development
-DB = db_connections
-MAIL_USER = user
-MAIL_PASSWORD = password
-PORT = 3000
